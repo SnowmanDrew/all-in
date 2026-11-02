@@ -212,3 +212,50 @@ MACH.dreadTank=(c,r,o,t,atk)=>{
   c.strokeStyle='#4b5160';c.lineWidth=1;c.beginPath();c.moveTo(-r*1.0,-r*.06);c.lineTo(-r*1.06,-r*.86);c.stroke();c.fillStyle=c2;c.beginPath();c.moveTo(-r*1.06,-r*.86);c.lineTo(-r*1.06+r*(.32+Math.sin(t*9)*.05),-r*.78);c.lineTo(-r*1.06,-r*.7);c.fill();
   if(!NO_TURRET){const T=tankTurrets(o,r);for(const [x,y] of T)rouletteTurret(c,x,y,r,c1,c2,t,atk,true);}
 };
+
+/* ---- Abyssal Vault: a round vault door on kraken tentacles, an eye in the gap ---- */
+MACH.abyss=(c,r,o,t,atk)=>{
+  const c1=o.c1,c2=o.c2;
+  // tentacles
+  c.lineCap='round';for(let k=0;k<6;k++){const x0=-r*.55+k*r*.22,ph=t*6+k*1.2;c.strokeStyle=k%2?'#4c1d95':'#6d28d9';c.lineWidth=r*.16;c.beginPath();c.moveTo(x0,r*.15);
+    c.bezierCurveTo(x0+Math.sin(ph)*r*.3,r*.45,x0-Math.sin(ph+1)*r*.3,r*.7,x0+Math.sin(ph+2)*r*.25,r*.95);c.stroke();}
+  c.fillStyle='#c4b5fd';for(let k=0;k<6;k++){const x0=-r*.55+k*r*.22;c.beginPath();c.arc(x0+Math.sin(t*6+k*1.2)*r*.12,r*.55,r*.035,0,TAU);c.fill();}
+  // the door frame and the dark gap
+  const cx=0,cy=-r*.32,R=r*.66;c.fillStyle=shade(c1,-.35);c.beginPath();c.arc(cx,cy,R,0,TAU);c.fill();
+  c.fillStyle='#07040c';c.beginPath();c.arc(cx,cy,R*.86,0,TAU);c.fill();
+  // kraken eye peeking out of the gap
+  const ex=cx+R*.5,ey=cy-R*.05;c.fillStyle='#fde047';c.beginPath();c.ellipse(ex,ey,R*.24,R*.2,0,0,TAU);c.fill();c.fillStyle='#0b0612';c.beginPath();c.ellipse(ex+Math.sin(t*1.3)*R*.05,ey,R*.06,R*.16,0,0,TAU);c.fill();
+  c.strokeStyle='#6d28d9';c.lineWidth=r*.1;c.beginPath();c.moveTo(ex+R*.05,ey+R*.25);c.quadraticCurveTo(ex+R*.5,ey+R*.5,ex+R*.6,ey+R*.1);c.stroke();
+  // the door, swung slightly open
+  const open=.22+atk*.25;c.save();c.translate(cx-R*.86,cy);c.scale(1-open,1);c.translate(R*.86,0);
+  c.fillStyle=c1;c.beginPath();c.arc(0,0,R*.86,0,TAU);c.fill();c.fillStyle=shade(c1,.18);c.beginPath();c.arc(0,0,R*.7,0,TAU);c.fill();
+  c.fillStyle=c2;for(let k=0;k<12;k++){const a=k/12*TAU;c.beginPath();c.arc(Math.cos(a)*R*.78,Math.sin(a)*R*.78,R*.04,0,TAU);c.fill();}
+  c.save();c.rotate(t*.8);c.strokeStyle=shade(c1,-.3);c.lineWidth=r*.07;for(let k=0;k<3;k++){c.rotate(Math.PI/3);c.beginPath();c.moveTo(-R*.42,0);c.lineTo(R*.42,0);c.stroke();}
+  c.fillStyle=c2;for(let k=0;k<6;k++){const a=k/6*TAU;c.beginPath();c.arc(Math.cos(a)*R*.42,Math.sin(a)*R*.42,R*.06,0,TAU);c.fill();}c.restore();
+  c.fillStyle=c2;c.beginPath();c.arc(0,0,R*.14,0,TAU);c.fill();eye(c,-R*.2,-R*.34,r*.08);eye(c,R*.2,-R*.34,r*.08);c.restore();
+  // hinge + ink drips
+  c.fillStyle=shade(c1,-.45);c.fillRect(cx-R*.98,cy-R*.4,R*.14,R*.22);c.fillRect(cx-R*.98,cy+R*.18,R*.14,R*.22);
+  c.fillStyle='rgba(20,10,35,.85)';for(let k=0;k<3;k++){const ph=(t*.7+k*.33)%1;c.beginPath();c.ellipse(cx+R*(.3+k*.18),cy+R*.6+ph*r*.4,r*.04,r*(.05+ph*.04),0,0,TAU);c.fill();}
+};
+
+/* ---- Magnet Vault: a walking horseshoe magnet with a safe for a head ---- */
+MACH.magnet=(c,r,o,t,atk)=>{
+  const c1=o.c1,c2=o.c2,red='#dc2626',redD='#991b1b',R=r*.62,cy=-r*.22;
+  // it waddles on its two poles
+  c.save();c.translate(0,r*.9);c.rotate(Math.sin(t*7)*.09);c.translate(0,-r*.9);
+  const spread=atk*r*.08,arc=(w,col)=>{c.strokeStyle=col;c.lineWidth=w;c.lineCap='butt';c.beginPath();c.arc(0,cy,R,Math.PI,TAU);c.stroke();};
+  arc(r*.44,redD);arc(r*.36,red);
+  for(const sx of [-1,1]){c.save();c.translate(sx*(R+spread),cy);c.fillStyle=redD;c.fillRect(-r*.22,0,r*.44,r*.62);c.fillStyle=red;c.fillRect(-r*.18,0,r*.36,r*.62);
+    c.fillStyle='#e5e7eb';c.fillRect(-r*.22,r*.62,r*.44,r*.5);c.fillStyle='#9ca3af';c.fillRect(-r*.22,r*.62,r*.44,r*.05);c.fillStyle='#cbd5e1';c.fillRect(-r*.22,r*1.02,r*.44,r*.06);
+    c.fillStyle='#0b0612';c.font=`900 ${r*.26}px sans-serif`;c.textAlign='center';c.textBaseline='middle';c.fillText(sx<0?'N':'S',0,r*.86);c.restore();}
+  c.fillStyle='rgba(255,255,255,.3)';c.beginPath();c.arc(0,cy,R+r*.13,Math.PI*1.15,Math.PI*1.42);c.arc(0,cy,R+r*.05,Math.PI*1.42,Math.PI*1.15,true);c.fill();
+  // eyes on the arch
+  eye(c,-R*.62,cy-R*.66,r*.12);eye(c,R*.62,cy-R*.66,r*.12);
+  // little safe perched on top
+  c.fillStyle=c1;rr(c,-r*.22,cy-R-r*.5,r*.44,r*.34,r*.06);c.fill();c.fillStyle=shade(c1,-.2);rr(c,-r*.18,cy-R-r*.46,r*.36,r*.26,r*.05);c.fill();
+  c.strokeStyle=c2;c.lineWidth=1.3;c.beginPath();c.arc(-r*.03,cy-R-r*.33,r*.08,0,TAU);c.stroke();c.save();c.translate(-r*.03,cy-R-r*.33);c.rotate(t*2);c.fillStyle=c2;c.fillRect(-r*.012,-r*.08,r*.024,r*.05);c.restore();
+  c.fillStyle=c2;c.fillRect(r*.1,cy-R-r*.42,r*.04,r*.14);
+  c.restore();
+  // field lines between the poles when it pulls
+  if(atk>.15){c.strokeStyle=`rgba(239,68,68,${.35+atk*.5})`;c.lineWidth=1.2;c.setLineDash([3,3]);for(let k=1;k<=3;k++){c.beginPath();c.ellipse(0,r*.9,R*(.6+k*.25),r*(.1+k*.09),0,0,Math.PI);c.stroke();}c.setLineDash([]);}
+};
