@@ -172,7 +172,7 @@ function refreshTable(force){
     const f=p.alive?p.hp/p.maxHp:0,key=Math.round(f*20);if(el.dataset.hk!==String(key)){el.dataset.hk=key;drawMiniCasino(el.querySelector('.bld'),f,p.col);}
     el.dataset.tip=`${p.name}${p.remote||p.person&&!p.left?' (player)':p.left?' (house)':''}|Casino ${Math.ceil(p.hp)}/100|Army strength ${fmt(p.power)}${p.lastUnit?'|Last summoned: '+UNITS[p.lastUnit].name:''}${!p.alive?'|Busted on round '+p.outWave:''}${G.mp&&(p.remote||p.person&&!p.left)?'|Click to watch their casino live':''}`;
     const show=s&&s.shown&&HD&&HD.phase==='showdown',ck=show?s.cards.map(c=>c.v+c.s).join():'';const ce=q('cards');
-    if(ce.dataset.k!==ck){ce.dataset.k=ck;const si=+el.dataset.i;ce.innerHTML=show?s.cards.map((c,i)=>`<i style="animation-delay:${(si-1)*.35+i*.06}s" class="${c.s==='H'||c.s==='D'?'r':''} ${s.ev.scoring.includes(i)?'on':''}">${vn(c.v)}${SYM[c.s]}</i>`).join('')+`<em style="animation-delay:${(si-1)*.35+.35}s">${HANDS[s.ev.rank]}</em>`:'';if(show)setTimeout(()=>Snd.play('card'),(si-1)*350);}
+    if(ce.dataset.k!==ck){ce.dataset.k=ck;const si=+el.dataset.i;ce.innerHTML=show?s.cards.map((c,i)=>`<i style="animation-delay:${(si-1)*.35+i*.06}s" class="${c.s==='H'||c.s==='D'?'r':''} ${c.v>=11?'fc':''} ${s.ev.scoring.includes(i)?'on':''}"><b>${vn(c.v)}</b>${suitSVG(c.s,'cs')}</i>`).join('')+`<em style="animation-delay:${(si-1)*.35+.35}s">${HANDS[s.ev.rank]}</em>`:'';if(show)setTimeout(()=>Snd.play('card'),(si-1)*350);}
     el.classList.toggle('showing',!!show);
   });
   // my cards

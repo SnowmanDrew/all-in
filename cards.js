@@ -171,3 +171,29 @@ function numSVG(v,s){
 function cardHTML(c,i,cls){const red=c.s==='H'||c.s==='D',face=c.v>=11&&c.v<=13,ace=c.v===14;
   const idx=`${vn(c.v)}${suitSVG(c.s,'cs')}`;
   return `<div class="card ${red?'red':''} ${c.v===10?'ten':''} ${face?'face':''} ${ace?'acec':''} ${cls||''}" data-i="${i}"><div class="ci tl">${idx}</div>${face?courtSVG(c.v,c.s):ace?aceSVG(c.s):PIP_LAYOUT[c.v]?numSVG(c.v,c.s):`<div class="pip">${SYM[c.s]}</div>`}<div class="ci br">${idx}</div></div>`;}
+
+/* card back: the house design, drawn once and used by every face-down card */
+function cardBackSVG(){
+  const pink='#ff3d9a',cyan='#22e1ff',gold='#e0b040',W=116,H=168,cx=W/2,cy=H/2;
+  const lattice=[];for(let k=-H;k<W+H;k+=9){lattice.push(`M${k} 0L${k+H} ${H}`,`M${k} ${H}L${k+H} 0`);}
+  const corner=(tf)=>`<g transform="${tf}"><path d="M14 30Q14 14 30 14" stroke="${gold}" stroke-width="1.6" fill="none"/><path d="M14 40Q20 20 40 14" stroke="${gold}" stroke-width=".8" fill="none" opacity=".7"/><circle cx="16.4" cy="16.4" r="2.2" fill="${gold}"/></g>`;
+  const ray=Array.from({length:24},(_,i)=>{const a=i/24*Math.PI*2,r0=24,r1=i%2?30:34;return `M${(cx+Math.cos(a)*r0).toFixed(1)} ${(cy+Math.sin(a)*r0).toFixed(1)}L${(cx+Math.cos(a)*r1).toFixed(1)} ${(cy+Math.sin(a)*r1).toFixed(1)}`;}).join('');
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}">
+  <defs><radialGradient id="g" cx=".5" cy=".5" r=".75"><stop offset="0" stop-color="#4a1470"/><stop offset="1" stop-color="#1a0628"/></radialGradient>
+  <clipPath id="f"><rect x="9" y="9" width="${W-18}" height="${H-18}" rx="5"/></clipPath>
+  <radialGradient id="m" cx=".5" cy=".42" r=".6"><stop offset="0" stop-color="#3a0d5a"/><stop offset="1" stop-color="#14041f"/></radialGradient></defs>
+  <rect width="${W}" height="${H}" rx="12" fill="#fbf6ea"/>
+  <rect x="7" y="7" width="${W-14}" height="${H-14}" rx="6" fill="url(#g)"/>
+  <g clip-path="url(#f)"><path d="${lattice.join('')}" stroke="${pink}" stroke-width=".7" opacity=".38"/>
+    <path d="${lattice.filter((_,i)=>i%4===0).join('')}" stroke="${cyan}" stroke-width=".7" opacity=".3"/></g>
+  <rect x="9" y="9" width="${W-18}" height="${H-18}" rx="5" fill="none" stroke="${pink}" stroke-width="1.6"/>
+  <rect x="12.5" y="12.5" width="${W-25}" height="${H-25}" rx="3.5" fill="none" stroke="${gold}" stroke-width=".7" opacity=".9"/>
+  ${['',`translate(${W} 0) scale(-1 1)`,`translate(0 ${H}) scale(1 -1)`,`translate(${W} ${H}) scale(-1 -1)`].map(corner).join('')}
+  <circle cx="${cx}" cy="${cy}" r="36" fill="url(#m)" stroke="${gold}" stroke-width="1.4"/>
+  <path d="${ray}" stroke="${gold}" stroke-width="1.1" opacity=".85"/>
+  <circle cx="${cx}" cy="${cy}" r="23" fill="none" stroke="${cyan}" stroke-width="1" opacity=".8"/>
+  <path d="${SUIT_PATH.S}" transform="translate(${cx-15} ${cy-16}) scale(.3)" fill="${pink}" stroke="#ffd1e6" stroke-width="3"/>
+  <path d="M${cx-7} ${cy-2}Q${cx} ${cy-8} ${cx+7} ${cy-2}" stroke="${gold}" stroke-width="1.2" fill="none"/>
+  ${[[cx,cy-45],[cx,cy+45]].map(([x,y])=>`<path d="M${x} ${y-5}L${x+3.4} ${y}L${x} ${y+5}L${x-3.4} ${y}Z" fill="${gold}"/>`).join('')}
+  </svg>`;}
+(function(){try{document.documentElement.style.setProperty('--cardback',`url("data:image/svg+xml,${encodeURIComponent(cardBackSVG())}")`);}catch(e){}})();
