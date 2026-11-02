@@ -432,17 +432,22 @@ window.addEventListener('resize',fit);
 
 /* ---------- overlays ---------- */
 let menuDiff='standard';
-function showOverlay(h,cls){hideTip();$('#modal').className='modal '+(cls||'');$('#modal').innerHTML=h;$('#overlay').classList.add('show');}
+function showOverlay(h,cls){hideTip();$('#overlay').classList.toggle('title',cls==='menu title');$('#modal').className='modal '+(cls||'');$('#modal').innerHTML=h;$('#overlay').classList.add('show');}
+function titleBulbs(){const b=document.querySelector('.ttl .sign .bulbs');if(!b)return;const nx=40,ny=14,pts=[];
+  for(let i=0;i<nx;i++)pts.push([i/nx,0]);for(let i=0;i<ny;i++)pts.push([1,i/ny]);for(let i=0;i<nx;i++)pts.push([1-i/nx,1]);for(let i=0;i<ny;i++)pts.push([0,1-i/ny]);
+  b.innerHTML=pts.map(([x,y],i)=>`<i class="${i%2?'b':''}" style="left:calc(9px + (100% - 18px)*${x.toFixed(4)});top:calc(9px + (100% - 18px)*${y.toFixed(4)})"></i>`).join('');}
 function hideOverlay(){$('#overlay').classList.remove('show');}
 function bestOf(k){try{return localStorage.getItem('allin-best-'+k)||'';}catch(e){return '';}}
 function saveBest(){try{const k='allin-best-'+G.diffKey,prev=localStorage.getItem(k)||'';const cur=G.won?'Won':'Round '+G.wave;if(!prev||cur==='Won'||(prev!=='Won'&&G.wave>parseInt(prev.replace(/\D/g,'')||0)))localStorage.setItem(k,cur);}catch(e){}}
 function showMenu(){
   if(NET.on)netLeave();document.body.classList.remove('mp','spectate');if(G&&G.mp){newGame(menuDiff);resetGameUI();}
   if(G)G.running=false;
-  showOverlay(`<div class="logo big">ALL IN</div>
+  const chipStack=(cols,n)=>`<div class="stk">${Array.from({length:n},(_,i)=>`<i style="--c:${cols[i%cols.length]}"></i>`).join('')}</div>`;
+  showOverlay(`<div class="ttl"><div class="fan">${[10,11,12,13,14].map((v,i)=>cardHTML({v,s:'S'},i,'').replace('class="card','style="--a:'+((i-2)*15)+'deg;--d:'+(i*.09)+'s" class="card')).join('')}</div>
+   <div class="sign"><div class="bulbs"></div><div class="logo big">ALL IN</div><div class="tagl">Poker · Defense</div>${chipStack(['#ff3d9a','#22e1ff','#f5f0e6'],7).replace('class="stk"','class="stk l"')}${chipStack(['#e0b040','#1d1d28','#ff3d9a'],5).replace('class="stk"','class="stk r"')}</div></div>
    <div class="diffs">${Object.entries(DIFFS).map(([k,d])=>`<button class="diff ${k===menuDiff?'on':''}" data-d="${k}"><b>${d.name}</b><span>${d.desc}</span>${bestOf(k)?`<em>${bestOf(k)}</em>`:''}</button>`).join('')}</div>
    ${(()=>{const d=savedRun();return d?`<div class="mrow" style="margin-top:-8px"><button class="pb main" id="mCont">Continue · ${DIFFS[d.dk].name}, round ${d.wave+1}</button></div>`:'';})()}
-   <div class="mrow"><button class="pb" id="mHow">How to play</button><button class="pb" id="mCol">${icon('army')} Collection</button><button class="pb" id="mSet">${icon('settings')} Settings</button><button class="pb" id="mMulti">${icon('users')} Play with friends</button><button class="pb main" id="mStart">Deal me in</button></div>`,'menu');
+   <div class="mrow"><button class="pb" id="mHow">How to play</button><button class="pb" id="mCol">${icon('army')} Collection</button><button class="pb" id="mSet">${icon('settings')} Settings</button><button class="pb" id="mMulti">${icon('users')} Play with friends</button><button class="pb main" id="mStart">Deal me in</button></div>`,'menu title');titleBulbs();
   $('#mMulti').addEventListener('click',()=>{Snd.init();showMulti('');});$('#mSet').addEventListener('click',()=>showSettings(showMenu));
   document.querySelectorAll('.diff').forEach(b=>b.addEventListener('click',()=>{menuDiff=b.dataset.d;Snd.init();Snd.play('click');document.querySelectorAll('.diff').forEach(x=>x.classList.toggle('on',x===b));}));
   $('#mHow').addEventListener('click',()=>showHow(showMenu));$('#mCol').addEventListener('click',()=>{Snd.init();showCollection(showMenu);});{const c=$('#mCont');if(c)c.addEventListener('click',()=>{Snd.init();resumeRun();});}$('#mStart').addEventListener('click',()=>{Snd.init();startGame(menuDiff);});
