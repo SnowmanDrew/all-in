@@ -29,21 +29,6 @@ function signShape(c,kind,x,y,s){
 }
 const OBST_STYLE={motel:{roof:'#2b2238',sign:['star','arrow'],col:NEON.amber},chapel:{roof:'#2a2333',sign:['heart'],col:NEON.pink},arcade:{roof:'#221b33',sign:['dice','reel'],col:NEON.cyan},
   pawn:{roof:'#2c2626',sign:['balls'],col:NEON.amber},diner:{roof:'#2a1f24',sign:['cup'],col:NEON.lime},lounge:{roof:'#2a1730',sign:['cocktail'],col:NEON.violet},hotel:{roof:'#2b1f2b',sign:['rose','star'],col:NEON.pink},cinema:{roof:'#20202a',sign:['star'],col:NEON.white}};
-function drawBuilding(b,o){
-  const x=o.c*TILE,y=o.r*TILE,w=o.w*TILE,h=o.h*TILE,st=OBST_STYLE[o.k],top=o.r===0,fh=11;
-  b.save();b.shadowColor='rgba(0,0,0,.7)';b.shadowBlur=16;b.shadowOffsetY=top?6:-6;b.fillStyle='#0d0a12';b.fillRect(x+1,y+1,w-2,h-2);b.restore();
-  // facade strip facing the road
-  const fy=top?y+h-fh:y;b.fillStyle=shade(st.roof,-.35);b.fillRect(x+1,fy,w-2,fh);
-  for(let i=0;i<Math.floor((w-10)/12);i++){const lit=srnd()<.7;b.fillStyle=lit?(srnd()<.5?'#ffd27a':'#ffe9c2'):'#1a1420';b.fillRect(x+7+i*12,fy+3,6,fh-6);}
-  // roof
-  const ry=top?y+1:y+fh,rh=h-fh-1;b.fillStyle=st.roof;b.fillRect(x+1,ry,w-2,rh);
-  b.strokeStyle='rgba(255,255,255,.07)';b.lineWidth=2;b.strokeRect(x+3,ry+2,w-6,rh-4);
-  for(let i=0;i<Math.max(1,o.w-2);i++){const ax=x+10+srnd()*(w-30),ay=ry+6+srnd()*(rh-20);b.fillStyle='#3b3546';b.fillRect(ax,ay,12,9);b.fillStyle='#2a2533';b.fillRect(ax+2,ay+2,8,5);}
-  // neon sign along facade edge
-  const sy=top?y+h-fh-12:y+fh+12;
-  st.sign.forEach((k,i)=>{const sx=x+w*(st.sign.length===1?.5:(.3+.4*i));neonStroke(b,signShape(b,k,sx,sy,8),st.col,2.2,12);});
-  b.strokeStyle=hexA(st.col,.55);b.lineWidth=1.5;b.beginPath();b.moveTo(x+4,top?y+h-1:y+1);b.lineTo(x+w-4,top?y+h-1:y+1);b.stroke();
-}
 function drawPalms(b,o){
   const x=o.c*TILE,y=o.r*TILE,w=o.w*TILE,h=o.h*TILE;
   b.fillStyle='#3a3546';rr(b,x+2,y+2,w-4,h-4,10);b.fill();b.fillStyle='#16251c';rr(b,x+5,y+5,w-10,h-10,8);b.fill();
@@ -95,6 +80,7 @@ function buildBg(){
   b.setLineDash([18,16]);b.strokeStyle='rgba(255,255,255,.16)';b.lineWidth=2;for(const yy of [6.5*TILE,13.5*TILE]){b.beginPath();b.moveTo(120,yy);b.lineTo(34.5*TILE,yy);b.stroke();}
   b.strokeStyle='rgba(255,196,0,.32)';b.setLineDash([22,14]);for(const yy of [10*TILE-3,10*TILE+3]){b.beginPath();b.moveTo(10,yy);b.lineTo(35*TILE,yy);b.stroke();}b.setLineDash([]);
   for(const xx of [15.5*TILE,25*TILE]){for(let yy=3.8*TILE;yy<16.2*TILE;yy+=13){b.fillStyle='rgba(255,255,255,.1)';b.fillRect(xx,yy,34,7);}}
+  if(typeof dressStreet==='function')dressStreet(b);
   // lamp light pools & neon spill
   b.save();b.globalCompositeOperation='lighter';
   const pool=(x,y,r,col,a)=>{const g=b.createRadialGradient(x,y,2,x,y,r);g.addColorStop(0,hexA(col,a));g.addColorStop(1,hexA(col,0));b.fillStyle=g;b.fillRect(x-r,y-r,r*2,r*2);};
@@ -1101,6 +1087,7 @@ function render(){
   if(G&&G.shake>0&&!(typeof SET!=='undefined'&&!SET.shake))ctx.translate((rnd()-.5)*G.shake,(rnd()-.5)*G.shake);
   ctx.drawImage(bg,0,0,W,H);if(!G)return;
   const t=performance.now()/1000;
+  if(typeof drawStrip==='function')drawStrip(ctx,t);
   if(G.mode==='rope'){ctx.fillStyle='rgba(255,255,255,.035)';for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(grid[gi(c,r)]===0&&!NO_BUILD.has(gi(c,r)))ctx.fillRect(c*TILE+1,r*TILE+1,TILE-2,TILE-2);
     ctx.fillStyle='rgba(244,63,94,.10)';for(const k of NO_BUILD){if(grid[k]===0)ctx.fillRect((k%COLS)*TILE+1,((k/COLS)|0)*TILE+1,TILE-2,TILE-2);}}
   if(G.mode==='rope'||G.showRoute)drawRoute(ctx);
