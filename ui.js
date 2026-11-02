@@ -122,19 +122,6 @@ function renderLog(){const el=$('#logList');if(!el)return;const open=$('#logPane
 function toggleLog(force){const p=$('#logPanel'),on=force!=null?force:!p.classList.contains('open');p.classList.toggle('open',on);$('#logMore').innerHTML=icon(on?'stop':'all');
   $('#logList').innerHTML='';renderLog();}
 
-/* ---------- court cards ---------- */
-function courtSVG(v,red){
-  const col=red?'#c8102e':'#1b1b22',acc=red?'#1b1b22':'#c8102e',gold='#d4a12a';
-  const half=(()=>{switch(v){
-    case 11:return `<path d="M-9 -2 Q0 -8 9 -2 L8 3 L-8 3Z" fill="${col}"/><path d="M8 -4 Q14 -14 6 -18" stroke="${acc}" stroke-width="1.6" fill="none"/><circle cx="0" cy="8" r="6" fill="#f3dcc0" stroke="${col}" stroke-width="1"/><path d="M-4 9 h3 M1 9 h3" stroke="${col}" stroke-width="1"/>`;
-    case 12:return `<path d="M-8 2 L-8 -6 L-4 -2 L0 -8 L4 -2 L8 -6 L8 2Z" fill="${gold}" stroke="${col}" stroke-width=".8"/><circle cx="0" cy="9" r="6" fill="#f3dcc0" stroke="${col}" stroke-width="1"/><path d="M-6 6 Q-9 14 -5 18 M6 6 Q9 14 5 18" stroke="${col}" stroke-width="1.6" fill="none"/><path d="M-4 9 h3 M1 9 h3" stroke="${col}" stroke-width="1"/>`;
-    default:return `<path d="M-9 1 L-9 -7 L-4.5 -3 L0 -9 L4.5 -3 L9 -7 L9 1Z" fill="${gold}" stroke="${col}" stroke-width=".8"/><circle cx="0" cy="8" r="6" fill="#f3dcc0" stroke="${col}" stroke-width="1"/><path d="M-6 10 Q0 22 6 10" fill="${col}"/><path d="M-4 7 h3 M1 7 h3" stroke="${col}" stroke-width="1"/>`;}})();
-  return `<svg class="court" viewBox="-20 -34 40 68"><rect x="-17" y="-31" width="34" height="62" rx="3" fill="none" stroke="${col}" stroke-opacity=".35"/>
-    <g transform="translate(0 -16)">${half}<path d="M-12 16 L12 16" stroke="${col}" stroke-width="2"/></g><g transform="rotate(180) translate(0 -16)">${half}<path d="M-12 16 L12 16" stroke="${col}" stroke-width="2"/></g></svg>`;
-}
-function cardHTML(c,i,cls){const red=c.s==='H'||c.s==='D',face=c.v>=11&&c.v<=13;
-  return `<div class="card ${red?'red':''} ${cls||''}" data-i="${i}"><div class="ci tl">${vn(c.v)}<span>${SYM[c.s]}</span></div>${face?courtSVG(c.v,red):`<div class="pip">${SYM[c.s]}</div>`}<div class="ci br">${vn(c.v)}<span>${SYM[c.s]}</span></div></div>`;}
-
 /* ---------- the poker table ---------- */
 let traySig='',cardSig='',seatsBuilt=false;
 function buildSeats(){

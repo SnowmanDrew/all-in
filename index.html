@@ -101,10 +101,11 @@ canvas#board{display:block;border-radius:4px;box-shadow:0 0 0 2px #000,0 0 0 4px
 #cards{display:flex;gap:8px}
 .card{width:58px;height:84px;border-radius:7px;background:linear-gradient(170deg,#fffdf8,#ece4d4);color:#1b1b22;position:relative;box-shadow:0 0 0 1px #050308,0 6px 14px rgba(0,0,0,.5);transition:transform .15s;flex:none}
 .card.red{color:#c8102e}
-.card .ci{position:absolute;font:700 14px/.9 var(--body);text-align:center}.card .ci span{display:block;font-size:12px}
-.card .ci.tl{top:5px;left:5px}.card .ci.br{bottom:5px;right:5px;transform:rotate(180deg)}
+.card .ci{position:absolute;font:700 13px/.9 var(--body);text-align:center;width:10px;letter-spacing:-.6px}.card .ci .cs{display:block;width:8px;height:8px;margin:2px auto 0}
+.card .ci.tl{top:4px;left:2px}.card .ci.br{bottom:4px;right:2px;transform:rotate(180deg)}
 .card .pip{position:absolute;inset:0;display:grid;place-items:center;font-size:30px;line-height:1}
-.card .court{position:absolute;inset:8px 9px;width:auto;height:auto}
+.card .court{position:absolute;top:4px;bottom:4px;left:11px;right:11px;width:calc(100% - 22px);height:calc(100% - 8px)}.card.face .ci{width:8px;left:2px}.card.face .ci.br{left:auto;right:2px}
+.card .ace{position:absolute;left:5px;right:5px;top:50%;width:calc(100% - 10px);height:auto;aspect-ratio:1;transform:translateY(-50%)}
 #cards.pickable .card{cursor:pointer}#cards.pickable .card:hover{transform:translateY(-4px)}
 .card.sel{transform:translateY(-14px)}
 .card.sel::after{content:"";position:absolute;inset:0;border-radius:7px;background:rgba(40,10,60,.35);box-shadow:0 0 0 2px var(--cyan),0 0 12px rgba(34,225,255,.5)}
@@ -465,6 +466,7 @@ body.spectate #seats{grid-template-columns:repeat(6,1fr)}
 <script src="minigames.js"></script>
 <script src="arcade.js"></script>
 <script src="sports.js"></script>
+<script src="cards.js"></script>
 <script src="ui.js"></script>
 <script src="secrets.js"></script>
 <script src="fight.js"></script>
