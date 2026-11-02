@@ -705,7 +705,7 @@ function human0(c,r,o,t,atk){
   if(o.frost){for(let k=0;k<5;k++){const a=t*1.5+k*TAU/5,fx=Math.cos(a)*r*.85,fy=-r*.2+Math.sin(a)*r*.45;c.strokeStyle='rgba(224,242,254,.9)';c.lineWidth=.9;for(let j=0;j<3;j++){const b=j*Math.PI/3;c.beginPath();c.moveTo(fx-Math.cos(b)*r*.07,fy-Math.sin(b)*r*.07);c.lineTo(fx+Math.cos(b)*r*.07,fy+Math.sin(b)*r*.07);c.stroke();}}}
   c.globalAlpha=1;
 }
-function robot(c,r,o,t,atk){c.save();c.scale(1.14,1.14);robot0(c,r,o,t,atk);c.restore();}
+function robot(c,r,o,t,atk){c.save();c.scale(1.14,1.14);(o.style&&MACH[o.style]?MACH[o.style]:robot0)(c,r,o,t,atk);c.restore();}
 function robot0(c,r,o,t,atk){
   const c1=o.c1,c2=o.c2,steel='#6b7280',dark='#2b2f38';
   // legs
@@ -750,8 +750,8 @@ function robot0(c,r,o,t,atk){
   if(o.arms)arm(o.arms[1],true);
 }
 let NO_TURRET=false;
-function tankTurrets(o,r){return o.twin?[[-r*.42,-r*.12],[r*.38,-r*.12]]:[[-r*.05,-r*.12]];}
-function tank(c,r,o,t,atk){
+function tankTurrets(o,r){if(o.style==='dreadTank')return [[-r*.5,-r*.38],[r*.52,-r*.06]];if(o.style==='feltTank')return [[r*.02,-r*.22]];return o.twin?[[-r*.42,-r*.12],[r*.38,-r*.12]]:[[-r*.05,-r*.12]];}
+function tank(c,r,o,t,atk){if(o.style&&MACH[o.style]){MACH[o.style](c,r,o,t,atk);return;}
   const c1=o.c1,c2=o.c2;
   c.fillStyle='#1f2228';rr(c,-r*1.05,r*.2,r*2.1,r*.6,r*.3);c.fill();c.fillStyle='#3a3f4b';for(let k=0;k<6;k++){const x=-r*.82+k*r*.33;c.beginPath();c.arc(x,r*.5,r*.14,0,TAU);c.fill();c.strokeStyle='#14161b';c.lineWidth=1;c.save();c.translate(x,r*.5);c.rotate(t*6);c.beginPath();c.moveTo(-r*.1,0);c.lineTo(r*.1,0);c.stroke();c.restore();}
   c.fillStyle=c1;c.beginPath();c.moveTo(-r*1.0,r*.22);c.lineTo(-r*.8,-r*.12);c.lineTo(r*.85,-r*.12);c.lineTo(r*1.05,r*.22);c.closePath();c.fill();
