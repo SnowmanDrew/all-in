@@ -153,6 +153,21 @@ function aceSVG(s){
     ${deco}${pipG}${engrave}${shine}${crown}${ribbon}</svg>`;
 }
 
+/* number cards: the traditional pip layouts, lower-half pips turned upside down */
+const PIP_LAYOUT=(()=>{const L=6.6,C=17,R=27.4,T=7.4,B=64.6,M=36,q=(B-T)/3;
+  const corners=[[L,T],[R,T],[L,B],[R,B]],sides=[[L,M],[R,M]],four=y=>[[L,y],[R,y]];
+  const cols=[...four(T),...four(T+q),...four(T+2*q),...four(B)];
+  return {2:[[C,T],[C,B]],3:[[C,T],[C,M],[C,B]],4:corners,5:[...corners,[C,M]],6:[...corners,...sides],
+    7:[...corners,...sides,[C,(T+M)/2]],8:[...corners,...sides,[C,(T+M)/2],[C,(M+B)/2]],
+    9:[...cols,[C,M]],10:[...cols,[C,T+q/2],[C,B-q/2]]};})();
+function numSVG(v,s){
+  const red=s==='H'||s==='D',id='np'+(++CARD_UID),w=v>=9?10.6:v>=7?11.6:12.4;
+  const g0=red?'#e3324d':'#3c4060',g1=red?'#a50d27':'#11131d';
+  const pips=PIP_LAYOUT[v].map(([x,y])=>{const flip=y>36.5,k=w/100;
+    return `<path d="${SUIT_PATH[s]}" transform="translate(${x} ${y})${flip?' rotate(180)':''} translate(${-w/2} ${-w/2}) scale(${k})" fill="url(#${id})"/>`;}).join('');
+  return `<svg class="pips" viewBox="0 0 34 72"><defs><linearGradient id="${id}" x1="0" y1="0" x2=".3" y2="1"><stop offset="0" stop-color="${g0}"/><stop offset="1" stop-color="${g1}"/></linearGradient></defs>${pips}</svg>`;
+}
+
 function cardHTML(c,i,cls){const red=c.s==='H'||c.s==='D',face=c.v>=11&&c.v<=13,ace=c.v===14;
   const idx=`${vn(c.v)}${suitSVG(c.s,'cs')}`;
-  return `<div class="card ${red?'red':''} ${face?'face':''} ${ace?'acec':''} ${cls||''}" data-i="${i}"><div class="ci tl">${idx}</div>${face?courtSVG(c.v,c.s):ace?aceSVG(c.s):`<div class="pip">${SYM[c.s]}</div>`}<div class="ci br">${idx}</div></div>`;}
+  return `<div class="card ${red?'red':''} ${c.v===10?'ten':''} ${face?'face':''} ${ace?'acec':''} ${cls||''}" data-i="${i}"><div class="ci tl">${idx}</div>${face?courtSVG(c.v,c.s):ace?aceSVG(c.s):PIP_LAYOUT[c.v]?numSVG(c.v,c.s):`<div class="pip">${SYM[c.s]}</div>`}<div class="ci br">${idx}</div></div>`;}
