@@ -35,20 +35,27 @@ window.ALLIN_ONLINE=(function(){
       const d={};if(full)Object.assign(d,R.mine);else for(const k of R.dirty)d[k]=k in R.mine?R.mine[k]:null;
       R.dirty.clear();R.lastSend=Date.now();if(full)R.lastFull=R.lastSend;
       ch.send({type:'broadcast',event:'st',payload:{f:ME,full:full?1:0,d}}).catch(()=>{});}
+    // one full copy shortly after anyone arrives (hello and presence both trigger it; they share one send)
+    function fullSoon(){if(R.fullT)return;R.fullT=setTimeout(()=>{R.fullT=null;send(true);},60+Math.random()*200);}
     function flush(){R.timer=null;if(!R.dirty.size)return;const wait=interval()-(Date.now()-R.lastSend);if(wait>0){R.timer=setTimeout(flush,wait);return;}send(false);}
     function schedule(){if(R.timer)return;const wait=interval()-(Date.now()-R.lastSend);R.timer=setTimeout(flush,Math.max(0,wait));}
     // a full copy every few seconds keeps everyone honest if a message was lost
     const beat=setInterval(()=>{if(R.alive&&R.connected&&others()&&Date.now()-R.lastFull>8000&&Date.now()-R.lastSend>interval())send(true);},2000);
 
     ch.on('presence',{event:'sync'},()=>{const st=ch.presenceState(),here=new Set(Object.keys(st));const now=Date.now();
-      for(const k of here){if(k===ME)continue;let p=R.peers.get(k);if(!p){p={presence:Object.freeze({}),updatedAt:now,seen:true};R.peers.set(k,p);R.pend.joined.add(k);}else p.seen=true;}
+      let fresh=false;
+      for(const k of here){if(k===ME)continue;let p=R.peers.get(k);if(!p){p={presence:Object.freeze({}),updatedAt:now,seen:true};R.peers.set(k,p);R.pend.joined.add(k);fresh=true;}else p.seen=true;}
+      if(fresh)fullSoon();
       for(const [k,p] of [...R.peers]){if(here.has(k))continue;if(p.seen||now-p.updatedAt>8000){R.peers.delete(k);R.pend.left.add(k);R.pend.joined.delete(k);}}
       notify();});
     ch.on('broadcast',{event:'st'},({payload})=>{if(!payload||payload.f===ME)return;const f=payload.f;let p=R.peers.get(f);
       if(!p){p={presence:Object.freeze({}),updatedAt:0,seen:false};R.peers.set(f,p);R.pend.joined.add(f);}
       const next=payload.full?{}:Object.assign({},p.presence);const d=payload.d||{};for(const k in d){if(d[k]===null||d[k]===undefined)delete next[k];else next[k]=d[k];}
       p.presence=Object.freeze(next);p.updatedAt=Date.now();if(!R.pend.joined.has(f))R.pend.updated.add(f);notify();});
-    ch.on('broadcast',{event:'hi'},({payload})=>{if(!payload||payload.f===ME)return;setTimeout(()=>send(true),60+Math.random()*240);});
+    // someone new says hello: they are here even if Presence hasn't told us yet, so greet them with our full state
+    ch.on('broadcast',{event:'hi'},({payload})=>{if(!payload||payload.f===ME)return;const f=payload.f;
+      if(!R.peers.has(f)){R.peers.set(f,{presence:Object.freeze({}),updatedAt:Date.now(),seen:false});R.pend.joined.add(f);notify();}
+      fullSoon();});
 
     const room={
       presence(patch){if(!R.alive)return Promise.reject(new Error('left'));for(const k in patch){if(patch[k]===null)delete R.mine[k];else R.mine[k]=patch[k];R.dirty.add(k);}
@@ -58,7 +65,7 @@ window.ALLIN_ONLINE=(function(){
         return ()=>{R.listeners=R.listeners.filter(x=>x!==fn);};},
       connected:()=>R.connected,
       setBudget(perSec,solo,minMs){R.budget=perSec;R.solo=!!solo;if(minMs!=null)R.minMs=minMs;},
-      leave(){if(!R.alive)return Promise.resolve();R.alive=false;clearInterval(beat);clearTimeout(R.timer);R.listeners=[];
+      leave(){if(!R.alive)return Promise.resolve();R.alive=false;clearInterval(beat);clearTimeout(R.timer);clearTimeout(R.fullT);R.listeners=[];
         return ch.untrack().catch(()=>{}).then(()=>client.removeChannel(ch)).catch(()=>{});},
       name};
     return new Promise((resolve,reject)=>{let done=false;
