@@ -94,14 +94,15 @@ function netPeersChanged(){
   else{
     if(NET.host){NET.host=false;pres({S:null});}
     const src=pub.find(p=>idOf(p)===want)||pub.sort((a,b)=>a.presence.t-b.presence.t)[0];
-    if(src){NET.hostPeer=idOf(src);NET.hostGoneT=0;netApply(src.presence.S);}
+    if(src){const id=idOf(src);if(NET.handover&&id!==NET.hostPeer&&G&&G.mp&&!G.over){const nm=cleanName(src.presence.n)||'Another player';toast(nm+' is hosting the table now');gameLog(nm+' is hosting the table now.','good');}
+      NET.handover=false;NET.hostPeer=id;NET.hostGoneT=0;netApply(src.presence.S);}
   }
   if(NET.view==='lobby')renderLobby();
 }
 
 /* ---------- host ---------- */
 function becomeHost(){
-  const S=NET.S;NET.host=true;
+  const S=NET.S;NET.host=true;NET.handover=false;
   if(!S||S.st==='lobby'){NET.gst='lobby';if(S){NET.diff=S.d||NET.diff;NET.ai=S.ai!==false;}NET.R=null;}
   else{ // take over a running table
     NET.gst=S.st;NET.gid=S.gid;NET.diff=S.d;NET.ai=S.ai;NET.R=S.R.map(e=>({...e}));NET.win=S.win||null;NET.pl=S.pl||null;NET.why=S.why||'';
@@ -115,11 +116,25 @@ function becomeHost(){
           for(const s of HD.seats){s.won=s.paid;s.folded=true;if(s.p.human)G.me.chips+=s.paid;else if(!s.p.remote)s.p.chips+=s.paid;}
           HD.wl=[];HD.result='Hand called off: the host left. Bets returned.';HD.phase='showdown';HD.t=3;HD.winners=[];gameLog(HD.result,'bad');}}
     }
+    if(S.ph==='mini'&&S.sb)NET.SB=sbRestore(S.sb);
     gameLog('You are now hosting the table.','good');toast('You are hosting the table now');
   }
   pres({S:hostState()});
   if(NET.view==='lobby')renderLobby();
 }
+/* a new host rebuilds Sports Night from what the old host last published; fights in progress are settled by the house */
+function sbRestore(P){
+  const SB={w:P.w,games:(P.games||[]).map(g=>({...g})),bye:P.bye,stage:P.stage,t:Math.max(3,P.t||0),res:P.res||null,ros:{},out:P.out||null,seed:P.seed||null};
+  SB.aiRos={};for(const p of G.players)if(!p.human&&!p.remote&&p.alive)SB.aiRos[sbId(p)]=aiRoster(p,SB.w);
+  if(P.ros)for(const id in P.ros)SB.ros[id]=P.ros[id];
+  if(SB.stage!=='intro')for(const id of sbParticipants(SB))if(!SB.ros[id]||!SB.ros[id].length)SB.ros[id]=sbRosterOf(SB,id);
+  if(SB.stage==='play'||(SB.stage!=='intro'&&SB.stage!=='bet')){SB.prot={};for(const id of sbParticipants(SB))SB.prot[id]=sbProtOf(SB,id);}
+  if(SB.stage==='play'){ // the live fights left with the old host: let the house call them
+    const seed=SB.seed||SB.games.map(()=>1+((Math.random()*1e9)|0));SB.seed=seed;
+    SB.res=SB.games.map((g,i)=>arenaRun(SB.ros[g.a]||[],SB.ros[g.b]||[],seed[i]).win);
+    SB.stage='steal';SB.t=SB_T.steal;if(typeof afExitView==='function')afExitView();
+    gameLog('The host left mid-fight, so the house called the results.','bad');}
+  return SB;}
 function hostState(){
   const S={st:NET.gst,gid:NET.gid,d:NET.diff,ai:NET.ai,code:NET.code};
   if(NET.gst==='lobby'||!G||!G.mp)return S;
@@ -377,7 +392,8 @@ function netTick(dt){
   if(!NET.settled&&Date.now()-NET.joinT>2500){ // take a seniority stamp later than everyone already here
     NET.settled=true;const ts=peersNow().filter(p=>!p.isMe&&p.presence.t<9e15).map(p=>p.presence.t);NET.t=Math.max(Date.now(),ts.length?Math.max(...ts)+1:0);pres({t:NET.t});}
   if(!NET.host&&NET.hostPeer){const here=peersNow().some(p=>idOf(p)===NET.hostPeer);
-    if(!here){if(!NET.hostGoneT)NET.hostGoneT=Date.now();else if(Date.now()-NET.hostGoneT>HOST_GRACE){NET.hostPeer=null;netPeersChanged();}}else NET.hostGoneT=0;}
+    if(!here){if(!NET.hostGoneT){NET.hostGoneT=Date.now();if(G&&G.mp&&!G.over){toast('The host dropped out. Handing the table over…');gameLog('The host dropped out. Handing the table to the next player…','bad');}}
+      else if(Date.now()-NET.hostGoneT>HOST_GRACE){NET.hostPeer=null;NET.handover=true;netPeersChanged();}}else NET.hostGoneT=0;}
   else if(!NET.host&&!NET.hostPeer&&NET.settled&&computeHost()===PID)becomeHost();
   if(NET.host)hostTick(dt);
   else if(HD&&HD.phase!=='done'&&HD.t>0)HD.t-=dt;
