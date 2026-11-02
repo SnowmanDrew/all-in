@@ -432,11 +432,13 @@ window.addEventListener('resize',fit);
 
 /* ---------- overlays ---------- */
 let menuDiff='standard';
-function showOverlay(h,cls){hideTip();$('#overlay').classList.toggle('title',cls==='menu title');$('#modal').className='modal '+(cls||'');$('#modal').innerHTML=h;$('#overlay').classList.add('show');}
+function buildLabel(){const B=window.ALLIN_BUILD||{};return 'Build '+(B.sha||'dev')+(B.date?' · '+B.date:'');}
+function showBuildTag(on){let el=document.getElementById('buildTag');if(!el){el=document.createElement('div');el.id='buildTag';el.className='buildtag';el.title='Mention this when you report a bug';document.body.appendChild(el);}el.textContent=buildLabel();el.style.display=on?'':'none';}
+function showOverlay(h,cls){hideTip();if(cls!=='menu title')showBuildTag(false);$('#overlay').classList.toggle('title',cls==='menu title');$('#modal').className='modal '+(cls||'');$('#modal').innerHTML=h;$('#overlay').classList.add('show');}
 function titleBulbs(){const b=document.querySelector('.ttl .sign .bulbs');if(!b)return;const nx=40,ny=14,pts=[];
   for(let i=0;i<nx;i++)pts.push([i/nx,0]);for(let i=0;i<ny;i++)pts.push([1,i/ny]);for(let i=0;i<nx;i++)pts.push([1-i/nx,1]);for(let i=0;i<ny;i++)pts.push([0,1-i/ny]);
   b.innerHTML=pts.map(([x,y],i)=>`<i class="${i%2?'b':''}" style="left:calc(9px + (100% - 18px)*${x.toFixed(4)});top:calc(9px + (100% - 18px)*${y.toFixed(4)})"></i>`).join('');}
-function hideOverlay(){$('#overlay').classList.remove('show');}
+function hideOverlay(){showBuildTag(false);$('#overlay').classList.remove('show');}
 function bestOf(k){try{return localStorage.getItem('allin-best-'+k)||'';}catch(e){return '';}}
 function saveBest(){try{const k='allin-best-'+G.diffKey,prev=localStorage.getItem(k)||'';const cur=G.won?'Won':'Round '+G.wave;if(!prev||cur==='Won'||(prev!=='Won'&&G.wave>parseInt(prev.replace(/\D/g,'')||0)))localStorage.setItem(k,cur);}catch(e){}}
 function showMenu(){
@@ -447,7 +449,7 @@ function showMenu(){
    <div class="sign"><div class="bulbs"></div><div class="logo big">ALL IN</div><div class="tagl">Poker · Defense</div>${chipStack(['#ff3d9a','#22e1ff','#f5f0e6'],7).replace('class="stk"','class="stk l"')}${chipStack(['#e0b040','#1d1d28','#ff3d9a'],5).replace('class="stk"','class="stk r"')}</div></div>
    <div class="diffs">${Object.entries(DIFFS).map(([k,d])=>`<button class="diff ${k===menuDiff?'on':''}" data-d="${k}"><b>${d.name}</b><span>${d.desc}</span>${bestOf(k)?`<em>${bestOf(k)}</em>`:''}</button>`).join('')}</div>
    ${(()=>{const d=savedRun();return d?`<div class="mrow" style="margin-top:-8px"><button class="pb main" id="mCont">Continue · ${DIFFS[d.dk].name}, round ${d.wave+1}</button></div>`:'';})()}
-   <div class="mrow"><button class="pb" id="mHow">How to play</button><button class="pb" id="mCol">${icon('army')} Collection</button><button class="pb" id="mSet">${icon('settings')} Settings</button><button class="pb" id="mMulti">${icon('users')} Play with friends</button><button class="pb main" id="mStart">Deal me in</button></div>`,'menu title');titleBulbs();
+   <div class="mrow"><button class="pb" id="mHow">How to play</button><button class="pb" id="mCol">${icon('army')} Collection</button><button class="pb" id="mSet">${icon('settings')} Settings</button><button class="pb" id="mMulti">${icon('users')} Play with friends</button><button class="pb main" id="mStart">Deal me in</button></div>`,'menu title');titleBulbs();showBuildTag(true);
   $('#mMulti').addEventListener('click',()=>{Snd.init();showMulti('');});$('#mSet').addEventListener('click',()=>showSettings(showMenu));
   document.querySelectorAll('.diff').forEach(b=>b.addEventListener('click',()=>{menuDiff=b.dataset.d;Snd.init();Snd.play('click');document.querySelectorAll('.diff').forEach(x=>x.classList.toggle('on',x===b));}));
   $('#mHow').addEventListener('click',()=>showHow(showMenu));$('#mCol').addEventListener('click',()=>{Snd.init();showCollection(showMenu);});{const c=$('#mCont');if(c)c.addEventListener('click',()=>{Snd.init();resumeRun();});}$('#mStart').addEventListener('click',()=>{Snd.init();startGame(menuDiff);});
@@ -472,7 +474,7 @@ function showHow(back){
   document.querySelectorAll('.bx canvas').forEach(c=>portrait(c,c.dataset.k,40));document.querySelectorAll('.chain canvas').forEach(c=>portrait(c,c.dataset.k,46));document.querySelectorAll('.mx canvas').forEach(c=>portrait(c,c.dataset.k,26));document.querySelectorAll('.sigs canvas').forEach(c=>portrait(c,c.dataset.k,40));
   $('#mBack').addEventListener('click',()=>{Snd.init();back();});
 }
-function showPause(){showOverlay(`<h2>Paused</h2><div class="mrow"><button class="pb main" id="pRes">Resume</button><button class="pb" id="pHow">How to play</button><button class="pb" id="pSet">Settings</button><button class="pb" id="pRestart">Restart</button><button class="pb fold" id="pQuit">Leave table</button></div>`,'small');
+function showPause(){showOverlay(`<h2>Paused</h2><div class="mrow"><button class="pb main" id="pRes">Resume</button><button class="pb" id="pHow">How to play</button><button class="pb" id="pSet">Settings</button><button class="pb" id="pRestart">Restart</button><button class="pb fold" id="pQuit">Leave table</button></div>`,'small');showBuildTag(true);
   $('#pRes').addEventListener('click',()=>togglePause(false));$('#pSet').addEventListener('click',()=>showSettings(showPause));$('#pHow').addEventListener('click',()=>showHow(showPause));
   $('#pRestart').addEventListener('click',()=>startGame(G.diffKey));$('#pQuit').addEventListener('click',()=>{G.paused=false;showMenu();});}
 function mvpHTML(){const all=G.units.concat(G.ko.map(k=>k.u));if(!all.length)return '';const m=all.reduce((a,b)=>b.kills>a.kills?b:a);if(!m.kills)return '';
@@ -509,7 +511,7 @@ function showMulti(code){
     <div class="card2"><h4>Join a room</h4><p>Type the code a friend sent you.</p><input class="codein" id="mpCode" maxlength="6" autocomplete="off" value="${esc(code||'')}" placeholder="CODE"><button class="pb" id="mpJoin">Join room</button></div>
    </div>
    <div class="mperr" id="mpErr"></div>
-   <p class="mpnote">Everyone defends their own casino against the same waves and plays at one shared poker table. Friends need to be signed in to Claude and able to open this game.</p>
+   <p class="mpnote">Everyone defends their own casino against the same waves and plays at one shared poker table. ${window.claude&&window.claude.use?'Friends need to be signed in to Claude and able to open this game.':'Share the room code or the invite link: friends just open it in their browser, no sign-up needed.'}</p>
    <div class="mrow"><button class="pb" id="mpBack">Back</button></div>`,'menu');
   const go=async c=>{const err=$('#mpErr'),nm=cleanName($('#mpName').value);if(!nm){err.textContent='Pick a name first.';$('#mpName').focus();return;}
     if(!/^[A-Z0-9]{4,6}$/.test(c)){err.textContent='Room codes are 4 letters or numbers.';$('#mpCode').focus();return;}
@@ -611,7 +613,7 @@ function showSettings(back){
     <label for="sBars">Always show health bars<small>Otherwise only when damaged or selected</small></label><input type="checkbox" id="sBars" ${SET.bars?'checked':''}>
     <label for="sLog">Show the table log<small>Toggle any time with L</small></label><input type="checkbox" id="sLog" ${SET.log?'checked':''}>
     <label>Tips<small>Show the first-time hints again</small></label><button class="pb" id="sTips">Reset tips</button>
-   </div><div class="mrow"><button class="pb main" id="sBack">Done</button></div>`,'small');
+   </div><div class="mrow"><button class="pb main" id="sBack">Done</button></div>`,'small');showBuildTag(true);
   const upd=()=>{SET.music=+$('#sMus').value;SET.sfx=+$('#sSfx').value;SET.shake=$('#sShake').checked;SET.bars=$('#sBars').checked;SET.log=$('#sLog').checked;saveSet();applySet();};
   ['sMus','sSfx','sShake','sBars','sLog'].forEach(id=>$('#'+id).addEventListener('input',upd));
   $('#sSfx').addEventListener('change',()=>{Snd.init();Snd.play('coin');});
@@ -744,5 +746,24 @@ window.ALLIN={NET,defeat,victory,get G(){return G;},get HD(){return HD;},uiAct,u
 fit();newGame('standard');G.running=false;buildCmd();refreshTable(true);refreshPane(true);refreshCmd();syncTop();
 applySet();renderLog();
 {const m=/^#join-([a-z0-9]{4,6})$/i.exec(location.hash||'');if(m)showMulti(m[1].toUpperCase());else showMenu();}netApi();
+/* phones and touch-only tablets: the game needs a mouse and keyboard, so say so kindly and offer to send the link on */
+function touchOnly(){try{return matchMedia('(hover: none) and (pointer: coarse)').matches||Math.min(innerWidth,innerHeight)<500&&!matchMedia('(any-pointer: fine)').matches;}catch(e){return false;}}
+function showDeviceGate(){
+  try{if(sessionStorage.getItem('allin-gate'))return;}catch(e){}
+  const link=location.href,joining=/#join-/i.test(location.hash||'');
+  const g=document.createElement('div');g.id='gate';
+  g.innerHTML=`<div class="gbox"><div class="gsign"><div class="logo">ALL IN</div></div>
+    <h2>Best played on a computer</h2>
+    <p>All In is a strategy game built for a mouse and keyboard: drag to select, right-click to order, hotkeys for everything. Open this link on a laptop or desktop to ${joining?'join your friends':'play'}.</p>
+    <div class="gbtns">${navigator.share?'<button class="pb main" id="gShare">Send the link to myself</button>':''}<button class="pb ${navigator.share?'':'main'}" id="gCopy">Copy link</button></div>
+    <button class="glook" id="gLook">Look around anyway</button></div>`;
+  document.body.appendChild(g);
+  const done=()=>{try{sessionStorage.setItem('allin-gate','1');}catch(e){}g.remove();};
+  const sh=g.querySelector('#gShare');if(sh)sh.addEventListener('click',()=>{navigator.share({title:'All In: Poker Defense',text:'Play this on a computer',url:link}).catch(()=>{});});
+  g.querySelector('#gCopy').addEventListener('click',()=>{const ok=()=>{const b=g.querySelector('#gCopy');b.textContent='Link copied';setTimeout(()=>b.textContent='Copy link',1800);};
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(link).then(ok,()=>prompt('Copy this link',link));else prompt('Copy this link',link);});
+  g.querySelector('#gLook').addEventListener('click',done);
+}
+if(touchOnly())showDeviceGate();
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{fit();});
 requestAnimationFrame(frame);

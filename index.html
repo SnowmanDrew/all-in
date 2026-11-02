@@ -4,6 +4,24 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>All In — Poker Defense</title>
+<meta name="description" content="Poker meets tower defense on a neon Vegas Strip. Your hand summons the creatures that defend your casino. Play solo or with friends, free in your browser.">
+<meta name="theme-color" content="#14041f">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="All In">
+<meta property="og:title" content="All In — Poker Defense">
+<meta property="og:description" content="Poker meets tower defense on a neon Vegas Strip. Your hand summons the creatures that defend your casino. Play solo or with friends, free in your browser.">
+<meta property="og:url" content="https://all-in-bay.vercel.app/">
+<meta property="og:image" content="https://all-in-bay.vercel.app/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The All In neon sign above a fanned royal flush and a line-up of creatures">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="All In — Poker Defense">
+<meta name="twitter:description" content="Poker meets tower defense on a neon Vegas Strip. Play solo or with friends, free in your browser.">
+<meta name="twitter:image" content="https://all-in-bay.vercel.app/og.jpg">
 <link rel="stylesheet" href="fonts.css">
 <style>
 :root{--night:#0b0612;--lac:#15101d;--lac2:#0e0a14;--chrome:#c3c9d4;--chrome-d:#5b6070;--pink:#ff3d9a;--cyan:#22e1ff;--amber:#ffb020;--lime:#b6f84a;--red:#ff3b5a;--ink:#f4ecff;--muted:#a79fb8;--dim:#6d6680;
@@ -431,6 +449,19 @@ body.spectate #seats{grid-template-columns:repeat(6,1fr)}
 .ttl .stk i{display:block;width:50px;height:15px;margin-top:-9px;border-radius:50%;background:var(--c);box-shadow:inset 0 -4px 0 rgba(0,0,0,.32),0 0 0 1.5px #0b0612;border:2px dashed rgba(255,255,255,.75);box-sizing:border-box}
 .ttl .stk.r i:nth-child(odd){transform:translateX(3px)}.ttl .stk.l i:nth-child(3n){transform:translateX(-3px)}
 @media (max-width:760px){.ttl .stk{display:none}.ttl .sign .logo.big{font-size:64px}.ttl .sign{padding:18px 30px 14px}}
+
+/* ---------- phone / touch notice ---------- */
+#gate{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse 90% 60% at 50% 30%,#4a1462,#0a0410 75%)}
+#gate .gbox{max-width:420px;text-align:center}
+#gate .gsign{display:inline-block;padding:14px 26px 12px;border-radius:16px;background:linear-gradient(180deg,#2a1236,#11071a);box-shadow:0 0 0 2px #e0b040,0 0 0 5px #2a1206,0 0 0 6.5px #e0b040,0 0 60px rgba(255,61,154,.3);margin-bottom:22px}
+#gate .gsign .logo{font-size:54px;margin:0;line-height:1}
+#gate h2{font:400 20px var(--head);color:#ffcf7a;margin:0 0 10px;letter-spacing:.02em}
+#gate p{font-size:16.5px;line-height:1.45;color:#e9e3f2;margin:0 0 22px}
+#gate .gbtns{display:flex;flex-direction:column;gap:10px;align-items:stretch}
+#gate .gbtns .pb{height:46px;font-size:14px;border-radius:23px}
+#gate .glook{margin-top:16px;background:none;border:0;color:var(--muted);font:600 14px var(--body);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+
+.buildtag{position:fixed;right:12px;bottom:8px;z-index:31;font:500 11.5px var(--body);color:rgba(233,227,242,.38);letter-spacing:.03em;pointer-events:auto;user-select:text;-webkit-user-select:text}
 </style>
 </head>
 <body>
@@ -482,6 +513,7 @@ body.spectate #seats{grid-template-columns:repeat(6,1fr)}
 <div id="tip"></div>
 <div id="emotes"></div>
 <div id="overlay"><div class="modal" id="modal"></div></div>
+<script src="version.js"></script>
 <script src="icons.js"></script>
 <script src="data.js"></script>
 <script src="poker.js"></script>
