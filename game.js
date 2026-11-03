@@ -191,7 +191,7 @@ function updateUnit(u,dt){
   const st=uStat(u),spd=u.def.spd,aggro=Math.max(st.range+60,130),o=u.order;
   if(sieged&&(o.t==='move'||o.t==='amove')){u.siegeTo=false;return;}
   let tgt=null;
-  const pick=(rad)=>nearestEnemy(u.x,u.y,rad,e=>!u.def.minR||Math.hypot(e.x-u.x,e.y-u.y)-e.r>=u.def.minR);
+  const pick=(rad)=>(typeof priorityEnemy==='function'?priorityEnemy:nearestEnemy)(u.x,u.y,rad,e=>!u.def.minR||Math.hypot(e.x-u.x,e.y-u.y)-e.r>=u.def.minR);
   switch(o.t){
     case 'move':if(followPath(u,dt,spd)){u.order={t:'idle'};u.anchor={x:u.x,y:u.y};}return;
     case 'cast':{const e=o.e;if(e&&e.dead){u.order={t:'idle'};u.anchor={x:u.x,y:u.y};return;}const tx=e?e.x:o.x,ty=e?e.y:o.y,d=Math.hypot(tx-u.x,ty-u.y);
@@ -441,7 +441,7 @@ function updateEnemy(e,dt){
 }
 function nearCasino(e){return e.x>BASE.c0*TILE-e.r-6&&e.x<(BASE.c0+BASE.w)*TILE+e.r+6&&e.y>BASE.r0*TILE-e.r-6&&e.y<(BASE.r0+BASE.h)*TILE+e.r+6;}
 function updateAtCasino(e){
-  if(!e.atCasino){e.atCasino=true;G.stats.leaks++;if(G.round)G.round.leaks++;if(!G.alarmT||G.time-G.alarmT>6){G.alarmT=G.time;toast('Your casino is under attack!');}if(typeof hintOnce==='function')hintOnce('leak','Bad luck that reaches your casino <b>keeps biting</b> until it\'s killed, and early rounds bite hardest. <b>Velvet ropes</b> (V) make it walk the long way past your creatures.');}
+  if(!e.atCasino){e.atCasino=true;G.stats.leaks++;if(G.round)G.round.leaks++;if(!G.alarmT||G.time-G.alarmT>6){G.alarmT=G.time;toast(`${e.def.name}${e.def.boss||e.def.mini?' is':'s are'} biting your casino!`);}if(typeof hintOnce==='function')hintOnce('leak','Bad luck that reaches your casino <b>keeps biting</b> until it\'s killed, and early rounds bite hardest. <b>Velvet ropes</b> (V) make it walk the long way past your creatures.');}
   // never stand inside the building
   if(e.x>BASE.c0*TILE&&e.x<(BASE.c0+BASE.w)*TILE&&e.y>BASE.r0*TILE&&e.y<(BASE.r0+BASE.h)*TILE)e.x=BASE.c0*TILE-e.r-2;
   if(Math.abs(BASE.x-e.x)>1)e.face=BASE.x>e.x?1:-1;
@@ -616,7 +616,7 @@ function update(dt){
   else if(G.phase==='wave'){
     G.waveT+=dt;
     while(G.spawnQ.length&&G.spawnQ[0].t<=G.time)spawnEnemy(G.spawnQ.shift().k);
-    if(!G.spawnQ.length&&(G.enemies.length===0||(G.waveT>G.waveSpread+40&&G.wave<MAX_WAVE)))endWave();
+    if(!G.spawnQ.length&&(G.enemies.length===0||(G.waveT>G.waveSpread+25&&G.wave<MAX_WAVE)))endWave();
   }
   for(const u of G.units)updateUnit(u,dt);
   // bodies: weighted, solid collisions resolved after everyone has moved

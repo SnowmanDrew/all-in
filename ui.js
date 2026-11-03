@@ -638,7 +638,7 @@ function showSettings(back){
   const upd=()=>{SET.music=+$('#sMus').value;SET.sfx=+$('#sSfx').value;SET.shake=$('#sShake').checked;SET.bars=$('#sBars').checked;SET.log=$('#sLog').checked;saveSet();applySet();};
   ['sMus','sSfx','sShake','sBars','sLog'].forEach(id=>$('#'+id).addEventListener('input',upd));
   $('#sSfx').addEventListener('change',()=>{Snd.init();Snd.play('coin');});
-  $('#sTips').addEventListener('click',()=>{for(const k in SEEN)delete SEEN[k];try{Object.keys(localStorage).filter(k=>k.startsWith('allin-seen-')).forEach(k=>localStorage.removeItem(k));}catch(e){}toast('Tips will show again');});
+  $('#sTips').addEventListener('click',()=>{for(const k in SEEN)delete SEEN[k];try{Object.keys(localStorage).filter(k=>k.startsWith('allin-seen-')).forEach(k=>localStorage.removeItem(k));}catch(e){}if(typeof coachReset==='function')coachReset();toast('Tips will show again');});
   $('#sBack').addEventListener('click',()=>{if(back)back();else hideOverlay();});
 }
 $('#btnSet').addEventListener('click',()=>{if(G&&!G.mp&&G.running&&!G.over&&!G.paused){togglePause(true);showSettings(showPause);}else showSettings(G&&G.running&&!$('#overlay').classList.contains('show')?null:null);});
