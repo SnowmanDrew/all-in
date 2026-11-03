@@ -265,6 +265,7 @@ function buildPane(){
       ${d.detect?`<div class="etraits" style="margin-top:6px"><span data-tip="Sharp eyes|Spots invisible Card Cheats within 160" style="color:#d9f6ff;background:rgba(34,225,255,.1);box-shadow:inset 0 0 0 1px rgba(34,225,255,.4)">${icon('sparkles')}Sharp eyes</span></div>`:''}
       ${d.ab?`<div class="abchip" data-tip="${ABIL[d.ab].name} (E)|${ABIL[d.ab].desc}">${icon(ABIL[d.ab].icon)}<span>${ABIL[d.ab].name}</span><b data-f="abcd"></b></div>`:''}
       ${rec.length?`<div class="recipes">${rec.map(r=>{const n=G.units.filter(o=>o!==u&&o.k===r.partner).length;return `<button class="rcp" data-p="${r.partner}" ${n?'':'disabled'} data-tip="Merge with ${UNITS[r.partner].name}|Makes ${UNITS[r.out].name}${n?'':'|You have none yet'}"><canvas data-k="${r.partner}"></canvas>${icon('next')}<canvas data-k="${r.out}"></canvas></button>`;}).join('')}</div>`:''}`;
+    {const pc=box.querySelector('.por');pc.style.setProperty('--ring',d.sig||d.secret||d.bonus?'#c084fc':d.merge?['#22e1ff','#ff3d9a','#e0b040'][Math.min(2,(d.tier||1)-1)]:'#7d8494');pc.classList.add('ring');}
     portrait(box.querySelector('.por'),u.k,92);box.querySelectorAll('.rcp canvas').forEach(c=>portrait(c,c.dataset.k,30));
     box.querySelectorAll('.rcp').forEach(b=>b.addEventListener('click',()=>{Snd.init();mergeNearest(u,b.dataset.p);refreshPane(true);}));
     return;}

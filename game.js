@@ -633,7 +633,7 @@ function update(dt){
         if(p.chains){const n=nearestEnemy(p.tx,p.ty,140);if(n)chainHit(p.u||{x:p.tx,y:p.ty+10,r:0},n,p.dmg*.5,p.chains,'#fff1c2');}}continue;}
     if(p.tg&&!p.tg.dead){p.tx=p.tg.x;p.ty=p.tg.y;}
     const dx=p.tx-p.x,dy=p.ty-p.y,d=Math.hypot(dx,dy),mv=p.spd*dt;
-    if(d<=mv+4){p.dead=true;
+    if(d<=mv+4){p.dead=true;if(typeof impactFx==='function')impactFx(p);
       if(p.aoe){splashAt(p.tx,p.ty,p.aoe,p.dmg,p.u,p.col,{slow:p.slow,stun:p.stun,crit:p.crit,critX:p.critX});
         if(p.burn)G.fires.push({x:p.tx,y:p.ty,r:p.aoe*.8,t:2.6,max:2.6,dps:p.dmg*.4,u:p.u});
         if(p.charm)for(const o of G.enemies)if(!o.dead&&!o.def.boss&&!o.def.mini&&Math.hypot(o.x-p.tx,o.y-p.ty)<p.aoe+o.r&&rnd()<p.charm){o.charmT=2.6;}}
