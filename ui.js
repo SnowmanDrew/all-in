@@ -28,6 +28,8 @@ const Snd={ctx:null,muted:false,last:{},
       case 'boom':this.noise(.35,.25,700);this.tone(100,.3,'sine',.1,.4);break;
       case 'jackpot':[1047,1319,1568,2093].forEach((f,i)=>this.tone(f,.15,'square',.05,0,i*.05));break;
       case 'leak':this.tone(220,.25,'sawtooth',.08,.5);break;
+      case 'casinohit':this.tone(92,.32,'sine',.22,.55);this.noise(.16,.12,700);this.tone(660,.09,'square',.035,.8,.02);this.tone(520,.12,'square',.03,.8,.11);break;
+      case 'bighand':this.tone(130.8,.9,'sawtooth',.06,1,0);this.tone(196,.9,'sawtooth',.05,1,0);[523,659,784,1047,1319].forEach((f,i)=>this.tone(f,.32,'triangle',.09,0,i*.055));this.noise(.5,.08,3500,'highpass',.05);break;
       case 'die':this.tone(330,.3,'triangle',.1,.4);break;
       case 'spawn':[523,784,1047].forEach((f,i)=>this.tone(f,.2,'triangle',.12,0,i*.06));break;
       case 'merge':[392,523,659,784,1047].forEach((f,i)=>this.tone(f,.25,'sine',.1,0,i*.05));break;
@@ -728,7 +730,7 @@ let last=performance.now(),acc=0,uiT=0;
 function frame(now){
   const rdt=Math.min(1,(now-last)/1000),dt=Math.min(.1,rdt);last=now;NET.lastFrame=performance.now();NET.bgLast=NET.lastFrame;
   if(NET.on)netTick(rdt);rollChips(rdt);if(G&&!G.paused)tickMinigame(rdt);
-  if(G&&G.running&&!G.paused&&!G.over){acc+=dt*G.speed;let n=0;while(acc>=STEP&&n<15){update(STEP);acc-=STEP;n++;if(G.over)break;}if(n>=15)acc=0;}
+  if(G&&G.running&&!G.paused&&!G.over){acc+=dt*G.speed*(typeof feelScale==='function'?feelScale():1);let n=0;while(acc>=STEP&&n<15){update(STEP);acc-=STEP;n++;if(G.over)break;}if(n>=15)acc=0;}
   else if(G&&G.over)stepParticles(dt);
   if(NET.watch&&NET.watch.full)renderView(MAINCTX,1,NET.watch.GV,NET.watch.ropes);else render();
   if(NET.watch&&!NET.watch.full&&pkScale)renderView(pkCtx,pkScale,NET.watch.GV,NET.watch.ropes);

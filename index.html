@@ -462,6 +462,16 @@ body.spectate #seats{grid-template-columns:repeat(6,1fr)}
 #gate .glook{margin-top:16px;background:none;border:0;color:var(--muted);font:600 14px var(--body);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 
 .buildtag{position:fixed;right:12px;bottom:8px;z-index:31;font:500 11.5px var(--body);color:rgba(233,227,242,.38);letter-spacing:.03em;pointer-events:auto;user-select:text;-webkit-user-select:text}
+
+/* ---------- game feel overlays ---------- */
+.feelflash,.feelhurt{position:absolute;inset:0;pointer-events:none;z-index:6;opacity:0}
+.feelflash{background:radial-gradient(ellipse at 50% 50%,var(--fc),transparent 70%);mix-blend-mode:screen}
+.feelflash.go{animation:fflash .55s ease-out 1}
+@keyframes fflash{0%{opacity:var(--fa)}100%{opacity:0}}
+.feelhurt{box-shadow:inset 0 0 80px 18px rgba(255,30,60,.85),inset 0 0 0 3px rgba(255,59,90,.6);border-radius:6px}
+.feelhurt.go{animation:fhurt .5s ease-out 1}
+@keyframes fhurt{0%{opacity:var(--ha)}100%{opacity:0}}
+@media (prefers-reduced-motion: reduce){.feelflash.go{animation-duration:.3s}.feelflash{display:none}}
 </style>
 </head>
 <body>
@@ -528,6 +538,7 @@ body.spectate #seats{grid-template-columns:repeat(6,1fr)}
 <script src="arcade.js"></script>
 <script src="sports.js"></script>
 <script src="cards.js"></script>
+<script src="feel.js"></script>
 <script src="ui.js"></script>
 <script src="secrets.js"></script>
 <script src="fight.js"></script>

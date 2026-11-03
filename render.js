@@ -915,7 +915,7 @@ function drawEnemy(c,e,t){
 function drawCasino(c,t){
   const X=BASE.c0*TILE,Y=BASE.r0*TILE,W0=BASE.w*TILE,H0=BASE.h*TILE,f=clamp(G.base.hp/G.base.maxHp,0,1),tier=G.base.tier||0;
   const ht=G.base.hitT>0?G.base.hitT/.22:0;c.save();if(ht)c.translate((rnd()-.5)*3*ht,(rnd()-.5)*2*ht);
-  const flick=f<.45?(Math.sin(t*23)+Math.sin(t*7.3)>.6?.25:1):1;
+  const flick=G.base.signT>0?(Math.sin(t*70)>0?.15:.85):f<.45?(Math.sin(t*23)+Math.sin(t*7.3)>.6?.25:1):1;
   // footprint grows: the corner casino is a small parlour on its lot
   const ins=tier===0?14:0,x=X+ins,y=Y+ins+4,w=W0-ins*2+ (tier===0?ins:0),h=H0-ins*2-8+(tier===0?0:8);
   const shadowLen=[8,14,24,46][tier];
@@ -1093,6 +1093,7 @@ function render(){
   if(G.mode==='rope'||G.showRoute)drawRoute(ctx);
   drawRopes(ctx);
   if(G.phase==='wave'||G.spawnQ&&G.spawnQ.length)drawPortal(ctx,t);
+  if(typeof drawWaveFeel==='function')drawWaveFeel(ctx,t);
   if(typeof drawEggs==='function'&&!VIEWING)drawEggs(ctx,t);
   // fountain shimmer
   {const o=OBST.find(o=>o.k==='fountain');if(o){const cx=(o.c+o.w/2)*TILE,cy=(o.r+o.h/2)*TILE;for(let k=0;k<6;k++){const an=t*1.4+k*TAU/6,rad=10+((t*18+k*7)%22);ctx.fillStyle=`rgba(200,245,255,${.5-rad/50})`;ctx.beginPath();ctx.arc(cx+Math.cos(an)*rad,cy+Math.sin(an)*rad*.8,1.4,0,TAU);ctx.fill();}}}

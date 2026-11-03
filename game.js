@@ -108,6 +108,7 @@ function spawnHandUnits(k,ev){
   const d=UNITS[k],made=[];
   for(let i=0;i<(d.cnt||1);i++){const a=-Math.PI/2+(rnd()-.5)*2.4;const u=makeUnit(k,BASE.fx-8+Math.cos(a+Math.PI/2)*12,BASE.y+(rnd()-.5)*60);made.push(u);
     u.anchor={x:u.x,y:u.y};G.fx.push({t:'ring',x:u.x,y:u.y,r0:4,r1:34,col:'#e9c46a',life:.6,max:.6,w:3});for(let j=0;j<14;j++)spark(u.x,u.y,'#e9c46a',100,.6);}
+  if(ev&&Array.isArray(ev.scoring)&&typeof handFeel==='function')handFeel(k,ev,made);
   G.lastUnitK=k;if(typeof Meta!=='undefined'){Meta.seen(k);if(k==='rf')Meta.ach('royal');if(ev.rank===7)Meta.ach('quads');}G.stats.got[k]=(G.stats.got[k]||0)+(d.cnt||1);G.stats.best=Math.max(G.stats.best,ev.rank);
   gameLog(`${HANDS[ev.rank]}${ev.high?' (high)':''} → ${d.cnt>1?d.cnt+'× ':''}${d.name}`,'good');Snd.play('spawn');
   if(d.sig){banner('Signature hand!',d.sig+' · '+d.name,'great');Snd.play('jackpot');if(typeof Meta!=='undefined')Meta.ach('sig');}
@@ -444,7 +445,7 @@ function updateAtCasino(e){
   // never stand inside the building
   if(e.x>BASE.c0*TILE&&e.x<(BASE.c0+BASE.w)*TILE&&e.y>BASE.r0*TILE&&e.y<(BASE.r0+BASE.h)*TILE)e.x=BASE.c0*TILE-e.r-2;
   if(Math.abs(BASE.x-e.x)>1)e.face=BASE.x>e.x?1:-1;
-  if(e.cd<=0){const dmg=e.def.bite*.6*(1-.1*G.base.plate)*(1+(G.diff.earlyBite||0)*earlyBump(G.wave));G.base.hp-=dmg;G.base.hitT=.22;if(G.round)G.round.hpLost+=dmg;G.waveDmg=(G.waveDmg||0)+dmg;e.cd=2/(e.def.rate||1);e.atk=1;e.fx=Math.sign(BASE.x-e.x)||1;e.fy=0;
+  if(e.cd<=0){const dmg=e.def.bite*.6*(1-.1*G.base.plate)*(1+(G.diff.earlyBite||0)*earlyBump(G.wave));G.base.hp-=dmg;G.base.hitT=.22;if(typeof casinoHurt==='function')casinoHurt(dmg);if(G.round)G.round.hpLost+=dmg;G.waveDmg=(G.waveDmg||0)+dmg;e.cd=2/(e.def.rate||1);e.atk=1;e.fx=Math.sign(BASE.x-e.x)||1;e.fy=0;
     for(let i=0;i<4;i++)spark(e.x+(BASE.x>e.x?e.r:-e.r),e.y,'#ffcf7a',70,.3);G.shake=Math.min(6,G.shake+.6+dmg*.08);Snd.play('leak');
     if(dmg>=4||rnd()<.3)floatText(e.x,e.y-e.r-6,'-'+Math.round(dmg),'#f87171',11);
     if(G.base.hp<=0&&!G.over)defeat();}
@@ -511,6 +512,7 @@ function startWave(){
   else if(c.boss){banner(c.name,'Round '+w,'boss');Snd.play('boss');}
   else if(c.mini){banner('Repo Ogre','Round '+w,'boss');Snd.play('wave');}
   else{banner('Round '+w,c.name,'round');Snd.play('wave');}
+  if(typeof waveFeel==='function')waveFeel();
   if(!G.mp)rivalIncome(w);
   refreshTable(true);
 }
@@ -648,7 +650,7 @@ function update(dt){
   for(const f of G.fx)f.life-=dt;G.fx=G.fx.filter(f=>f.life>0);
   for(const m of G.marks)m.t-=dt;G.marks=G.marks.filter(m=>m.t>0);
   stepParticles(dt);
-  G.shake=Math.max(0,G.shake-dt*20);if(G.base.hitT>0)G.base.hitT-=dt;
+  G.shake=Math.max(0,G.shake-dt*20);if(G.base.hitT>0)G.base.hitT-=dt;if(G.base.signT>0)G.base.signT-=dt;
 }
 function stepParticles(dt){for(const p of G.parts){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.conf)p.rot+=dt*4;else{p.vx*=.92;p.vy*=.92;}}G.parts=G.parts.filter(p=>p.life>0);
   for(const t of G.texts){t.life-=dt;t.y-=26*dt;}G.texts=G.texts.filter(t=>t.life>0);}
