@@ -436,10 +436,10 @@ body.spectate #seats{grid-template-columns:repeat(6,1fr)}
 .ttl .bulbs i{position:absolute;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#fff1c2;box-shadow:0 0 6px 2px rgba(255,190,70,.8);animation:chase 1.1s steps(1) infinite}
 .ttl .bulbs i.b{animation-delay:.55s}
 @keyframes chase{0%{opacity:1}50%{opacity:.22;box-shadow:none}}
-.ttl .stk{position:absolute;bottom:-6px;display:flex;flex-direction:column-reverse}
-.ttl .stk.l{left:-74px}.ttl .stk.r{right:-70px}
-.ttl .stk i{display:block;width:50px;height:15px;margin-top:-9px;border-radius:50%;background:var(--c);box-shadow:inset 0 -4px 0 rgba(0,0,0,.32),0 0 0 1.5px #0b0612;border:2px dashed rgba(255,255,255,.75);box-sizing:border-box}
-.ttl .stk.r i:nth-child(odd){transform:translateX(3px)}.ttl .stk.l i:nth-child(3n){transform:translateX(-3px)}
+.ttl .stk{position:absolute;bottom:-14px;filter:drop-shadow(0 6px 8px rgba(0,0,0,.55))}.ttl .stk svg{display:block}
+.ttl .stk.l{left:-112px}.ttl .stk.r{right:-110px}
+
+
 @media (max-width:760px){.ttl .stk{display:none}.ttl .sign .logo.big{font-size:64px}.ttl .sign{padding:18px 30px 14px}}
 
 /* ---------- phone / touch notice ---------- */

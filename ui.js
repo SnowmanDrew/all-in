@@ -447,9 +447,22 @@ function saveBest(){try{const k='allin-best-'+G.diffKey,prev=localStorage.getIte
 function showMenu(){
   if(NET.on)netLeave();document.body.classList.remove('mp','spectate');if(G&&G.mp){newGame(menuDiff);resetGameUI();}
   if(G)G.running=false;
-  const chipStack=(cols,n)=>`<div class="stk">${Array.from({length:n},(_,i)=>`<i style="--c:${cols[i%cols.length]}"></i>`).join('')}</div>`;
+  // poker chips drawn as short cylinders: a side band with edge spots for each chip, and the top face on the last one
+  const shadeHex=(h,f)=>{const n=parseInt(h.slice(1),16);let r=n>>16,g=(n>>8)&255,b=n&255;const m=f<0?1+f:1;const a=f>0?f:0;r=r*m+(255-r)*a;g=g*m+(255-g)*a;b=b*m+(255-b)*a;return `rgb(${r|0},${g|0},${b|0})`;};
+  const chipSVG=(stacks,W,H)=>{const RX=26,RY=9,T=8;let out='';
+    for(const st of stacks){const [x0,cols,n,lean]=st;let tops=[];
+      for(let k=0;k<n;k++){const c=cols[k%cols.length],jx=x0+((k*37)%5-2)*(k?1:0),cy=H-RY-2-k*T,spot=c==='#f5f0e6'||c==='#f8f5ec'?'#c3122f':'#fff';
+        out+=`<path d="M${jx-RX} ${cy-T}v${T}a${RX} ${RY} 0 0 0 ${RX*2} 0v${-T}" fill="${shadeHex(c,-.28)}" stroke="#0b0612" stroke-width="1.6"/>`;
+        for(let q=0;q<5;q++){const a=Math.PI*(.12+q*.19),sx=jx-Math.cos(a)*RX*.94,w=Math.max(2,Math.sin(a)*8.5);out+=`<rect x="${(sx-w/2).toFixed(1)}" y="${(cy-T+Math.sin(a)*RY*.9+1).toFixed(1)}" width="${w.toFixed(1)}" height="${T-2}" fill="${spot}" opacity=".92"/>`;}
+        tops=[jx,cy-T,c,spot];}
+      const [tx,ty,c,spot]=tops;
+      out+=`<ellipse cx="${tx}" cy="${ty}" rx="${RX}" ry="${RY}" fill="${c}" stroke="#0b0612" stroke-width="1.6"/><ellipse cx="${tx}" cy="${ty}" rx="${RX-3}" ry="${RY-1.2}" fill="none" stroke="${spot}" stroke-width="3.2" stroke-dasharray="6 6.5" opacity=".95"/>`
+        +`<ellipse cx="${tx}" cy="${ty}" rx="${RX*.56}" ry="${RY*.56}" fill="${shadeHex(c,.18)}" stroke="${shadeHex(c,-.35)}" stroke-width="1"/><ellipse cx="${tx-4}" cy="${ty-2}" rx="${RX*.22}" ry="${RY*.18}" fill="#fff" opacity=".35"/>`;}
+    return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${out}</svg>`;};
+  const chipStack=(side)=>side==='l'?`<div class="stk l">${chipSVG([[30,['#ff3d9a','#f5f0e6','#22e1ff'],7],[76,['#22e1ff','#f5f0e6'],4]],106,96)}</div>`
+    :`<div class="stk r">${chipSVG([[30,['#1d1d28','#e0b040'],5],[74,['#e0b040','#ff3d9a','#1d1d28'],3]],104,96)}</div>`;
   showOverlay(`<div class="ttl"><div class="fan">${[10,11,12,13,14].map((v,i)=>cardHTML({v,s:'S'},i,'').replace('class="card','style="--a:'+((i-2)*15)+'deg;--d:'+(i*.09)+'s" class="card')).join('')}</div>
-   <div class="sign"><div class="bulbs"></div><div class="logo big">ALL IN</div><div class="tagl">Poker · Defense</div>${chipStack(['#ff3d9a','#22e1ff','#f5f0e6'],7).replace('class="stk"','class="stk l"')}${chipStack(['#e0b040','#1d1d28','#ff3d9a'],5).replace('class="stk"','class="stk r"')}</div></div>
+   <div class="sign"><div class="bulbs"></div><div class="logo big">ALL IN</div><div class="tagl">Poker · Defense</div>${chipStack('l')}${chipStack('r')}</div></div>
    <div class="diffs">${Object.entries(DIFFS).map(([k,d])=>`<button class="diff ${k===menuDiff?'on':''}" data-d="${k}"><b>${d.name}</b><span>${d.desc}</span>${bestOf(k)?`<em>${bestOf(k)}</em>`:''}</button>`).join('')}</div>
    ${(()=>{const d=savedRun();return d?`<div class="mrow" style="margin-top:-8px"><button class="pb main" id="mCont">Continue · ${DIFFS[d.dk].name}, round ${d.wave+1}</button></div>`:'';})()}
    <div class="mrow"><button class="pb" id="mHow">How to play</button><button class="pb" id="mCol">${icon('army')} Collection</button><button class="pb" id="mSet">${icon('settings')} Settings</button><button class="pb" id="mMulti">${icon('users')} Play with friends</button><button class="pb main" id="mStart">Deal me in</button></div>`,'menu title');titleBulbs();showBuildTag(true);
