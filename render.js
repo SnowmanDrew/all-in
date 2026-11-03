@@ -216,13 +216,7 @@ function drawCreature(c,look,r,t,atk){
     if(atk>.5){c.fillStyle='rgba(255,255,255,.7)';c.beginPath();c.arc(0,-hh-s*.85,s*.25*atk,0,Math.PI*2);c.fill();}
     for(const sx of [-.35,.35]){c.strokeStyle='#111';c.lineWidth=1.5;c.beginPath();c.moveTo(sx*s,s*.1);c.lineTo(sx*s,-s*.12);c.stroke();eye(c,sx*s,-s*.18,s*.14);}
     break;}
-  case 'kraken':{const s=r;if(atk>.3){c.strokeStyle=c1;c.lineCap='round';c.lineWidth=s*.22;for(const sx of [-1,1]){c.beginPath();c.moveTo(sx*s*.55,-s*.2);c.quadraticCurveTo(sx*s*1.25,-s*.9,sx*s*.8,-s*1.45);c.stroke();c.fillStyle=c2;c.beginPath();c.arc(sx*s*.8,-s*1.45,s*.12,0,TAU);c.fill();}}c.strokeStyle=c1;c.lineCap='round';for(let k=0;k<6;k++){const x0=-s*.7+k*s*.28;c.lineWidth=s*.2;c.beginPath();c.moveTo(x0,s*.2);c.quadraticCurveTo(x0+Math.sin(t*4+k)*s*.4,s*.8,x0+Math.sin(t*3+k*2)*s*.3,s*1.1);c.stroke();}
-    c.fillStyle=shade(c1,-.25);c.beginPath();c.ellipse(0,0,s*.95,s*.75,0,0,Math.PI*2);c.fill();c.fillStyle=c1;c.beginPath();c.ellipse(0,-s*.1,s*.9,s*.68,0,0,Math.PI*2);c.fill();
-    c.fillStyle=c2;rr(c,-s*.6,-s*.85,s*1.2,s*.3,3);c.fill();for(let k=0;k<6;k++){c.fillStyle=(Math.floor(t*5)+k)%2?'#fff':'#e11d48';c.beginPath();c.arc(-s*.5+k*s*.2,-s*.7,s*.05,0,Math.PI*2);c.fill();}
-    if(L.crown)crown(c,0,-s*.92,s*.36,'#fbbf24');
-    if(L.plated){c.strokeStyle='#cbd5e1';c.lineWidth=s*.08;c.beginPath();c.ellipse(0,-s*.1,s*.9,s*.68,0,Math.PI*.1,Math.PI*.9);c.stroke();c.fillStyle='#e2e8f0';for(let k=0;k<5;k++){const a=Math.PI*(.15+k*.175);c.beginPath();c.arc(Math.cos(a)*s*.9,-s*.1+Math.sin(a)*s*.68,s*.06,0,TAU);c.fill();}
-      c.strokeStyle=c2;c.lineWidth=1.5;c.beginPath();c.arc(0,s*.28,s*.2,0,TAU);c.stroke();for(let k=0;k<6;k++){const a=k*Math.PI/3+t*1.5;c.beginPath();c.moveTo(Math.cos(a)*s*.2,s*.28+Math.sin(a)*s*.2);c.lineTo(Math.cos(a)*s*.28,s*.28+Math.sin(a)*s*.28);c.stroke();}}
-    eye(c,-s*.3,-s*.05,s*.2);eye(c,s*.3,-s*.05,s*.2);break;}
+  case 'kraken':krakenArt(c,r,L,t,atk);break;
   case 'drake':{const s=r,w=TAU/SPP,fl=Math.sin(t*w*2),dk=shade(c1,-.35),lt=shade(c1,.25);
     const wing=(ox,oy,col,mem,sc)=>{c.save();c.translate(ox,oy);c.scale(sc,sc);c.rotate(-.15+fl*.22);
       c.fillStyle=mem;c.beginPath();c.moveTo(0,0);c.lineTo(-s*.35,-s*1.15);c.quadraticCurveTo(-s*.55,-s*.9,-s*.75,-s*.95);c.quadraticCurveTo(-s*.85,-s*.65,-s*1.1,-s*.62);c.quadraticCurveTo(-s*1.0,-s*.35,-s*1.2,-s*.22);c.quadraticCurveTo(-s*.6,-s*.15,-s*.3,s*.12);c.closePath();c.fill();

@@ -259,3 +259,51 @@ MACH.magnet=(c,r,o,t,atk)=>{
   // field lines between the poles when it pulls
   if(atk>.15){c.strokeStyle=`rgba(239,68,68,${.35+atk*.5})`;c.lineWidth=1.2;c.setLineDash([3,3]);for(let k=1;k<=3;k++){c.beginPath();c.ellipse(0,r*.9,R*(.6+k*.25),r*(.1+k*.09),0,0,Math.PI);c.stroke();}c.setLineDash([]);}
 };
+
+/* ---- Casino Kraken: a proper octopus with a jewelled marquee band, juggling chips and cards ---- */
+function krakenArt(c,r,L,t,atk){
+  const s=r,c1=L.c1,c2=L.c2,dk=shade(c1,-.35),lt=shade(c1,.3),belly=shade(c1,.45);
+  // one tapering tentacle from (x0,y0), swaying; suckers on the inside
+  const tent=(x0,y0,ang,len,w,ph,curl,front)=>{const N=11,pts=[];let x=x0,y=y0,a=ang;
+    for(let i=0;i<=N;i++){pts.push([x,y,w*(1-i/N*.82)]);const k=i/N;a+=(Math.sin(t*3.4+ph+k*3)*.12+curl*k*.16);x+=Math.cos(a)*len/N;y+=Math.sin(a)*len/N;}
+    c.lineCap='round';for(let i=0;i<N;i++){const [ax,ay,aw]=pts[i],[bx,by]=pts[i+1];c.strokeStyle=front?c1:dk;c.lineWidth=aw;c.beginPath();c.moveTo(ax,ay);c.lineTo(bx,by);c.stroke();}
+    if(front)for(let i=2;i<N;i+=2){const [ax,ay,aw]=pts[i],[bx,by]=pts[i+1],nx=-(by-ay),ny=bx-ax,l=Math.hypot(nx,ny)||1;c.fillStyle=belly;c.beginPath();c.arc(ax+nx/l*aw*.22,ay+ny/l*aw*.22,aw*.2,0,TAU);c.fill();}
+    return pts[N];};
+  // back tentacles (darker), then the front ones
+  for(const [x,a,l,ph,cu] of [[-.42,2.5,1.05,.4,-1],[.42,.64,1.05,1.9,1],[-.18,1.9,.95,2.6,-.6],[.18,1.24,.95,3.3,.6]])tent(x*s,s*.22,a,l*s,s*.24,ph,cu,false);
+  // raised tentacles: one holds a chip stack, one fans cards; on attack they whip forward
+  const whip=atk*1.1;
+  const tipL=tent(-s*.66,-s*.02,-2.75+whip*.9,s*.9,s*.22,0,.55,true),tipR=tent(s*.66,-s*.02,-.4+whip*.7,s*.9,s*.22,1.2,-.55,true);
+  // chips in the left tentacle
+  c.save();c.translate(tipL[0],tipL[1]-s*.06);for(let k=0;k<3;k++){const col=['#e11d48','#f8f5ec','#22d3ee'][k];c.fillStyle=shade(col,-.35);c.beginPath();c.ellipse(0,-k*s*.07+s*.03,s*.16,s*.07,0,0,TAU);c.fill();c.fillStyle=col;c.beginPath();c.ellipse(0,-k*s*.07,s*.16,s*.07,0,0,TAU);c.fill();}c.restore();
+  // a fan of cards in the right tentacle
+  c.save();c.translate(tipR[0],tipR[1]);for(let k=-1;k<=1;k++){c.save();c.rotate(k*.32-.2);c.fillStyle=INK;rr(c,-s*.08,-s*.28,s*.17,s*.24,s*.03);c.fill();c.fillStyle='#fbf6e8';rr(c,-s*.065,-s*.265,s*.14,s*.21,s*.025);c.fill();
+    c.fillStyle=k?'#c3122f':'#1a1c2b';c.beginPath();c.arc(0,-s*.155,s*.03,0,TAU);c.fill();c.restore();}c.restore();
+  // front tentacles curling at the feet
+  for(const [x,a,l,ph,cu] of [[-.3,2.2,1.0,.9,-1.4],[.3,.94,1.0,2.2,1.4]])tent(x*s,s*.3,a,l*s,s*.26,ph,cu,true);
+  // mantle: a tall dome leaning back a touch
+  c.save();c.translate(0,-s*.18);c.rotate(-.08);
+  const g=c.createRadialGradient(-s*.25,-s*.45,s*.1,0,-s*.1,s*1.05);g.addColorStop(0,lt);g.addColorStop(.55,c1);g.addColorStop(1,dk);c.fillStyle=g;
+  c.beginPath();c.moveTo(-s*.62,s*.3);c.bezierCurveTo(-s*.95,-s*.2,-s*.7,-s*1.12,0,-s*1.14);c.bezierCurveTo(s*.7,-s*1.12,s*.95,-s*.2,s*.62,s*.3);c.quadraticCurveTo(0,s*.46,-s*.62,s*.3);c.fill();
+  c.fillStyle=hexA(dk,.55);for(const [x,y,rr2] of [[-.38,-.72,.07],[.3,-.86,.06],[.5,-.45,.05],[-.55,-.3,.05],[.05,-.98,.04]]){c.beginPath();c.arc(x*s,y*s,rr2*s,0,TAU);c.fill();}
+  // jewelled marquee band
+  c.fillStyle=c2;c.beginPath();c.moveTo(-s*.78,-s*.5);c.quadraticCurveTo(0,-s*.68,s*.78,-s*.5);c.lineTo(s*.74,-s*.34);c.quadraticCurveTo(0,-s*.52,-s*.74,-s*.34);c.closePath();c.fill();
+  c.strokeStyle=shade(c2,-.4);c.lineWidth=1;c.stroke();
+  for(let k=0;k<7;k++){const u=k/6,x=-s*.66+u*s*1.32,y=-s*.42-Math.sin(u*Math.PI)*s*.09;c.fillStyle=(Math.floor(t*6)+k)%2?'#fff6d6':'#e11d48';c.beginPath();c.arc(x,y,s*.045,0,TAU);c.fill();}
+  c.fillStyle='#22d3ee';c.beginPath();c.moveTo(0,-s*.62);c.lineTo(s*.07,-s*.53);c.lineTo(0,-s*.44);c.lineTo(-s*.07,-s*.53);c.closePath();c.fill();
+  if(L.crown)crown(c,0,-s*1.1,s*.3,'#fbbf24');
+  // eyes: gold irises, slit pupils, heavy angry lids
+  for(const sx of [-1,1]){const ex=sx*s*.3,ey=-s*.06;c.fillStyle='#fff8e1';c.beginPath();c.ellipse(ex,ey,s*.19,s*.17,0,0,TAU);c.fill();
+    c.fillStyle='#f5b81c';c.beginPath();c.ellipse(ex+sx*s*.02,ey+s*.02,s*.13,s*.12,0,0,TAU);c.fill();
+    c.fillStyle=INK;c.beginPath();c.ellipse(ex+sx*s*.02,ey+s*.02,s*.1,s*.035,0,0,TAU);c.fill();c.fillStyle='#fff';c.beginPath();c.arc(ex-s*.05,ey-s*.05,s*.035,0,TAU);c.fill();
+    // angled lid: lower on the inside for a scowl
+    const inner=-sx;c.fillStyle=dk;c.beginPath();c.moveTo(ex-s*.24,ey-s*.24);c.lineTo(ex+s*.24,ey-s*.24);
+    c.lineTo(ex+s*.24,ey-s*(inner>0?.02:.13));c.lineTo(ex-s*.24,ey-s*(inner>0?.13:.02));c.closePath();c.fill();
+    c.strokeStyle=shade(c1,-.55);c.lineWidth=s*.05;c.lineCap='round';c.beginPath();c.moveTo(ex-s*.22,ey-s*(inner>0?.15:.04));c.lineTo(ex+s*.22,ey-s*(inner>0?.04:.15));c.stroke();}
+  // a sly mouth-line and the siphon dripping ink
+  c.strokeStyle=hexA(INK,.7);c.lineWidth=s*.04;c.lineCap='round';c.beginPath();c.moveTo(-s*.12,s*.2);c.quadraticCurveTo(0,s*.26,s*.14,s*.18);c.stroke();
+  c.restore();
+  c.fillStyle=shade(c1,-.15);c.beginPath();c.ellipse(s*.62,s*.12,s*.09,s*.13,-.5,0,TAU);c.fill();
+  const dp=(t*.9)%1;c.fillStyle=`rgba(30,12,60,${.8*(1-dp)})`;c.beginPath();c.ellipse(s*.68,s*.24+dp*s*.4,s*.05,s*.07,0,0,TAU);c.fill();
+  if(atk>.4){c.fillStyle=`rgba(30,12,60,${atk*.6})`;for(let k=0;k<4;k++){c.beginPath();c.arc(s*(.8+k*.12),s*(.2-k*.05),s*(.07+k*.02),0,TAU);c.fill();}}
+}
