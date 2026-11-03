@@ -235,7 +235,7 @@ cv.addEventListener('pointerup',ev=>{RED_PICK=ev.button===0;},{capture:true});
 cv.addEventListener('pointerup',()=>{RED_PICK=false;});
 {const _ea=enemyAt;enemyAt=function(x,y){const e=_ea(x,y);if(e||!RED_PICK||!G||!G.red)return e;const [rx,ry]=redSpot(G.red);return Math.hypot(x-rx,y-ry)<22?G.red:null;};}
 {const _mt=mapTip;mapTip=function(p){const R=G&&G.red;if(R){const [rx,ry]=redSpot(R);if(Math.hypot(p.x-rx,p.y-ry)<22)return `Red|Retired greyhound · ${redStatus(R)}`;}return _mt(p);};}
-const redStatus=R=>R.state==='sleep'?'fast asleep':R.state==='wake'?'stretching':R.state==='settle'?'turning round three times':(redCalm()?'doing zoomies':'heading back to bed');
+function redStatus(R){return R.state==='sleep'?'fast asleep':R.state==='wake'?'stretching':R.state==='settle'?'turning round three times':(redCalm()?'doing zoomies':'heading back to bed');}
 {const _ps=paneSignature;paneSignature=function(){if(G&&G.inspect&&G.inspect.isRed&&!G.sel.length)return 'RED'+G.inspect.state;return _ps();};}
 {const _bp=buildPane;buildPane=function(){const R=G&&G.inspect;if(!R||!R.isRed||G.sel.length)return _bp();const box=$('#unitPane');
   box.innerHTML=`<div class="ph"><canvas class="por big" id="redPor"></canvas><div class="pmain"><div class="pname">Red</div><div class="porig">Retired greyhound · your dog</div>
