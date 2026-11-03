@@ -25,7 +25,7 @@ const res=await p.evaluate(({strat,diff,runs,MAXW})=>{
   const gambleNow=()=>{ // slots and Megaways while there are chips to burn
     while(G.me.chips>60){
       if(Math.random()<.5){G.me.chips-=10;window.eval("if(!SL)SL={reels:['cherry','lemon','bell'],spin:false,stop:0,last:''};SL.final=[slotPick(),slotPick(),slotPick()];try{slotPay();}catch(e){}SL.spin=false;");G.stats.gSlots=(G.stats.gSlots||0)+1;}
-      else{G.me.chips-=MW_BET;const r=mwSpin(Math.random);let won=0;for(const st of r.steps)if(st.wins&&st.wins.length)won+=Math.max(1,Math.round(st.pay*MW_BET));won=Math.min(won,MW_BET*150);G.me.chips+=won;G.stats.gMw=(G.stats.gMw||0)+1;}
+      else{G.me.chips-=MW_BET;const r=mwPlay(Math.random);let won=Math.round((r.total+(r.bonus?r.bonus.total:0))*MW_BET);G.me.chips+=won;G.stats.gMw=(G.stats.gMw||0)+1;}
       if(Math.random()<.25)break;}};
   for(let run=0;run<runs;run++){
     newGame(diff);G.running=false;let guard=0,ropeI=0,lastW=0;const waves=[],hands=[];let gambled=0,gambleIn=0;

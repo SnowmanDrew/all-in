@@ -66,6 +66,8 @@ const HIDDEN_ACH={
  clover:['Four-Leaf','Find the lucky clover.','sparkles','Something green grows in the cracks of the street.'],
  coconut:['Coconut Bonk','Bonk the bad luck with a coconut.','zap','Palm trees can be shaken. Aim is everything.'],
  megaways:['Cascade','Win ten times your bet on Megaways.','sparkles','The arcade has more than one machine.'],
+ wildride:['Wild Ride','Spin the Big Wheel on Megaways.','sparkles','Four gold chips, one wheel.'],
+ doubleup:['Double Double Double','Win three gambles in a row after a Megaways bonus.','crown','Red or black? Three times.'],
  longshot:['Long Shot','Win Derby Night on an 8.0 outsider.','crown','Back the horse nobody fancies.'],
  parlay:['Parlay','Get three or more picks right on a Sports Night slip.','crown','Back more than one winner.'],
  poach:['Poacher','Take a creature from another casino.','army','Win your game on the right night.'],

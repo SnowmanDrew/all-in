@@ -1,27 +1,7 @@
 'use strict';
 /* ============ ALL IN — the Penny Arcade: slots, Megaways, the dog track; and Derby Night ============ */
 
-/* ---------- Megaways: six reels, 2–7 symbols each, cascades with a climbing multiplier ---------- */
-const MW_SYMS={ten:['10','#60a5fa',10],jack:['J','#34d399',10],queen:['Q','#f472b6',10],king:['K','#fbbf24',9],ace:['A','#f87171',9],
-  cherry:['cherry','#e11d48',6],bell:['bell','#fbbf24',5],bar:['BAR','#e5e7eb',4],seven:['7','#ef4444',2],wild:['spade','#ff3d9a',3]};
-const MW_PAY={ten:[.04,.08,.16,.3],jack:[.04,.08,.16,.3],queen:[.05,.1,.2,.35],king:[.06,.12,.25,.45],ace:[.07,.14,.3,.55],
-  cherry:[.1,.2,.4,.8],bell:[.15,.3,.6,1.2],bar:[.25,.5,1,2],seven:[.5,1,2.5,6]};
-const MW_BET=20,MW_SCALE=0.19;
-function mwPick(reel,rng){const keys=Object.keys(MW_SYMS).filter(k=>k!=='wild'||reel>0);let tot=0;for(const k of keys)tot+=MW_SYMS[k][2];let r=rng()*tot;for(const k of keys){if((r-=MW_SYMS[k][2])<0)return k;}return 'ten';}
-function mwFresh(rng){return Array.from({length:6},(_,i)=>{const h=2+((rng()*6)|0);return Array.from({length:h},()=>mwPick(i,rng));});}
-function mwWays(g){return g.reduce((a,r)=>a*r.length,1);}
-// find wins: a symbol pays if it (or a wild) appears on reels 1..n in a row, n>=3
-function mwWins(g){const out=[];for(const k of Object.keys(MW_PAY)){if(!g[0].includes(k))continue;let n=0,ways=1;const cells=[];
-    for(let i=0;i<6;i++){const hits=[];g[i].forEach((s,j)=>{if(s===k||s==='wild')hits.push(j);});if(!hits.length)break;n++;ways*=hits.length;cells.push(hits);}
-    if(n>=3)out.push({k,n,ways,cells,pay:MW_PAY[k][n-3]*ways*MW_SCALE});}
-  return out;}
-function mwCascade(g,wins,rng){const kill=g.map(r=>new Set());for(const w of wins)w.cells.forEach((hits,i)=>hits.forEach(j=>kill[i].add(j)));
-  return g.map((r,i)=>{const keep=r.filter((_,j)=>!kill[i].has(j));while(keep.length<r.length)keep.unshift(mwPick(i,rng));return keep;});}
-// one full spin: returns the sequence of grids and the total payout (in bets)
-function mwSpin(rng){let g=mwFresh(rng),mult=1,total=0;const steps=[{g,wins:[],mult:1}];
-  for(let guard=0;guard<30;guard++){const wins=mwWins(g);if(!wins.length)break;const pay=wins.reduce((a,w)=>a+w.pay,0)*mult;total+=pay;steps[steps.length-1].wins=wins;steps[steps.length-1].pay=pay;
-    g=mwCascade(g,wins,rng);mult++;steps.push({g,wins:[],mult});}
-  return {steps,total};}
+/* Megaways lives in megaways.js */
 
 /* ---------- racing: shared engine for the dog track and Derby Night ---------- */
 // pick a winner by probability, then give every runner a finishing time so the winner is first
@@ -68,23 +48,6 @@ function renderArcade(){const el=$('#slotPanel');if(!el)return;
   el.querySelectorAll('[data-arc]').forEach(b=>b.addEventListener('click',()=>{if(arcBusy())return;ARC.tab=b.dataset.arc;Snd.play('click');renderArcade();}));
   if(ARC.tab==='slots')renderSlots();else if(ARC.tab==='mw')renderMW();else renderDog();}
 const arcBusy=()=>(SL&&SL.spin)||(ARC.mw&&ARC.mw.busy)||(ARC.dog&&ARC.dog.running);
-
-/* Megaways UI */
-function mwGlyph(k,big){const d=MW_SYMS[k];const ic={cherry:'cherry',bell:'bell',spade:'spade'}[d[0]];return `<span class="mws ${k}" style="color:${d[1]}">${ic?icon(ic):d[0]}</span>`;}
-function renderMW(){const B=$('#arcBody');if(!B)return;const M=ARC.mw||(ARC.mw={g:mwFresh(Math.random),busy:false,last:'Six reels, up to 117,649 ways to win. Wins cascade and the multiplier climbs.',hl:null,mult:1});
-  const ways=mwWays(M.g);
-  B.innerHTML=`<div class="mwtop"><span>${fmt(ways)} ways</span><span class="mwmult">×${M.mult}</span></div>
-    <div class="mwgrid">${M.g.map((r,i)=>`<div class="mwreel">${r.map((k,j)=>`<div class="mwc ${M.hl&&M.hl[i]&&M.hl[i].has(j)?'hit':''} ${M.drop&&M.drop[i]&&j<M.drop[i]?'drop':''}" style="height:${100/r.length}%">${mwGlyph(k)}</div>`).join('')}</div>`).join('')}</div>
-    <div class="slres">${M.last}</div><div class="mgrow"><button class="pb main" id="mwSpin" ${M.busy||G.me.chips<MW_BET?'disabled':''}>Spin · ${MW_BET}</button></div>`;
-  const b=$('#mwSpin');if(b)b.addEventListener('click',mwGo);}
-function mwGo(){const M=ARC.mw;if(!M||M.busy||G.me.chips<MW_BET)return;G.me.chips-=MW_BET;M.busy=true;Snd.play('deal');
-  const res=mwSpin(Math.random);let k=0,won=0;M.mult=1;M.hl=null;M.drop=M.g.map(r=>r.length);M.g=res.steps[0].g;M.last='Spinning…';renderMW();
-  const next=()=>{if(!ARC.mw||ARC.mw!==M)return;const st=res.steps[k];
-    if(st.wins.length){M.hl=st.g.map(()=>new Set());st.wins.forEach(w=>w.cells.forEach((h,i)=>h.forEach(j=>M.hl[i].add(j))));M.mult=st.mult;const amt=Math.max(1,Math.round(st.pay*MW_BET));won+=amt;
-      M.last=`${st.wins.map(w=>`${MW_SYMS[w.k][0]==='cherry'?'Cherries':MW_SYMS[w.k][0]==='bell'?'Bells':MW_SYMS[w.k][0]} ×${w.n} reels, ${fmt(w.ways)} ways`).join(' · ')}${st.mult>1?' · ×'+st.mult:''} · +${fmt(amt)}`;Snd.play(st.mult>1?'win':'coin');M.drop=null;renderMW();
-      k++;setTimeout(()=>{if(ARC.mw!==M)return;M.g=res.steps[k].g;M.hl=null;const prev=res.steps[k-1];M.drop=M.g.map((r,i)=>{const set=new Set();prev.wins.forEach(w=>(w.cells[i]||[]).forEach(j=>set.add(j)));return set.size;});renderMW();setTimeout(next,450);},800);}
-    else{M.busy=false;M.drop=null;const tot=Math.min(MW_BET*150,won);if(tot){G.me.chips+=tot;G.stats.earned+=tot;M.last=`Total win: ${fmt(tot)} chips${res.steps.length>2?' after '+(res.steps.length-1)+' cascades':''}`;if(tot>=MW_BET*10){Snd.play('jackpot');for(let i=0;i<60;i++)confetti();gameLog(`Megaways: a ${fmt(tot)}-chip win.`,'good');if(typeof Meta!=='undefined')Meta.ach('megaways');}}else M.last='No win this time';renderMW();}};
-  setTimeout(next,500);}
 
 /* Dog track UI */
 function renderDog(){const B=$('#arcBody');if(!B)return;const D=ARC.dog||(ARC.dog={field:newField('dog'),pick:0,bet:10,running:false,R:null,u:0,last:'Pick a dog and place a bet. The race takes six seconds.'});
