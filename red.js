@@ -6,7 +6,6 @@
    Strip. He isn't yours to command: he sleeps on his bed, and every so often he does zoomies. */
 
 const RED_COAT='#b4532a';
-const DOG_MP={name:'Margot Fairley',seat:'Neon Heights'}; // an original character
 const DOG_CROWD=[0,0,4,9,16,26]; // protesters on the stands, by race number
 const DOG_SIGNS=['LET THEM RETIRE','DOGS NOT BETS','BAN THE TRACK','♥ GREYS','NO MORE RACES','SOFAS NOT TRAPS','RUN FREE','SHAME!'];
 const DOG_RACE_LINES=['',"And they're off!",'A few protesters have turned up by the rail. And they\'re off!',
@@ -38,22 +37,23 @@ function dogPerson(c,p,x,base,s,now,heat){const bob=Math.sin(now*(2.4+heat*2)+p.
   c.fillStyle=p.skin;c.beginPath();c.arc(0,-19*s+bob*.3,5*s,0,TAU);c.fill();
   c.fillStyle=p.hair;c.beginPath();if(p.hat){c.fillStyle='#e11d48';c.arc(0,-21*s+bob*.3,5.3*s,Math.PI,0);c.fill();c.fillRect(-6.5*s,-21.4*s+bob*.3,13*s,1.6*s);}else{c.arc(0,-20*s+bob*.3,5.2*s,Math.PI*1.05,-.05);c.fill();}
   c.restore();}
-// the MP: navy suit, purple rosette, a red megaphone
+// the MP: navy suit, green rosette, blonde hair, a red megaphone
 function dogDrawMP(c,x,y,s,now,talking){c.save();c.translate(x,y);
   c.fillStyle='rgba(0,0,0,.35)';c.beginPath();c.ellipse(0,0,10*s,3*s,0,0,TAU);c.fill();
   const step=talking?0:Math.sin(now*9)*3*s;
   c.strokeStyle='#1e1b4b';c.lineWidth=3*s;c.lineCap='round';c.beginPath();c.moveTo(-3*s,-12*s);c.lineTo(-3*s+step,0);c.moveTo(3*s,-12*s);c.lineTo(3*s-step,0);c.stroke();
   c.fillStyle='#1e2a5a';c.beginPath();c.moveTo(-8*s,-11*s);c.lineTo(-7*s,-30*s);c.quadraticCurveTo(0,-34*s,7*s,-30*s);c.lineTo(8*s,-11*s);c.closePath();c.fill();
   c.fillStyle='#fff';c.beginPath();c.moveTo(-2.5*s,-31*s);c.lineTo(0,-22*s);c.lineTo(2.5*s,-31*s);c.fill();
-  c.fillStyle='#7c3aed';c.beginPath();c.arc(-4.5*s,-26*s,3*s,0,TAU);c.fill();c.fillStyle='#fbbf24';c.beginPath();c.arc(-4.5*s,-26*s,1.3*s,0,TAU);c.fill();c.fillStyle='#7c3aed';c.fillRect(-5.5*s,-23.5*s,2*s,4*s);
+  c.fillStyle='#16a34a';c.beginPath();c.arc(-4.5*s,-26*s,3*s,0,TAU);c.fill();c.fillStyle='#bbf7d0';c.beginPath();c.arc(-4.5*s,-26*s,1.3*s,0,TAU);c.fill();c.fillStyle='#16a34a';c.fillRect(-5.5*s,-23.5*s,2*s,4*s);
   c.strokeStyle='#e5e7eb';c.lineWidth=.8*s;c.beginPath();c.moveTo(-2*s,-31*s);c.lineTo(1*s,-19*s);c.stroke();c.fillStyle='#e5e7eb';c.fillRect(-.5*s,-19.5*s,3.5*s,2.5*s);
   // megaphone arm, raised when talking
   const ang=talking?-.5+Math.sin(now*5)*.05:.9;c.save();c.translate(6*s,-28*s);c.rotate(ang);c.strokeStyle='#1e2a5a';c.lineWidth=3*s;c.beginPath();c.moveTo(0,0);c.lineTo(7*s,0);c.stroke();
     c.fillStyle='#dc2626';c.beginPath();c.moveTo(6*s,-2*s);c.lineTo(15*s,-5.5*s);c.lineTo(15*s,5.5*s);c.lineTo(6*s,2*s);c.closePath();c.fill();c.fillStyle='#fca5a5';c.fillRect(14*s,-5.5*s,1.5*s,11*s);c.restore();
   c.strokeStyle='#1e2a5a';c.lineWidth=3*s;c.beginPath();c.moveTo(-6*s,-28*s);c.lineTo(-9*s,-18*s);c.stroke();
+  c.fillStyle='#e8c46a';c.beginPath();c.moveTo(-6.6*s,-38*s);c.quadraticCurveTo(-8*s,-30*s,-6.8*s,-29.5*s);c.lineTo(6.8*s,-29.5*s);c.quadraticCurveTo(8*s,-30*s,6.6*s,-38*s);c.closePath();c.fill();
   c.fillStyle='#f1c9a5';c.beginPath();c.arc(0,-37*s,5.5*s,0,TAU);c.fill();
-  c.fillStyle='#3b2416';c.beginPath();c.moveTo(-6.4*s,-34*s);c.quadraticCurveTo(-7.5*s,-44*s,0,-43.5*s);c.quadraticCurveTo(7.5*s,-44*s,6.4*s,-34*s);c.lineTo(5*s,-39*s);c.quadraticCurveTo(0,-41*s,-5*s,-39*s);c.closePath();c.fill();
-  c.fillStyle='#9ca3af';c.fillRect(1*s,-43*s,2.4*s,4*s);
+  c.fillStyle='#f2d27e';c.beginPath();c.moveTo(-6.6*s,-36*s);c.quadraticCurveTo(-7.4*s,-44.5*s,0,-44*s);c.quadraticCurveTo(7.4*s,-44.5*s,6.6*s,-36*s);c.quadraticCurveTo(4*s,-41.5*s,-1*s,-40.5*s);c.quadraticCurveTo(-4.5*s,-40*s,-6.6*s,-36*s);c.fill();
+  c.fillStyle='#c9a043';c.fillRect(-.4*s,-43.6*s,.8*s,3*s);
   c.fillStyle='#1b1b22';c.beginPath();c.arc(-2*s,-37*s,.8*s,0,TAU);c.arc(2*s,-37*s,.8*s,0,TAU);c.fill();
   c.restore();}
 function dogBubble(c,x,y,txt,s){c.font=`900 ${8*s}px Barlow,Arial,sans-serif`;const w=c.measureText(txt).width+10*s,h=14*s;c.fillStyle='#fffdf5';c.strokeStyle='#1b1b22';c.lineWidth=1.4*s;
@@ -95,7 +95,7 @@ function dogClosed(B,D,S){
       <p>He won't fight for you and he won't take orders. He'll mostly sleep, and every so often he'll do a lap of the Strip at full speed.</p>
       <div class="mgrow"><button class="pb main" id="redYes">Give Red a home</button><button class="pb" id="redNo">Not for me</button></div></div></div>`
     :`<div class="slres">${S.red?'Red lives on your Strip now. '+(G.red&&G.red.state==='sleep'?'He\'s asleep on his bed.':'He\'s doing zoomies.'):'Red went to a rescue centre. Someone will find him a sofa.'}</div>
-      <p class="dogban">Greyhound racing is banned on the Strip, by order of ${DOG_MP.name} MP.</p>`}`;
+      <p class="dogban">Greyhound racing is banned on the Strip, by order of Parliament.</p>`}`;
   dogDrawClosed($('#dogCv'));if(!DOG_RAF)DOG_RAF=requestAnimationFrame(dogOverlay);
   const pic=$('#redPic');if(pic){const c=pic.getContext('2d');const g=c.createRadialGradient(120,80,10,120,80,130);g.addColorStop(0,'#4a2a5e');g.addColorStop(1,'#1a0f24');c.fillStyle=g;c.fillRect(0,0,240,150);c.fillStyle='rgba(0,0,0,.35)';c.beginPath();c.ellipse(120,128,80,10,0,0,TAU);c.fill();c.translate(112,86);drawCreature(c,{b:'greyhound',face:'beady',c1:RED_COAT},62,0,0);}
   const y=$('#redYes'),n=$('#redNo');
@@ -127,14 +127,14 @@ dogGo=function(){const D=ARC.dog,S=dogStory();if(!D||D.running||S.banned||G.me.c
 async function dogMP(D){const S=dogStory(),wait=ms=>new Promise(r=>setTimeout(r,ms)),alive=()=>ARC.dog===D&&!!D.mp;
   D.mp={t0:performance.now()/1000,say:""};const say=(bubble,line)=>{D.mp.say=bubble;D.last=line;const r=$('#arcBody .slres');if(r)r.innerHTML=line;Snd.play('megaphone');};
   await wait(2000);if(!alive())return dogSettleBan(D);
-  say('STOP THE RACE!',`<b>“Stop the race!”</b> ${DOG_MP.name}, MP for ${DOG_MP.seat}, has marched straight onto the track.`);await wait(2800);if(!alive())return dogSettleBan(D);
+  say('STOP THE RACE!',`<b>“Stop the race!”</b> An MP has marched straight onto the track.`);await wait(2800);if(!alive())return dogSettleBan(D);
   say('IT\'S BANNED!',`<b>“As of tonight, greyhound racing on the Strip is banned.</b> Every dog on this track is retiring. All bets are refunded.”`);
   dogSettleBan(D);await wait(3000);if(!alive())return;
   say('MEET RED',`<b>“This lad's called Red.</b> He's run his last race and what he needs now is a sofa. Will you give him a home?”`);await wait(2600);if(!alive())return;
   D.mp=null;D.running=false;if(ARC.tab==='dog'&&$('#slotPanel'))renderDog();}
 // the ban holds even if the panel is closed mid-speech
 function dogSettleBan(D){const S=dogStory();if(S.banned)return;S.banned=true;if(D.paid){G.me.chips+=D.paid;D.paid=0;}
-  gameLog(`${DOG_MP.name} MP has shut down the dog track. Greyhound racing is banned on the Strip.`,'');for(const p of D.crowd||[])p.sign=p.sign||DOG_SIGNS[0];}
+  gameLog(`An MP has shut down the dog track. Greyhound racing is banned on the Strip.`,'');for(const p of D.crowd||[])p.sign=p.sign||DOG_SIGNS[0];}
 {const _tog=toggleArcade;toggleArcade=function(force,tab){const D=ARC.dog;const open=!!$('#slotPanel'),on=force!=null?force:!open;
   if(!on&&D&&D.mp){D.mp=null;D.running=false;dogSettleBan(D);}return _tog(force,tab);};}
 
