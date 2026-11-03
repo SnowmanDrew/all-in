@@ -159,7 +159,7 @@ const mwTier=x=>x>=100?['LEGENDARY WIN','t4']:x>=50?['EPIC WIN','t3']:x>=25?['ME
 
 // a run is one paid spin (and its bonus); closing the panel settles anything still owed
 function mwAlive(M,id){return ARC.mw===M&&M.run===id&&!!$('#mwGrid');}
-function mwSettle(){const M=ARC.mw;if(!M||!M.busy)return;M.run++;if(M.owed>0){const v=Math.round(M.owed);G.me.chips+=v;G.stats.earned+=v;gameLog(`Megaways: ${fmt(v)} chips paid out.`,'good');}
+function mwSettle(){const M=ARC.mw;if(!M||!M.busy)return;M.run++;if(M.owed>0){const v=Math.round(M.owed);G.me.chips+=v;gambleTally(v);G.stats.earned+=v;gameLog(`Megaways: ${fmt(v)} chips paid out.`,'good');}
   M.owed=0;M.busy=false;M.mode='base';M.fsInfo=null;M.overlay=null;M.mult=1;}
 {const _tog=toggleArcade;toggleArcade=function(force,tab){const open=!!$('#slotPanel'),on=force!=null?force:!open;if(!on)mwSettle();return _tog(force,tab);};}
 
@@ -169,13 +169,13 @@ function mwBuyClick(){const M=mwState();if(M.busy||G.me.chips<mwBuyPrice())retur
   MW_BUY_ARM=0;mwGo(true);}
 
 async function mwGo(buy){const M=mwState();const cost=buy?mwBuyPrice():MW_BET;if(M.busy||G.me.chips<cost)return;
-  G.me.chips-=cost;G.stats.mw=(G.stats.mw||0)+1;M.busy=true;const id=++M.run;M.mode='base';M.fsInfo=null;M.win=0;M.mult=1;mwOver(M,null);
+  G.me.chips-=cost;gambleTally(-cost);G.stats.mw=(G.stats.mw||0)+1;M.busy=true;const id=++M.run;M.mode='base';M.fsInfo=null;M.win=0;M.mult=1;mwOver(M,null);
   const play=buy?{s:null,total:0,trig:true,bonus:mwBonus(Math.random,0)}:mwPlay(Math.random);
   M.owed=play.total*MW_BET+(play.bonus?play.bonus.total*MW_BET:0);
   renderMW();
   if(!buy){const base=await mwAnimSpin(M,id,play.s,false,MW_CFG.baseCap);if(base==null)return;
     let pay=Math.round(play.total*MW_BET);if(!play.trig&&play.s.scat===3){mwMsg(M,`Three <b class="gold">BONUS</b> chips · so close! +${MW_CFG.threePay*MW_BET}`);}
-    if(pay){G.me.chips+=pay;G.stats.earned+=pay;M.owed-=pay;mwShowWin(M,pay);
+    if(pay){G.me.chips+=pay;gambleTally(pay);G.stats.earned+=pay;M.owed-=pay;mwShowWin(M,pay);
       if(!play.trig){const t=mwTier(play.total);if(t){await mwBigWin(M,id,pay,t);if(!mwAlive(M,id))return;}
         if(play.total>=10){gameLog(`Megaways: a ${fmt(pay)}-chip win.`,'good');if(typeof Meta!=='undefined')Meta.ach('megaways');}
         if(play.s.scat!==3)mwMsg(M,`Total win: <b class="gold">${fmt(pay)}</b> chips${play.s.steps.length>2?` after ${play.s.steps.length-1} Reactions`:''}`);}}
@@ -293,7 +293,7 @@ async function mwGamble(M,id,amount){let owed=amount,round=0;const cap=MW_CFG.bo
     if((col==='red')===red){owed*=2;M.owed=owed;result=`<b class="gold">Doubled!</b> ${fmt(owed)} chips`;Snd.play('win');mwShowWin(M,owed);if(round>=MW_CFG.gambleMax&&typeof Meta!=='undefined')Meta.ach('doubleup');}
     else{owed=0;M.owed=0;result='The house takes it.';Snd.play('mwBust');mwShowWin(M,0);}
     res=null;draw();mwMsg(M,owed>0?`Take <b class="gold">${fmt(owed)}</b>, or go again for ${fmt(owed*2)}.`:'Bust. Better luck on the reels.');if(owed>0&&(round>=MW_CFG.gambleMax||owed*2>cap)){await mwWait(900);if(mwAlive(M,id))collect();}};
-  const collect=()=>{if(!mwAlive(M,id)||res==='busy')return;if(owed>0){G.me.chips+=owed;G.stats.earned+=owed;Snd.play('potwin');gameLog(`Megaways bonus: ${fmt(owed)} chips.`,'good');if(owed>=MW_BET*10&&typeof Meta!=='undefined')Meta.ach('megaways');}
+  const collect=()=>{if(!mwAlive(M,id)||res==='busy')return;if(owed>0){G.me.chips+=owed;gambleTally(owed);G.stats.earned+=owed;Snd.play('potwin');gameLog(`Megaways bonus: ${fmt(owed)} chips.`,'good');if(owed>=MW_BET*10&&typeof Meta!=='undefined')Meta.ach('megaways');}
     M.owed=0;M.busy=false;M.mode='base';M.fsInfo=null;M.overlay=null;M.mult=1;
     M.last=owed>0?`Bonus total: <b class="gold">${fmt(owed)}</b> chips`:'The wheel giveth, the card taketh away.';M.win=owed;renderMW();};
   M.overlay=draw;draw();mwMsg(M,`Take <b class="gold">${fmt(owed)}</b>, or gamble it on the colour of the next card.`);}

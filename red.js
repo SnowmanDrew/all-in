@@ -108,7 +108,7 @@ function dogDrawClosed(cv){if(!cv)return;const c=cv.getContext('2d'),W2=cv.width
 
 dogGo=function(){const D=ARC.dog,S=dogStory();if(!D||D.running||S.banned||G.me.chips<D.bet)return;
   S.races++;const n=S.races;if(n>=5)dogEnsureRed(D);dogCrowdFor(D,n);
-  G.me.chips-=D.bet;D.paid=D.bet;D.running=true;D.R=raceFinish(6,D.field.map(f=>f.p),Math.random);D.u=0;D.last=DOG_RACE_LINES[Math.min(5,n)]||"And they're off!";
+  G.me.chips-=D.bet;gambleTally(-D.bet);D.paid=D.bet;D.running=true;D.R=raceFinish(6,D.field.map(f=>f.p),Math.random);D.u=0;D.last=DOG_RACE_LINES[Math.min(5,n)]||"And they're off!";
   Snd.play('wave');if(n>=2)Snd.play('crowd');if(n>=4)setTimeout(()=>Snd.play('chant'),400);renderDog();
   const t0=performance.now(),dur=6000;let halt=null;
   const step=()=>{if(ARC.dog!==D)return;const now=performance.now();
@@ -117,7 +117,7 @@ dogGo=function(){const D=ARC.dog,S=dogStory();if(!D||D.running||S.banned||G.me.c
     else D.u=Math.min(1.12,(now-t0)/dur*1.12);
     const cv=$('#dogCv');if(cv)drawTrack(cv,'dog',D.field,D.R,D.u);
     if(halt||D.u<1.12)requestAnimationFrame(step);else{D.running=false;const w=D.R.win,f=D.field[w];
-      if(w===D.pick){const amt=Math.round(D.paid*f.odds);G.me.chips+=amt;G.stats.earned+=amt-D.paid;D.last=`${esc(f.name)} wins! You collect ${fmt(amt)} chips.`;Snd.play('win');
+      if(w===D.pick){const amt=Math.round(D.paid*f.odds);G.me.chips+=amt;gambleTally(amt);G.stats.earned+=amt-D.paid;D.last=`${esc(f.name)} wins! You collect ${fmt(amt)} chips.`;Snd.play('win');
         if(f.odds>=6){for(let i=0;i<40;i++)confetti();gameLog(`Dog track: ${f.name} came in at ${f.odds.toFixed(1)}. +${fmt(amt)} chips.`,'good');}}
       else{D.last=`${esc(f.name)} wins. Your dog finished down the field.`;Snd.play('fold');}
       if(n===4)D.last+=' <b>The crowd won\'t be ignored much longer.</b>';
@@ -133,7 +133,7 @@ async function dogMP(D){const S=dogStory(),wait=ms=>new Promise(r=>setTimeout(r,
   say('MEET RED',`<b>“This lad's called Red.</b> He's run his last race and what he needs now is a sofa. Will you give him a home?”`);await wait(2600);if(!alive())return;
   D.mp=null;D.running=false;if(ARC.tab==='dog'&&$('#slotPanel'))renderDog();}
 // the ban holds even if the panel is closed mid-speech
-function dogSettleBan(D){const S=dogStory();if(S.banned)return;S.banned=true;if(D.paid){G.me.chips+=D.paid;D.paid=0;}
+function dogSettleBan(D){const S=dogStory();if(S.banned)return;S.banned=true;if(D.paid){G.me.chips+=D.paid;gambleTally(D.paid);D.paid=0;}
   gameLog(`An MP has shut down the dog track. Greyhound racing is banned on the Strip.`,'');for(const p of D.crowd||[])p.sign=p.sign||DOG_SIGNS[0];}
 {const _tog=toggleArcade;toggleArcade=function(force,tab){const D=ARC.dog;const open=!!$('#slotPanel'),on=force!=null?force:!open;
   if(!on&&D&&D.mp){D.mp=null;D.running=false;dogSettleBan(D);}return _tog(force,tab);};}

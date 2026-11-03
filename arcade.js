@@ -70,14 +70,14 @@ function derbyHTML(){const D=MG.derby||(MG.derby={field:newField('horse'),pick:-
   return `<canvas id="derbyCv" width="408" height="210"></canvas>${st==='bet'&&!MG.done?`<p class="mglead">Pick a horse. Anything at 8.0 or longer that wins pays its odds <em>and</em> a special prize.</p>${list}${betRow(MG.bet)}<div class="mgrow"><button class="pb main" id="derbyGo" ${D.pick>=0&&G.me.chips>=MG.bet?'':'disabled'}>Bet ${MG.bet} and race</button></div>`:`<div class="mgres">${MG.res||D.call||''}</div>`}`;}
 function derbyWire(){const D=MG.derby;const el=$('#mgPanel');el.querySelectorAll('[data-horse]').forEach(b=>b.addEventListener('click',()=>{D.pick=+b.dataset.horse;Snd.play('click');renderMinigame();}));
   const g=$('#derbyGo');if(g)g.addEventListener('click',derbyGo);drawTrack($('#derbyCv'),'horse',D.field,D.R,D.u);}
-function derbyGo(){const D=MG&&MG.derby;if(!D||MG.state!=='bet'||D.pick<0)return;const bet=Math.min(MG.bet,G.me.chips);if(bet<=0)return;G.me.chips-=bet;MG.paid=bet;MG.state='race';D.R=raceFinish(6,D.field.map(f=>f.p),Math.random);D.u=0;Snd.play('wave');
+function derbyGo(){const D=MG&&MG.derby;if(!D||MG.state!=='bet'||D.pick<0)return;const bet=Math.min(MG.bet,G.me.chips);if(bet<=0)return;G.me.chips-=bet;gambleTally(-bet);MG.paid=bet;MG.state='race';D.R=raceFinish(6,D.field.map(f=>f.p),Math.random);D.u=0;Snd.play('wave');
   const lines=[];renderMinigame();const t0=performance.now(),dur=9000;let lastCall=0;
   const step=()=>{if(!MG||MG.derby!==D)return;D.u=Math.min(1.1,(performance.now()-t0)/dur*1.1);const cv=$('#derbyCv');if(cv)drawTrack(cv,'horse',D.field,D.R,D.u);
     if(performance.now()-lastCall>1800&&D.u<1){lastCall=performance.now();const pos=D.field.map((_,i)=>[i,racePos(i,D.u,D.R)]).sort((a,b)=>b[1]-a[1]);const lead=D.field[pos[0][0]].name,second=D.field[pos[1][0]].name;
       D.call=D.u<.25?`They're away! ${lead} breaks well.`:D.u<.6?`${lead} leads, ${second} on the rail.`:D.u<.85?`Into the straight: ${lead} from ${second}!`:`${lead} and ${second}, neck and neck!`;const r=$('.mgres');if(r)r.textContent=D.call;}
     if(D.u<1.1)requestAnimationFrame(step);else derbySettle();};requestAnimationFrame(step);}
 function derbySettle(){const D=MG.derby,w=D.R.win,f=D.field[w];MG.state='done';let extra='';
-  if(w===D.pick){const amt=Math.round(MG.paid*f.odds);G.me.chips+=amt;G.stats.earned+=amt-MG.paid;if(f.odds>=8){extra=' · '+specialPrize();if(typeof Meta!=='undefined')Meta.ach('longshot');Snd.play('jackpot');for(let i=0;i<90;i++)confetti();}else Snd.play('win');
+  if(w===D.pick){const amt=Math.round(MG.paid*f.odds);G.me.chips+=amt;gambleTally(amt);G.stats.earned+=amt-MG.paid;if(f.odds>=8){extra=' · '+specialPrize();if(typeof Meta!=='undefined')Meta.ach('longshot');Snd.play('jackpot');for(let i=0;i<90;i++)confetti();}else Snd.play('win');
     MG.res=`${f.name} wins at ${f.odds.toFixed(1)}! +${fmt(amt)} chips${extra}`;gameLog(`Derby Night: ${f.name} won. You collected ${fmt(amt)} chips${extra}.`,'good');}
   else{MG.res=`${f.name} wins at ${f.odds.toFixed(1)}. Your horse ran down the field.`;Snd.play('fold');gameLog(`Derby Night: ${f.name} won at ${f.odds.toFixed(1)}.`);}
   finishMinigame();}

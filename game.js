@@ -656,6 +656,8 @@ function stepParticles(dt){for(const p of G.parts){p.life-=dt;p.x+=p.vx*dt;p.y+=
   for(const t of G.texts){t.life-=dt;t.y-=26*dt;}G.texts=G.texts.filter(t=>t.life>0);}
 function chipBit(x,y,spd){if(G.parts.length>500)return;const cols=['#ff3d9a','#22d3ee','#fbbf24','#f5f5f5','#a3e635'];const a=rnd()*Math.PI*2,v=spd*(.3+rnd()*.7);G.parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.5+rnd()*.3,max:.8,col:cols[(rnd()*5)|0],size:3,chip:true,rot:rnd()*6});}
 function spark(x,y,col,spd,life){if(G.parts.length>500)return;const a=rnd()*Math.PI*2,v=spd*(.3+rnd()*.7);G.parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:life*(.6+rnd()*.6),max:life,col,size:1.5+rnd()*2});}
+// net result of every game of chance this game (negative = lost). Crossing -1000 summons GamStop
+function gambleTally(d){if(!G||!d)return;G.gambleNet=(G.gambleNet||0)+d;if(typeof gamstopCheck==='function')gamstopCheck();}
 function confetti(){const cols=['#a78bfa','#fb7185','#fbbf24','#67e8f9'];G.parts.push({x:rnd()*W,y:-10-rnd()*80,vx:(rnd()-.5)*60,vy:80+rnd()*120,life:2.8,max:2.8,col:cols[(rnd()*4)|0],size:4,conf:true,rot:rnd()*6,sym:SYM[SUITS[(rnd()*4)|0]]});}
 function floatText(x,y,txt,col,size){G.texts.push({x,y,txt,col,size:size||12,life:1,max:1});}
 

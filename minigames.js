@@ -46,10 +46,10 @@ function rouHTML(){const st=MG.state;let body;
 function rouWire(){const el=$('#mgPanel');el.querySelectorAll('[data-rb]').forEach(b=>b.addEventListener('click',()=>{MG.choice=b.dataset.rb;Snd.play('click');renderMinigame();}));
   const s=$('#rouSpin');if(s)s.addEventListener('click',rouSpin);if(MG.state!=='bet')drawWheel();}
 function rouSpin(){if(!MG||MG.state!=='bet'||!MG.choice)return;const bet=Math.min(MG.bet,G.me.chips);if(bet<=0){finishMinigame();return;}
-  G.me.chips-=bet;MG.paid=bet;MG.state='spin';MG.result=WHEEL[(Math.random()*WHEEL.length)|0];MG.spin0=performance.now();renderMinigame();Snd.play('deal');
+  G.me.chips-=bet;gambleTally(-bet);MG.paid=bet;MG.state='spin';MG.result=WHEEL[(Math.random()*WHEEL.length)|0];MG.spin0=performance.now();renderMinigame();Snd.play('deal');
   const tick=()=>{if(!MG||MG.state!=='spin')return;drawWheel();if(performance.now()-MG.spin0<3200){if(Math.random()<.25)Snd.play('click');requestAnimationFrame(tick);}else rouSettle();};requestAnimationFrame(tick);}
 function rouSettle(){const n=MG.result,[name,x,test]=ROU_BETS[MG.choice];MG.state='done';const col=n===0?'green':RED.has(n)?'red':'black';
-  if(test(n)){const win=MG.paid*x;G.me.chips+=win;G.stats.earned+=win-MG.paid;let extra='';
+  if(test(n)){const win=MG.paid*x;G.me.chips+=win;gambleTally(win);G.stats.earned+=win-MG.paid;let extra='';
     if(n===0){extra=' · '+specialPrize();if(typeof Meta!=='undefined')Meta.ach('zero');Snd.play('jackpot');for(let i=0;i<80;i++)confetti();}else Snd.play('win');
     MG.res=`<b class="${col}">${n}</b> · ${name} wins ${fmt(win)} chips${extra}`;gameLog(`Roulette: ${n} ${col}. You won ${fmt(win)} chips${extra}.`,'good');}
   else{MG.res=`<b class="${col}">${n}</b> · ${name} loses`;gameLog(`Roulette: ${n} ${col}. Your ${name} bet lost.`);Snd.play('fold');}
@@ -74,11 +74,11 @@ function bjHTML(){const st=MG.state;
     <div class="bjrow"><small>You · ${bjVal(MG.ph)}</small><div class="bjcards">${MG.ph.map((c,i)=>cardHTML(c,i,'')).join('')}</div></div>
     ${st==='play'?`<div class="mgrow"><button class="pb" id="bjHit">Hit</button><button class="pb main" id="bjStand">Stand</button>${MG.ph.length===2&&G.me.chips>=MG.paid?'<button class="pb" id="bjDbl">Double</button>':''}</div>`:`<div class="mgres">${MG.res||''}</div>`}`;}
 function bjWire(){const d=$('#bjDeal');if(d)d.addEventListener('click',bjDeal);const h=$('#bjHit');if(h)h.addEventListener('click',bjHit);const s=$('#bjStand');if(s)s.addEventListener('click',bjStand);const x=$('#bjDbl');if(x)x.addEventListener('click',bjDouble);}
-function bjDeal(){if(!MG||MG.state!=='bet')return;const bet=Math.min(MG.bet,G.me.chips);if(bet<=0)return;G.me.chips-=bet;MG.paid=bet;MG.deck=newDeck();
+function bjDeal(){if(!MG||MG.state!=='bet')return;const bet=Math.min(MG.bet,G.me.chips);if(bet<=0)return;G.me.chips-=bet;gambleTally(-bet);MG.paid=bet;MG.deck=newDeck();
   MG.ph=[MG.deck.pop(),MG.deck.pop()];MG.dh=[MG.deck.pop(),MG.deck.pop()];MG.state='play';Snd.play('deal');
   if(bjVal(MG.ph)===21){bjSettle(true);return;}renderMinigame();}
 function bjHit(){if(!MG||MG.state!=='play')return;MG.ph.push(MG.deck.pop());Snd.play('card');if(bjVal(MG.ph)>21){bjSettle();return;}if(bjVal(MG.ph)===21){bjStand();return;}renderMinigame();}
-function bjDouble(){if(!MG||MG.state!=='play')return;const add=Math.min(MG.paid,G.me.chips);G.me.chips-=add;MG.paid+=add;MG.ph.push(MG.deck.pop());Snd.play('chips');if(bjVal(MG.ph)>21){bjSettle();return;}bjStand();}
+function bjDouble(){if(!MG||MG.state!=='play')return;const add=Math.min(MG.paid,G.me.chips);G.me.chips-=add;gambleTally(-add);MG.paid+=add;MG.ph.push(MG.deck.pop());Snd.play('chips');if(bjVal(MG.ph)>21){bjSettle();return;}bjStand();}
 function bjStand(){if(!MG||MG.state!=='play')return;while(bjVal(MG.dh)<17)MG.dh.push(MG.deck.pop());bjSettle();}
 function bjSettle(natural){MG.state='done';const p=bjVal(MG.ph),d=bjVal(MG.dh);let win=0,txt,extra='';
   const dNat=MG.dh.length===2&&d===21;
@@ -88,7 +88,7 @@ function bjSettle(natural){MG.state='done';const p=bjVal(MG.ph),d=bjVal(MG.dh);l
   else if(d>21||p>d){win=MG.paid*2;txt=d>21?'Dealer busts, you win':'You win';Snd.play('win');}
   else if(p===d){win=MG.paid;txt='Push';}
   else{txt='Dealer wins';Snd.play('fold');}
-  if(win){G.me.chips+=win;G.stats.earned+=win-MG.paid;}
+  if(win){G.me.chips+=win;gambleTally(win);G.stats.earned+=win-MG.paid;}
   MG.res=`${txt}${win?' · '+fmt(win)+' chips':''}${extra}`;gameLog(`Blackjack: you ${p}, dealer ${d}. ${txt}${win?', '+fmt(win)+' chips':''}${extra}.`,win>MG.paid?'good':'');
   finishMinigame();}
 
@@ -105,7 +105,7 @@ function renderSlots(){const el=$('#arcBody');if(!el||!SL||ARC.tab!=='slots')ret
    <div class="slres">${SL.last}</div><div class="mgrow"><button class="pb main" id="slPull" ${SL.spin||G.me.chips<10?'disabled':''}>Pull · 10</button></div>
    <div class="paytab"><span>${slotGlyph('seven')}×3 300 + a creature</span><span>${slotGlyph('spade')}×3 a free creature</span><span>${slotGlyph('bar')}×3 120</span><span>${slotGlyph('bell')}×3 80</span><span>${slotGlyph('cherry')}×3 60 · ×2 15 · ×1 5</span><span>${slotGlyph('lemon')}×3 40</span></div>`;
   $('#slPull').addEventListener('click',slotPull);}
-function slotPull(){if(!SL||SL.spin||G.me.chips<10)return;G.me.chips-=10;G.stats.slots=(G.stats.slots||0)+1;SL.spin=true;SL.stop=0;SL.final=[slotPick(),slotPick(),slotPick()];Snd.play('deal');
+function slotPull(){if(!SL||SL.spin||G.me.chips<10)return;G.me.chips-=10;gambleTally(-10);G.stats.slots=(G.stats.slots||0)+1;SL.spin=true;SL.stop=0;SL.final=[slotPick(),slotPick(),slotPick()];Snd.play('deal');
   const t0=performance.now();const roll=()=>{if(!SL)return;const e=performance.now()-t0;for(let i=0;i<3;i++){if(e<600+i*350)SL.reels[i]=SLOT_SYMS[(Math.random()*SLOT_SYMS.length)|0][0];else{SL.reels[i]=SL.final[i];if(SL.stop<=i){SL.stop=i+1;Snd.play('click');}}}
     renderSlots();if(e<600+2*350+30)setTimeout(roll,70);else slotPay();};roll();}
 function slotPay(){const [a,b,c]=SL.final;let win=0,txt='No luck',extra='';const cherries=SL.final.filter(x=>x==='cherry').length;
@@ -113,7 +113,7 @@ function slotPay(){const [a,b,c]=SL.final;let win=0,txt='No luck',extra='';const
     else if(a==='spade'){extra=spawnPrize(['s_lo','s_hi','f_lo','f_hi','fh_lo']);txt='Three spades!';Snd.play('jackpot');}
     else{win={bar:120,bell:80,cherry:60,lemon:40}[a];txt='Three of a kind';Snd.play('win');}}
   else if(cherries===2){win=15;txt='Two cherries';Snd.play('coin');}else if(cherries===1){win=5;txt='A cherry';Snd.play('coin');}
-  if(win){G.me.chips+=win;G.stats.earned+=win;}SL.spin=false;SL.last=`${txt}${win?' · +'+win:''}${extra?' · '+extra:''}`;if(win>=40||extra)gameLog(`Slots: ${SL.last}.`,'good');renderSlots();}
+  if(win){G.me.chips+=win;gambleTally(win);G.stats.earned+=win;}SL.spin=false;SL.last=`${txt}${win?' · +'+win:''}${extra?' · '+extra:''}`;if(win>=40||extra)gameLog(`Slots: ${SL.last}.`,'good');renderSlots();}
 function spawnPrize(pool){const u=pool[(Math.random()*pool.length)|0];spawnHandUnits(u,{rank:UNITS[u].hand,high:UNITS[u].hi});return 'a free '+UNITS[u].name;}
 
 /* force-settle anything in flight (the host moved on) */

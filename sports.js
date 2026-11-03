@@ -104,7 +104,7 @@ function sbApplyMine(SB){const L=sbLocal(SB);if(L.applied||!SB.out)return;L.appl
   // the bet slip
   const picked=SB.games.map((g,i)=>L.picks[i]).filter(x=>x>=0).length;let ret=0,right=0,sumOdds=0;
   if(L.paid&&picked){SB.games.forEach((g,i)=>{const pk=L.picks[i];if(pk<0)return;if(pk===SB.res[i]){right++;sumOdds+=pk?g.ob:g.oa;}});
-    const mult=[0,1,1.3,1.8,2.5,3.2][right]||3.2;ret=Math.round(L.paid*sumOdds/picked*mult);if(ret){G.me.chips+=ret;G.stats.earned+=ret;}
+    const mult=[0,1,1.3,1.8,2.5,3.2][right]||3.2;ret=Math.round(L.paid*sumOdds/picked*mult);if(ret){G.me.chips+=ret;gambleTally(ret);G.stats.earned+=ret;}
     if(right>=3&&right===picked&&typeof Meta!=='undefined')Meta.ach('parlay');}
   L.slip={picked,right,ret};
   // creatures change hands
@@ -124,7 +124,7 @@ function openSports(SB){if(MG&&MG.kind==='sports')return;openMinigame('sports',9
 function sportsTick(dt){const SB=sbNow();if(!SB)return;if(!G.mp)sbTick(SB,dt);else if(!NET.host)SB.t-=dt;
   if(G.mp&&!NET.host){if(SB.stage==='play'&&(!AFV.on||AFV.w!==SB.w)){AFV.w=SB.w;afEnterView(SB);}else if(SB.stage!=='play'&&AFV.on)afExitView();}
   afFrame(dt);
-  {const L=sbLocal(SB);if(SB.stage!=='bet'&&SB.stage!=='intro'&&!L.lock){L.lock=true;if(L.picks.some(x=>x>=0)){const s=Math.min(L.stake,G.me.chips);G.me.chips-=s;L.paid=s;}}}
+  {const L=sbLocal(SB);if(SB.stage!=='bet'&&SB.stage!=='intro'&&!L.lock){L.lock=true;if(L.picks.some(x=>x>=0)){const s=Math.min(L.stake,G.me.chips);G.me.chips-=s;gambleTally(-s);L.paid=s;}}}
   const sig=SB.stage+'|'+(SB.stage==='bet'?Math.ceil(SB.t):'');if(MG&&MG.sbSig!==sig){if(!MG.sbSig||MG.sbSig.split('|')[0]!==SB.stage)MG.stT=Math.max(1,SB.t);MG.sbSig=sig;if(SB.stage==='done')sbApplyMine(SB);renderMinigame();}
   const tb=$('#mgTime');if(tb)tb.style.width=Math.max(0,Math.min(1,SB.t/(MG.stT||SB_T[SB.stage]||1))*100)+'%';
   if(SB.stage==='over'&&!G.mp)closeMinigame();}
@@ -155,7 +155,7 @@ function sportsWire(){const el=$('#mgPanel');const SB=sbNow();if(!SB)return;cons
   el.querySelectorAll('[data-sbs]').forEach(b=>b.addEventListener('click',()=>{L.stake=+b.dataset.sbs;Snd.play('chips');renderMinigame();}));
   el.querySelectorAll('[data-prot]').forEach(b=>b.addEventListener('click',()=>{L.prot=+b.dataset.prot;Snd.play('lock');sbPublish();renderMinigame();}));
   el.querySelectorAll('[data-take]').forEach(b=>b.addEventListener('click',()=>{if(L.take!=null)return;L.take=+b.dataset.take;Snd.play('click');sbPublish();renderMinigame();}));
-  const lk=$('#sbLock');if(lk)lk.addEventListener('click',()=>{if(L.lock)return;if(L.picks.some(x=>x>=0)){const s=Math.min(L.stake,G.me.chips);G.me.chips-=s;L.paid=s;}L.lock=true;Snd.play('chips');sbPublish();renderMinigame();});
+  const lk=$('#sbLock');if(lk)lk.addEventListener('click',()=>{if(L.lock)return;if(L.picks.some(x=>x>=0)){const s=Math.min(L.stake,G.me.chips);G.me.chips-=s;gambleTally(-s);L.paid=s;}L.lock=true;Snd.play('chips');sbPublish();renderMinigame();});
   el.querySelectorAll('.sbu canvas').forEach(c=>portrait(c,c.dataset.k,34));
   el.querySelectorAll('[data-tip]').forEach(n=>{n.addEventListener('pointerenter',e=>showTip(n.dataset.tip,e.clientX,e.clientY));n.addEventListener('pointerleave',hideTip);});}
 let ARN=null; // live arenas on this client

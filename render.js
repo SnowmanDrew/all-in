@@ -534,6 +534,7 @@ function drawEnemyRaw(c,k,r,col,t){const body='#1a1022',bob=Math.sin(t*9)*r*.08,
       c.fillStyle='#fef08a';c.beginPath();c.arc(-r*.15,-r*.75,r*.08,0,TAU);c.arc(r*.15,-r*.75,r*.08,0,TAU);c.fill();c.fillStyle='#111';c.beginPath();c.arc(-r*.13,-r*.74,r*.04,0,TAU);c.arc(r*.17,-r*.74,r*.04,0,TAU);c.fill();
       c.fillStyle='#1a2e05';c.beginPath();c.ellipse(0,-r*.55,r*.24,r*.08,0,0,TAU);c.fill();c.fillStyle='#fefce8';c.beginPath();c.moveTo(-r*.2,-r*.55);c.lineTo(-r*.14,-r*.72);c.lineTo(-r*.08,-r*.56);c.moveTo(r*.08,-r*.56);c.lineTo(r*.14,-r*.72);c.lineTo(r*.2,-r*.55);c.fill();
       c.restore();break;}
+    case 'gamstop':if(typeof gamstopArt==='function')gamstopArt(c,r,col,t,e.palm);break;
     case 'lady':case 'decoy':{const w=TAU/SPP,sw=Math.sin(t*w);
       c.fillStyle='#14532d';c.beginPath();c.moveTo(-r*.95,r*.95);c.quadraticCurveTo(-r*.5,r*.1,-r*.32,-r*.25);c.lineTo(r*.32,-r*.25);c.quadraticCurveTo(r*.5,r*.1,r*.95,r*.95);c.closePath();c.fill();
       c.fillStyle='#16a34a';c.beginPath();c.moveTo(-r*.7,r*.95);c.quadraticCurveTo(-r*.3,r*.2,-r*.2,-r*.2);c.lineTo(r*.2,-r*.2);c.quadraticCurveTo(r*.3,r*.2,r*.7,r*.95);c.closePath();c.fill();
