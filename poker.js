@@ -67,7 +67,7 @@ function startHand(){
   for(const s of seats)if(!isPerson(s.p)&&s.p.chips>120&&rnd()<s.p.tip*G.diff.rival){const t=Math.min(s.p.chips-60,Math.round((10+rnd()*45)/5)*5);s.p.chips-=t;s.tip=t;s.paid+=t;s.act='Tipped '+t;}
   if(ev){banner(TABLE_EVENTS[ev].name,TABLE_EVENTS[ev].desc,'great');gameLog(TABLE_EVENTS[ev].name+': '+TABLE_EVENTS[ev].desc,'good');}
   for(const s of seats)if(s.tip)bark(s.p,'tip',.5);
-  Snd.play('chips');refreshTable(true);
+  Snd.play('shuffle');setTimeout(()=>Snd.play('chips'),650);refreshTable(true);
 }
 function tipDealer(n,seat){const s=seat||humanSeat();if(!HD||HD.phase!=='tip'||!s)return;if(s.p.chips<n){if(!seat){toast('Not enough chips');Snd.play('error');}return;}
   s.p.chips-=n;s.tip+=n;s.paid+=n;if(s.p.human){G.stats.tipped=(G.stats.tipped||0)+n;if(G.stats.tipped>=200&&typeof Meta!=='undefined')Meta.ach('tipper');}s.act='Tipped '+s.tip;Snd.play('coin');refreshTable(true);}
@@ -199,7 +199,7 @@ function settle(){
   HD.wl=[...winsBy.entries()].map(([s,a])=>[HD.seats.indexOf(s),a,live.length>1?s.ev.rank:-1]);
   HD.result=resultText(HD);
   const hs=humanSeat();
-  if(hs&&winsBy.has(hs)){Snd.play('win');gameLog(HD.result,'good');potWin(winsBy.get(hs));}
+  if(hs&&winsBy.has(hs)){Snd.play('potwin');gameLog(HD.result,'good');potWin(winsBy.get(hs));}
   else gameLog(HD.result);
   HD.phase='showdown';HD.t=anyPerson()?4.5:1.2;refreshTable(true);
 }

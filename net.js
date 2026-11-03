@@ -340,11 +340,11 @@ function unsealMine(blob,n){if(NET.unsealing===blob)return;NET.unsealing=blob;co
     if(NET.S&&(!prev||prev.n!==hn||encCards(prev.cards)!==encCards(cards)))clientSync(NET.S);});}
 function handFx(a,b){
   const hs=b.seats.find(s=>s.p&&s.p.human);
-  if(!a||a.n!==b.n){if(b.ev){banner(TABLE_EVENTS[b.ev].name,TABLE_EVENTS[b.ev].desc,'great');}Snd.play('chips');refreshTable(true);return;}
+  if(!a||a.n!==b.n){if(b.ev){banner(TABLE_EVENTS[b.ev].name,TABLE_EVENTS[b.ev].desc,'great');}Snd.play('shuffle');setTimeout(()=>Snd.play('chips'),650);refreshTable(true);return;}
   if(a.phase!==b.phase){
     if(b.phase==='bet1'){Snd.play('deal');if(hs&&hs.extra)gameLog(`The dealer smiles on you: best of ${hs.extra+1} hands.`,'good');}
     else if(b.phase==='bet2')Snd.play('deal');
-    else if(b.phase==='showdown'){gameLog(b.result,hs&&hs.won?'good':'');if(hs&&hs.won>0){Snd.play('win');potWin(hs.won);}}
+    else if(b.phase==='showdown'){gameLog(b.result,hs&&hs.won?'good':'');if(hs&&hs.won>0){Snd.play('potwin');potWin(hs.won);}}
     if(b.phase==='bet2'&&hs&&hs.luckUsed>1&&hs.drew)toast(`The dealer drew your swap best of ${hs.luckUsed}`);
     if(b.phase==='bet1'&&hs&&hs.fav)gameLog("You're the dealer's favourite: swap up to "+hs.maxSwap+' cards.','good');
   }
