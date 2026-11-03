@@ -27,8 +27,8 @@ function drawTrack(cv,kind,field,R,u){const c=cv.getContext('2d'),W2=cv.width,H2
   field.forEach((f,i)=>{const y=12+i*lh+lh*.62,pos=R?racePos(i,u,R):0,x=sx+(ex-sx)*pos;
     c.fillStyle='rgba(0,0,0,.35)';c.beginPath();c.ellipse(x,y+lh*.25,lh*.45,lh*.08,0,0,TAU);c.fill();
     c.save();c.translate(x,y);const s=lh*.52;const tt=R?performance.now()/1000+i*.13:0;
-    if(kind==='dog')drawCreature(c,{b:'greyhound',face:'beady',c1:f.coat,silk:f.silk[0],num:String(i+1),muzzle:true},s,R&&pos<1?tt:0,0);
-    else drawCreature(c,{b:'horse',face:'beady',c1:f.coat,c2:'#1c1917',silk:f.silk[0],silk2:f.silk[1],num:String(i+1)},s*.85,R&&pos<1?tt:0,0);
+    if(kind==='dog')drawCreature(c,{b:'greyhound',face:'beady',c1:f.coat,silk:f.silk[0],num:String(i+1),muzzle:true},s,R&&pos<1&&!R.stop?tt:0,0);
+    else drawCreature(c,{b:'horse',face:'beady',c1:f.coat,c2:'#1c1917',silk:f.silk[0],silk2:f.silk[1],num:String(i+1)},s*.85,R&&pos<1&&!R.stop?tt:0,0);
     c.restore();
     c.fillStyle='rgba(0,0,0,.55)';c.fillRect(2,12+i*lh+2,16,14);c.fillStyle=f.silk[0];c.fillRect(3,12+i*lh+3,14,12);c.fillStyle=f.silk[0]==='#f8fafc'?'#dc2626':f.silk[1]==='#111'?'#111':'#fff';c.font='700 10px Barlow,sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(i+1,10,12+i*lh+9.5);});
   if(kind==='dog'&&R){const lead=Math.max(...field.map((_,i)=>racePos(i,u,R)));const hx=sx+(ex-sx)*Math.min(1.08,lead+.06);c.fillStyle='#f5f5f4';c.beginPath();c.ellipse(hx,H2-18,7,4,0,0,TAU);c.fill();c.beginPath();c.ellipse(hx+5,H2-23,2,5,.3,0,TAU);c.fill();}

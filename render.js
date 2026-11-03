@@ -1104,8 +1104,8 @@ function render(){
     ctx.strokeStyle='rgba(11,6,18,.8)';ctx.lineWidth=4;ctx.beginPath();ctx.arc(x,y,11,0,TAU);ctx.stroke();ctx.strokeStyle='#fbbf24';ctx.lineWidth=2.4;ctx.beginPath();ctx.arc(x,y,11,-Math.PI/2,-Math.PI/2+TAU*(1-k.t/k.max));ctx.stroke();
     ctx.font='10px Bungee,Impact,sans-serif';ctx.textAlign='center';ctx.fillStyle='#fff4e0';ctx.strokeStyle='#0b0612';ctx.lineWidth=3;ctx.strokeText(Math.ceil(k.t),x,y+22);ctx.fillText(Math.ceil(k.t),x,y+22);});}
   if(G.sel.length===1){const u=G.sel[0];ctx.strokeStyle='rgba(94,234,212,.28)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(u.x,u.y,u.def.range+u.r,0,TAU);ctx.stroke();}
-  const ents=[];for(const e of G.enemies)ents.push(e);for(const u of G.units)ents.push(u);ents.sort((a,b)=>a.y-b.y);
-  for(const o of ents){if(o.def&&o.def.look)drawUnit(ctx,o,t);else drawEnemy(ctx,o,t);}
+  const ents=[];for(const e of G.enemies)ents.push(e);for(const u of G.units)ents.push(u);if(G.red&&!VIEWING&&typeof drawRed==='function')ents.push(G.red);ents.sort((a,b)=>a.y-b.y);
+  for(const o of ents){if(o.isRed)drawRed(ctx,o,t);else if(o.def&&o.def.look)drawUnit(ctx,o,t);else drawEnemy(ctx,o,t);}
   for(const p of G.proj){if(!(p.delay>0))drawProj(ctx,p,t);}
   for(const p of G.eproj){ctx.save();ctx.translate(p.x,p.y);ctx.rotate(t*8);ctx.fillStyle='#0b0612';ctx.fillRect(-3.5,-3.5,7,7);ctx.fillStyle='#22e1ff';ctx.fillRect(-2.4,-2.4,4.8,4.8);ctx.restore();}
   for(const f of G.fx)drawFx(ctx,f,t);
