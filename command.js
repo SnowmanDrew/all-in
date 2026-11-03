@@ -29,10 +29,10 @@ function orderLine(units,x0,y0,x1,y1,amove){const slots=lineSlots(units,x0,y0,x1
 let rdrag=null;
 cv.addEventListener('pointerdown',ev=>{if(ev.button!==2||!G||G.over||G.mode||!G.sel.length||(NET.watch&&NET.watch.full))return;
   const p=boardPos(ev);if(enemyAt(p.x,p.y))return; // right-click on an enemy is still an attack order
-  ev.stopImmediatePropagation();Snd.init();rdrag={x0:p.x,y0:p.y,x1:p.x,y1:p.y,amove:ev.shiftKey};cv.setPointerCapture(ev.pointerId);},{capture:true});
+  ev.stopImmediatePropagation();Snd.init();rdrag={x0:p.x,y0:p.y,x1:p.x,y1:p.y,amove:false,shift:ev.shiftKey};cv.setPointerCapture(ev.pointerId);},{capture:true});
 cv.addEventListener('pointermove',ev=>{if(!rdrag)return;const p=boardPos(ev);rdrag.x1=p.x;rdrag.y1=p.y;});
 cv.addEventListener('pointerup',ev=>{if(!rdrag||ev.button!==2)return;const d=rdrag;rdrag=null;if(!G||!G.sel.length)return;
-  if(Math.hypot(d.x1-d.x0,d.y1-d.y0)<22)orderMove(G.sel,d.x0,d.y0,false);else orderLine(G.sel,d.x0,d.y0,d.x1,d.y1,d.amove);},{capture:true});
+  QUEUE_SHIFT=d.shift||ev.shiftKey;if(Math.hypot(d.x1-d.x0,d.y1-d.y0)<22)orderMove(G.sel,d.x0,d.y0,false);else orderLine(G.sel,d.x0,d.y0,d.x1,d.y1,d.amove);QUEUE_SHIFT=false;},{capture:true});
 
 /* ---------- target priority ---------- */
 function targetScore(e,x,y){let b=0;
@@ -88,3 +88,31 @@ function drawCommandTop(c,t){if(!G)return;
     c.save();c.globalAlpha=.55+.45*p;c.fillStyle='#c084fc';c.strokeStyle='#0b0612';c.lineWidth=1.4;c.beginPath();c.moveTo(u.x,y-5);c.lineTo(u.x+4,y);c.lineTo(u.x,y+5);c.lineTo(u.x-4,y);c.closePath();c.fill();c.stroke();c.restore();}}
 {const _g=drawGroundWarn;drawGroundWarn=function(c,t){_g(c,t);drawCommandGround(c,t);};}
 {const _t=drawTopWarn;drawTopWarn=function(c,t){_t(c,t);drawCommandTop(c,t);};}
+
+/* ---------- shift-queued orders ----------
+   Hold Shift when giving an order (right-click, right-drag a line, attack-move, attack) and it joins the end of each
+   creature's queue instead of replacing what it is doing. Any order without Shift clears the queue. */
+let QUEUE_SHIFT=false;
+cv.addEventListener('pointerdown',ev=>{QUEUE_SHIFT=ev.shiftKey;setTimeout(()=>{QUEUE_SHIFT=false;},0);},{capture:true});
+const busyUnit=u=>(u.order&&u.order.t!=='idle'&&u.order.t!=='hold')||(u.queue&&u.queue.length);
+function queueWrap(fn){return function(units){if(!units||!units.length)return fn.apply(this,arguments);
+  if(!QUEUE_SHIFT){for(const u of units)u.queue=[];return fn.apply(this,arguments);}
+  const snap=new Map(units.filter(busyUnit).map(u=>[u,{order:u.order,path:u.path,anchor:u.anchor,target:u.target}]));
+  const r=fn.apply(this,arguments);
+  for(const [u,s] of snap){(u.queue=u.queue||[]).push(u.order);u.order=s.order;u.path=s.path;u.anchor=s.anchor;u.target=s.target;}
+  if(snap.size&&!G.queueTold){G.queueTold=1;gameLog('Order queued. Creatures carry out Shift-orders one after another.','');}
+  return r;};}
+orderMove=queueWrap(orderMove);orderAttack=queueWrap(orderAttack);orderLine=queueWrap(orderLine);
+{const _os=orderStop;orderStop=function(units){for(const u of units)u.queue=[];return _os(units);};}
+{const _oh=orderHold;orderHold=function(units){for(const u of units)u.queue=[];return _oh(units);};}
+{const _u=update;update=function(dt){_u(dt);for(const u of G.units){if(!u.queue||!u.queue.length||u.order.t!=='idle'||u.dead)continue;
+  const o=u.queue.shift();if(o.t==='attack'){if(!o.e||o.e.dead)continue;u.order=o;u.target=o.e;u.path=[];continue;}
+  if(o.t==='move'||o.t==='amove'){u.order=o;u.path=findPath(u.x,u.y,o.x,o.y);u.anchor={x:o.x,y:o.y};u.target=null;u.stuck=0;}}};}
+// draw the queue for the selection: a chain from the current goal through every queued step
+{const _g=drawCommandGround;drawCommandGround=function(c,t){_g(c,t);if(!G||!G.sel.length||G.sel.length>16)return;c.save();c.lineWidth=1.2;c.setLineDash([3,4]);
+  for(const u of G.sel){if(!u.queue||!u.queue.length)continue;const o=u.order;let px=o.t==='move'||o.t==='amove'?o.x:o.t==='attack'&&o.e&&!o.e.dead?o.e.x:u.x,py=o.t==='move'||o.t==='amove'?o.y:o.t==='attack'&&o.e&&!o.e.dead?o.e.y:u.y;
+    u.queue.forEach((q,i)=>{const qx=q.t==='attack'?(q.e&&!q.e.dead?q.e.x:null):q.x,qy=q.t==='attack'?(q.e&&!q.e.dead?q.e.y:null):q.y;if(qx==null)return;
+      c.strokeStyle=q.t==='attack'||q.t==='amove'?'rgba(248,113,113,.5)':'rgba(94,234,212,.45)';c.beginPath();c.moveTo(px,py);c.lineTo(qx,qy);c.stroke();
+      c.setLineDash([]);c.fillStyle='#0b0612';c.beginPath();c.arc(qx,qy,5.5,0,TAU);c.fill();c.strokeStyle=q.t==='move'?'#5eead4':'#f87171';c.lineWidth=1.4;c.stroke();
+      c.fillStyle='#fff';c.font='bold 7px Barlow,sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(String(i+1),qx,qy+.5);c.setLineDash([3,4]);c.lineWidth=1.2;px=qx;py=qy;});}
+  c.restore();};}

@@ -453,6 +453,7 @@ function updateAtCasino(e){
 const waveDmgMult=()=>(1.5+G.wave*.1)*(G.diff.unitDmg||1);
 
 /* ---------- casino (base), croupiers ---------- */
+const REPAIR_COST=1; // chips per point of casino health a croupier patches up
 const UPGRADES={
   casino:{name:'Upgrade the Casino',get desc(){const n=CASINO_TIERS[(G?G.base.tier:0)+1];return n?`Become the ${n.name}: ${n.hp} health, ${n.desc.toLowerCase()} Bites do ${n.plate*10}% less.`:'Your casino is as grand as it gets.';},max:3,cost:l=>CASINO_TIERS[l+1]?CASINO_TIERS[l+1].cost:0},
   croupier:{name:'Hire Croupier',desc:'Runs chips from the armored truck to the casino, 3 per trip',max:10,cost:l=>90+45*l},
@@ -484,7 +485,8 @@ function updateWorkers(dt){
   for(const w of G.workers){const ox=w.x,oy=w.y;
     if(w.wait>0){w.wait-=dt;continue;}
     if(w.mode==='repair'){const i=G.workers.filter(o=>o.mode==='repair').indexOf(w),tx=BASE.c0*TILE-12,ty=BASE.r0*TILE+30+((i*37)%(BASE.h*TILE-50));
-      if(walkTo(w,tx,ty,80,dt)){w.face=1;w.st=4;if(G.base.hp<G.base.maxHp&&!G.over){G.base.hp=Math.min(G.base.maxHp,G.base.hp+.8*dt);w.load=(w.load||0)+dt;if(w.load>.35){w.load=0;spark(tx+12,ty-6,'#fde68a',70,.3);}}}else w.st=3;
+      if(walkTo(w,tx,ty,80,dt)){w.face=1;w.st=4;if(G.base.hp<G.base.maxHp&&!G.over&&G.me.chips<1){if(!G.repBrokeT||G.time-G.repBrokeT>4){G.repBrokeT=G.time;floatText(tx+12,ty-14,'No chips for repairs','#fca5a5',10);}}
+      else if(G.base.hp<G.base.maxHp&&!G.over){const h=Math.min(G.base.maxHp-G.base.hp,.8*dt);G.base.hp+=h;w.owe=(w.owe||0)+h*REPAIR_COST;if(w.owe>=1){const n=Math.min(Math.floor(w.owe),Math.floor(G.me.chips));G.me.chips-=n;w.owe-=n;G.stats.repairs=(G.stats.repairs||0)+n;}w.load=(w.load||0)+dt;if(w.load>.35){w.load=0;spark(tx+12,ty-6,'#fde68a',70,.3);}}}else w.st=3;
       w.walk+=Math.hypot(w.x-ox,w.y-oy);continue;}
     if(w.st===0){if(walkTo(w,LOADPT.x+w.lane*.4,LOADPT.y+w.lane,78,dt)){w.st=1;w.t=1.1;w.load=0;}}
     else if(w.st===1){w.t-=dt;w.load=Math.min(1,1-w.t/1.1);w.face=1;if(w.t<=0){w.st=2;w.carry=3;w.load=1;}}

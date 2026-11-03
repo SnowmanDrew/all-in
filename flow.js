@@ -36,7 +36,7 @@ const COACH_STEPS=[
   {id:'select',when:()=>G.phase==='wave'&&G.units.length>0&&!G.sel.length,done:()=>G.sel.length>0,at:'#boardWrap',
     text:'Your creature is on the street. <b>Drag a box</b> around it to select it.'},
   {id:'move',when:()=>G.sel.length>0&&G.phase!=='mini',done:()=>COACH.flag.moved,at:'#boardWrap',
-    text:'<b>Right-click</b> a spot to send it there. With a few creatures, <b>right-drag</b> to spread them along a line.'},
+    text:'<b>Right-click</b> a spot to send it there. With a few creatures, <b>right-drag</b> to spread them along a line. Hold <b>Shift</b> to queue orders.'},
   {id:'rope',when:()=>G.wave>=2&&G.phase==='hand'&&G.me.chips>=40,done:()=>G.barricades>0,at:'[data-c="rope"]',
     text:'<b>Velvet ropes</b> (V): paint them across the street. Bad luck has to walk around, which buys your army time to hit it.'},
   {id:'merge',when:()=>G.units.some(u=>recipesFor(u.k).some(r=>G.units.some(o=>o!==u&&o.k===r.partner))),done:()=>(G.stats.merges||0)>0,at:'[data-c="merge"]',
