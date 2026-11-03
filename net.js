@@ -65,7 +65,7 @@ async function netJoin(code,name){
   try{history.replaceState(null,'','#join-'+code.toLowerCase());}catch(e){try{location.hash='join-'+code.toLowerCase();}catch(e2){}}
   netPeersChanged();
 }
-function netLeave(){
+function netLeave(){NET.pub=false;NET.rm=null;if(typeof openSync==='function')setTimeout(openSync,0);
   if(!NET.on)return;NET.watch=null;if(typeof syncWatchUI==='function')syncWatchUI();try{NET.unsub&&NET.unsub();}catch(e){}try{NET.r.leave&&NET.r.leave();}catch(e){}
   try{NET.ar&&NET.ar.leave();}catch(e){}NET.ar=null;
   NET.on=false;NET.r=null;NET.host=false;NET.S=null;NET.view='';
@@ -158,8 +158,8 @@ function sealedFor(s){if(!s.p.remote||!KEYS.kp||!HD)return 0;const pr=presOf(s.p
   if(!c||c.plain!==plain||c.pk!==pr.pk){const job={plain,pk:pr.pk,blob:null};NET.enc[s.p.gi]=job;sealFor(pr.pk,plain).then(b=>{job.blob=b;hostPublish(true);});}
   return 0;}
 function armyPower(){let s=0;for(const u of G.units)s+=unitDps(u.k)*(1+UNITS[u.k].hp/900)*(1+.15*(u.rank||0));return s;}
-function hostCreateGame(){
-  const ppl=lobbyPeople().slice(0,MAX_SEATS);
+function hostCreateGame(only){
+  const ppl=lobbyPeople().filter(p=>!only||only.has(idOf(p))).slice(0,MAX_SEATS);
   const used={};const R=ppl.map((p,i)=>{let n=cleanName(p.presence.n)||'Player';const base=n.slice(0,12);let k=1;while(used[n.toLowerCase()])n=base+' '+(++k);used[n.toLowerCase()]=1;return {id:idOf(p),n,c:i};});
   let nai=NET.ai?MAX_SEATS-R.length:0;if(R.length+nai<2)nai=1;
   const ri=shuffleArr(RIVALS.map((r,i)=>i)).slice(0,nai);
@@ -169,9 +169,9 @@ function hostCreateGame(){
   NET.R=out;NET.gid=Math.random().toString(36).slice(2,8);NET.gst='game';NET.win=null;NET.pl=null;NET.why='';
   NET.T={ph:'break',w:0,bt:3,el:0,wt:[]};
   startMpGame(NET.R,NET.R.findIndex(e=>e.id===PID),NET.gid,NET.diff);
-  pres({S:hostState()});
+  pres({S:hostState()});if(typeof openSync==='function')openSync();
 }
-function hostToLobby(){NET.gst='lobby';NET.R=null;NET.T=null;pres({S:hostState(),g:null});showLobby();}
+function hostToLobby(){NET.gst='lobby';NET.R=null;NET.T=null;NET.rm=null;pres({S:hostState(),g:null,rm:null});showLobby();if(typeof openSync==='function')openSync();}
 
 function mpPlayers(mp,d){
   const out=[],n=mp.R.length;
@@ -289,7 +289,7 @@ function netApply(S){
     return;}
   const me=S.R?S.R.findIndex(e=>e.id===PID):-1;
   if(me<0&&S.st==='over'){if(NET.view!=='lobby')showLobby();else renderLobby();return;}
-  if(!G||!G.mp||G.mp.gid!==S.gid){if(S.st==='over')return;if(me<0&&NET.view==='lobby'&&!NET.specOk){renderLobby();return;}startMpGame(S.R,me,S.gid,S.d);}
+  if(!G||!G.mp||G.mp.gid!==S.gid){if(S.st==='over')return;if(me<0&&G&&G.mp&&G.over&&NET.view!=='lobby'&&!NET.specOk){showLobby();return;}if(me<0&&NET.view==='lobby'&&!NET.specOk){renderLobby();return;}startMpGame(S.R,me,S.gid,S.d);}
   clientSync(S);
 }
 function clientSync(S){
@@ -364,7 +364,7 @@ function publishG(force){
   if(G.spectate){const g={gid:G.mp.gid,spec:1,wt:NET.watch?NET.watch.gi:-1};const sig=JSON.stringify(g);if(sig!==NET.gSig){NET.gSig=sig;NET.lastG=now;pres({g});}return;}
   if(now-NET.lastSnap>3000||force&&G.phase==="wait"){NET.lastSnap=now;writeMpSnap();}
   const g={gid:G.mp.gid,hp:Math.round(G.base.hp),al:G.over&&!G.won?0:1,ch:Math.round(G.me.chips),pw:Math.round(armyPower()),lu:G.lastUnitK||'',
-    wd:G.phase==='wave'?G.wave-1:G.wave,ack:[NET.ack.h,NET.ack.a],in:NET.myIn,emo:NET.emo||0,md:NET.md||0,sb:NET.sbOut||null,wt:NET.watch?NET.watch.gi:-1};
+    wd:G.phase==='wave'?G.wave-1:G.wave,ack:[NET.ack.h,NET.ack.a],in:NET.myIn,emo:NET.emo||0,md:NET.md||0,sb:NET.sbOut||null,wt:NET.watch?NET.watch.gi:-1,fs:typeof finalStats==='function'?finalStats():null};
   const sig=JSON.stringify(g);if(sig===NET.gSig&&!force&&now-NET.lastG<3000)return;NET.gSig=sig;NET.lastG=now;pres({g});
 }
 function readEmotes(){

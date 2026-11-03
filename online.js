@@ -84,6 +84,6 @@ window.ALLIN_ONLINE=(function(){
     await load();
     client=window.supabase.createClient(CFG.url,CFG.key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},realtime:{params:{eventsPerSecond:30}}});
     const rooms=new Map();
-    api={join:async name=>{if(rooms.has(name))return rooms.get(name);const p=makeRoom(name);rooms.set(name,p);try{return await p;}catch(e){rooms.delete(name);throw e;}}};
+    api={join:async name=>{if(rooms.has(name))return rooms.get(name);const p=makeRoom(name);rooms.set(name,p);try{const room=await p;const lv=room.leave;room.leave=()=>{if(rooms.get(name)===p)rooms.delete(name);return lv();};return room;}catch(e){rooms.delete(name);throw e;}}};
     return api;};
 })();

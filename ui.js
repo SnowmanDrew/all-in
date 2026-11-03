@@ -111,7 +111,7 @@ function ribbon(h,p,withFoes){
 function neonSign(h,p){const el=$('#neonSign');el.innerHTML=`<span>${h}</span>${p?`<small>${p}</small>`:''}`;el.className='';void el.offsetWidth;el.className='show';}
 function bossPlate(h,p){const el=$('#bossPlate');const k=h==='Repo Ogre'?'ogre':'boss';el.innerHTML=`<canvas></canvas><div><b>${h}</b><small>${p||''}</small></div>`;enemyPortrait(el.querySelector('canvas'),k,56);
   el.className='';void el.offsetWidth;el.className='show';const bw=$('#boardWrap');bw.classList.remove('alarm');void bw.offsetWidth;bw.classList.add('alarm');}
-function potWin(n){const pot=$('#pot').getBoundingClientRect(),me=$('#cards').getBoundingClientRect(),f=document.createElement('div');f.className='flychips';f.innerHTML=`${icon('chips')}+${n}`;
+function potWin(n){if(G&&G.stats)G.stats.bigPot=Math.max(G.stats.bigPot||0,n);const pot=$('#pot').getBoundingClientRect(),me=$('#cards').getBoundingClientRect(),f=document.createElement('div');f.className='flychips';f.innerHTML=`${icon('chips')}+${n}`;
   document.body.appendChild(f);f.style.left=pot.left+pot.width/2+'px';f.style.top=pot.top+'px';requestAnimationFrame(()=>{f.style.transform=`translate(${me.left+me.width/2-pot.left-pot.width/2}px,${me.top-pot.top+10}px)`;f.style.opacity='0';});setTimeout(()=>f.remove(),1300);}
 const LOG=[];let logSeq=0;
 function gameLog(msg,cls,who){LOG.unshift({msg:String(msg),cls:cls||'',who,id:++logSeq});LOG.length=Math.min(LOG.length,60);renderLog();}
@@ -436,7 +436,7 @@ window.addEventListener('resize',fit);
 let menuDiff='standard';
 function buildLabel(){const B=window.ALLIN_BUILD||{};return 'Build '+(B.sha||'dev')+(B.date?' · '+B.date:'');}
 function showBuildTag(on){let el=document.getElementById('buildTag');if(!el){el=document.createElement('div');el.id='buildTag';el.className='buildtag';el.title='Mention this when you report a bug';document.body.appendChild(el);}el.textContent=buildLabel();el.style.display=on?'':'none';}
-function showOverlay(h,cls){hideTip();if(cls!=='menu title')showBuildTag(false);$('#overlay').classList.toggle('title',cls==='menu title');$('#modal').className='modal '+(cls||'');$('#modal').innerHTML=h;$('#overlay').classList.add('show');}
+function showOverlay(h,cls){hideTip();if(typeof OPEN!=='undefined'&&OPEN.browse&&NET.view!=='multi')openBrowse(false);if(cls!=='menu title')showBuildTag(false);$('#overlay').classList.toggle('title',cls==='menu title');$('#modal').className='modal '+(cls||'');$('#modal').innerHTML=h;$('#overlay').classList.add('show');}
 function titleBulbs(){const b=document.querySelector('.ttl .sign .bulbs');if(!b)return;const nx=40,ny=14,pts=[];
   for(let i=0;i<nx;i++)pts.push([i/nx,0]);for(let i=0;i<ny;i++)pts.push([1,i/ny]);for(let i=0;i<nx;i++)pts.push([1-i/nx,1]);for(let i=0;i<ny;i++)pts.push([0,1-i/ny]);
   b.innerHTML=pts.map(([x,y],i)=>`<i class="${i%2?'b':''}" style="left:calc(9px + (100% - 18px)*${x.toFixed(4)});top:calc(9px + (100% - 18px)*${y.toFixed(4)})"></i>`).join('');}
@@ -489,7 +489,7 @@ function showEnd(won,why){
   showOverlay(`<div class="logo ${won?'':'dead'}">${won?'HOUSE WINS':'BUSTED'}</div>
    <p class="endline">${won?(why==='survived'?'You survived all 40 rounds.':G.mp?'Every other casino fell before yours.':'Every rival casino fell before yours.'):G.base.hp>0?`The table closed on round ${G.wave}. You finished ${ord} of ${G.players.length}.`:`Your casino fell on round ${G.wave}. You finished ${ord} of ${G.players.length}.`}</p>
    <div class="statsgrid"><div><small>Place</small><b>${ord}</b></div><div><small>Round</small><b>${G.wave}</b></div><div><small>Bad luck busted</small><b>${fmt(s.kills)}</b></div><div><small>Best hand</small><b class="sm">${s.best>=0?HANDS[s.best]:'None'}</b></div><div><small>Clean rounds</small><b>${s.clean||0}</b></div><div><small>Time</small><b>${mins}:${String(secs).padStart(2,'0')}</b></div></div>
-   ${hpGraphHTML()}${mvpHTML()}<div class="got">${got}</div>
+   ${G.mp&&typeof tableAwardsHTML==='function'?tableAwardsHTML():''}${hpGraphHTML()}${mvpHTML()}<div class="got">${got}</div>
    <div class="mrow">${G.mp?mpEndButtons():`${won&&why==='last'&&G.wave<MAX_WAVE?'<button class="pb" id="eOn">Play on to round 40</button>':''}<button class="pb main" id="eAgain">Deal again</button><button class="pb" id="eMenu">Main menu</button>`}</div>${G.mp?`<p class="mpnote" id="eNote">${mpEndNote()}</p>`:''}`,'end');
   if(G.mp){wireMpEnd();return;}
   document.querySelectorAll('.got canvas').forEach(c=>portrait(c,c.dataset.k,34));document.querySelectorAll('.mvp canvas').forEach(c=>portrait(c,c.dataset.k,64));
@@ -513,8 +513,10 @@ function showMulti(code){
     <div class="card2"><h4>Join a room</h4><p>Type the code a friend sent you.</p><input class="codein" id="mpCode" maxlength="6" autocomplete="off" value="${esc(code||'')}" placeholder="CODE"><button class="pb" id="mpJoin">Join room</button></div>
    </div>
    <div class="mperr" id="mpErr"></div>
+   <div class="otwrap"><h4>Open tables</h4><div id="openTables"><p class="mpnote">Looking for open tables…</p></div></div>
    <p class="mpnote">Everyone defends their own casino against the same waves and plays at one shared poker table. ${window.claude&&window.claude.use?'Friends need to be signed in to Claude and able to open this game.':'Share the room code or the invite link: friends just open it in their browser, no sign-up needed.'}</p>
    <div class="mrow"><button class="pb" id="mpBack">Back</button></div>`,'menu');
+  if(typeof openBrowse==='function')openBrowse(true);
   const go=async c=>{const err=$('#mpErr'),nm=cleanName($('#mpName').value);if(!nm){err.textContent='Pick a name first.';$('#mpName').focus();return;}
     if(!/^[A-Z0-9]{4,6}$/.test(c)){err.textContent='Room codes are 4 letters or numbers.';$('#mpCode').focus();return;}
     saveName(nm);Snd.init();err.style.color='var(--muted)';err.textContent='Connecting to the room…';document.querySelectorAll('#modal button').forEach(b=>b.disabled=true);
@@ -549,7 +551,7 @@ function renderLobby(){
   if(!NET.settled)ctl='<p class="mpnote">Finding the table…</p>';
   else if(running)ctl='<p class="mpnote">A game is already running in this room. You\'ll be dealt into the next one.</p><div class="mrow" style="margin-top:8px"><button class="pb main" id="lbWatch">Watch this game</button></div>';
   else if(NET.host)ctl=`<div class="hostset"><div class="seg">${Object.entries(DIFFS).map(([k,d])=>`<button data-d="${k}" class="${k===diff?'on':''}" data-tip="${d.name}|${d.desc}">${d.name}</button>`).join('')}</div>
-      <label class="tog"><input type="checkbox" id="lbAi" ${ai?'checked':''}>House rivals in empty seats</label></div>`;
+      <label class="tog"><input type="checkbox" id="lbAi" ${ai?'checked':''}>House rivals in empty seats</label><label class="tog" data-tip="Open tables|Anyone browsing Play with friends can see this room and join it."><input type="checkbox" id="lbPub" ${NET.pub?'checked':''}>List this room on Open tables</label></div>`;
   else ctl=`<p class="mpnote">Waiting for ${esc(hostP?cleanName(hostP.presence.n):'the host')} to deal you in · ${esc(DIFFS[diff].name)}${ai?' · house rivals on':''}</p>`;
   const html=`<h2>Room</h2><div class="roomcode">${esc(NET.code)}</div>
     <div class="invite"><input id="inviteTxt" readonly value="${esc(inviteLink())}"><button class="pb" id="lbCopy">${icon('link')} Copy invite link</button></div>
@@ -561,20 +563,23 @@ function renderLobby(){
   $('#lbLeave').addEventListener('click',()=>{netLeave();showMenu();});
   el.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{NET.diff=b.dataset.d;Snd.play('click');hostPublish(true);renderLobby();}));
   const t=$('#lbAi');if(t)t.addEventListener('change',()=>{NET.ai=t.checked;hostPublish(true);renderLobby();});
+  const pb=$('#lbPub');if(pb)pb.addEventListener('change',()=>{NET.pub=pb.checked;Snd.play('click');openSync();});
+  if(typeof openSync==='function')openSync();
   const st=$('#lbStart');if(st)st.addEventListener('click',()=>{Snd.init();Snd.play('deal');hostCreateGame();});
 }
 function mpOver(){const S=NET.host?hostState():NET.S;return !!(S&&S.st==='over');}
 function mpEndButtons(){
   const over=mpOver();let b='';
   if(!over){b+='<button class="pb main" id="eWatch">Watch the table</button>';for(const p of G.players)if(p.alive&&!p.human&&(p.remote||p.person&&!p.left))b+=`<button class="pb" data-watch="${p.gi}">Watch ${esc(p.short)}</button>`;}
-  if(over&&NET.host)b+='<button class="pb main" id="eNew">New game in this room</button>';
+  if(over){b+=`<button class="pb main" id="eRematch">Rematch</button>`;if(NET.host)b+='<button class="pb" id="eNew">Change settings</button>';}
   b+=`<button class="pb" id="eLeave">${icon('log-out')} Leave room</button>`;return b;}
-function mpEndNote(){return mpOver()?(NET.host?'':'The host can start a new game in this room.'):'Your seat stays in the room. The game ends when one casino is left.';}
+function mpEndNote(){return mpOver()?`<span id="eRm"></span>`:'Your seat stays in the room. The game ends when one casino is left.';}
 function wireMpEnd(){
   document.querySelectorAll('.got canvas').forEach(c=>portrait(c,c.dataset.k,34));document.querySelectorAll('.mvp canvas').forEach(c=>portrait(c,c.dataset.k,64));
   const w=$('#eWatch');if(w)w.addEventListener('click',hideOverlay);
   document.querySelectorAll('[data-watch]').forEach(b=>b.addEventListener('click',()=>{hideOverlay();openWatch(+b.dataset.watch,true);}));
   const n=$('#eNew');if(n)n.addEventListener('click',()=>{Snd.play('click');hostToLobby();});
+  const rmb=$('#eRematch');if(rmb){rmb.addEventListener('click',()=>{Snd.play('click');if(NET.host)hostRematch();else setRematch(NET.rm!==G.mp.gid);});updateRematchUI();}
   $('#eLeave').addEventListener('click',()=>{netLeave();showMenu();});
 }
 function toggleEmotes(force){const el=$('#emotes'),on=force!=null?force:!el.classList.contains('show');
