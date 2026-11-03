@@ -135,7 +135,7 @@ canvas#board{display:block;border-radius:4px;box-shadow:0 0 0 2px #000,0 0 0 4px
 .card.back{background:var(--cardback) center/100% 100% no-repeat,#2a0b3d;box-shadow:0 0 0 1px #050308,0 6px 14px rgba(0,0,0,.5)}
 .card.new{animation:dealIn .36s cubic-bezier(.2,.8,.3,1.1) both}
 @keyframes dealIn{from{transform:translate(180px,-90px) rotate(24deg);opacity:0}to{opacity:1}}
-#pActions{display:flex;flex-direction:column;gap:6px;min-height:84px;justify-content:center}
+#pActions{display:flex;flex-direction:column;gap:6px;min-height:78px;justify-content:center}
 .pb{height:30px;padding:0 12px;border-radius:15px;display:flex;align-items:center;justify-content:center;gap:5px;font:400 11.5px var(--head);color:#efe8fb;background:linear-gradient(180deg,#2a2236,#16101e);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 0 0 1px #4a4357,0 2px 0 #050308;white-space:nowrap}
 .pb:hover:not(:disabled){box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 0 1px #8a82a0,0 2px 0 #050308}
 .pb:disabled{opacity:.35}
@@ -488,6 +488,16 @@ body.spectate #seats{grid-template-columns:repeat(6,1fr)}
 
 .slot.empty{background:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);border-radius:10px}
 .por.ring{box-shadow:0 0 0 2px #050308,0 0 0 4px var(--ring),0 0 14px color-mix(in srgb,var(--ring) 45%,transparent),inset 0 -10px 18px rgba(0,0,0,.5)}
+
+/* steady top bar: every number gets a slot wide enough for its biggest value, so neighbours never shift */
+.res b{display:inline-block;text-align:left;white-space:nowrap}
+#rChips{min-width:4.7ch}#rHp{min-width:4.7ch}#rRound{min-width:4.6ch}#rRivals{min-width:1.3ch}#rArmy{min-width:2.4ch}
+/* betting: fold and call side by side, raise underneath, so the table never grows past its row */
+#pActions .betrow{display:grid;grid-template-columns:1fr 1fr;gap:6px}#pActions .betrow .pb{padding:0 8px;min-width:0}
+
+#top{min-width:0;overflow:hidden}#top>*{flex-shrink:0}#top .res{flex:none}#top #rNext{flex:0 1 auto;flex-shrink:1;min-width:0;overflow:hidden}#top .spacer{flex:1 1 0;min-width:0}
+@media (max-width:1500px){#top{gap:14px}}@media (max-width:1300px){#top{gap:10px}}#top #rNext .nl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-height:780px){#pot{margin-bottom:2px}#pActions{min-height:66px;gap:4px}#pActions .pb{height:28px}.tipfx{margin:-3px 0}#tbarWrap{margin-top:1px}#mine{margin-top:8px}}
 </style>
 </head>
 <body>

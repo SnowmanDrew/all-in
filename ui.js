@@ -204,7 +204,7 @@ function refreshTable(force){
     else if(HD.phase==='bet1'||HD.phase==='bet2'){
       if(HD.actor>=0&&HD.seats[HD.actor].p.human&&G.mp&&!NET.host&&NET.myIn.h===HD.n&&NET.myIn.tu===HD.tu){sig='acted'+HD.tu;html='<div class="pmsg">…</div>';}
       else if(HD.actor>=0&&HD.seats[HD.actor].p.human){const call=toCall(hs),can=HD.raises<MAX_RAISES&&hs.p.chips>call;sig='act'+call+HD.raises+HD.curBet;
-        html=`<button class="pb fold" data-a="fold" data-tip="Fold (X)">Fold</button><button class="pb" data-a="call" data-tip="${call?'Call':'Check'} (C)">${call?'Call '+Math.min(call,hs.p.chips):'Check'}</button><button class="pb main" data-a="raise" ${can?'':'disabled'} data-tip="${HD.curBet?'Raise':'Bet'} (R)|Limit ${HD.size} · raise ${HD.raises+1} of ${MAX_RAISES}">${HD.curBet?'Raise to '+(HD.curBet+HD.size):'Bet '+HD.size}</button>`;}
+        html=`<div class="betrow"><button class="pb fold" data-a="fold" data-tip="Fold (X)">Fold</button><button class="pb" data-a="call" data-tip="${call?'Call':'Check'} (C)">${call?'Call '+Math.min(call,hs.p.chips):'Check'}</button></div><button class="pb main" data-a="raise" ${can?'':'disabled'} data-tip="${HD.curBet?'Raise':'Bet'} (R)|Limit ${HD.size} · raise ${HD.raises+1} of ${MAX_RAISES}">${HD.curBet?'Raise to '+(HD.curBet+HD.size):'Bet '+HD.size}</button>`;}
       else{const a=HD.actor>=0?HD.seats[HD.actor].p:null;sig='w'+(a?a.name:'')+(hs&&hs.folded);html=`<div class="pmsg">${hs&&hs.folded?'You folded':a?(a.short||a.name)+' to act':''}</div>`;}}
     else if(HD.phase==='draw'){if(hs&&!hs.folded&&hs.done){sig='drawdone';html='<div class="pmsg">Waiting for the table…</div>';}
       else if(hs&&!hs.folded){const n=hs.disc.size;sig='draw'+n;
