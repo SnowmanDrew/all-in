@@ -82,8 +82,9 @@ const _renderDog=renderDog;
 renderDog=function(){dogResetIfNewGame();const B=$('#arcBody');if(!B)return;const S=dogStory();
   if(!ARC.dog){_renderDog();ARC.dog.g=G;}
   const D=ARC.dog;if(S.races>=4&&!S.banned&&!D.running)dogEnsureRed(D);
-  if(S.banned&&!D.mp)return dogClosed(B,D,S);
-  if(!D.mp)_renderDog();
+  if(D.mp)return dogMPView(B,D);
+  if(S.banned)return dogClosed(B,D,S);
+  _renderDog();
   dogFrame(B,D,S);};
 function dogFrame(B,D,S){const cv=$('#dogCv');if(!cv||cv.parentElement.classList.contains('dogwrap'))return;
   const w=document.createElement('div');w.className='dogwrap'+((D.crowd&&D.crowd.length)||D.mp||S.banned?' stands':'');cv.parentElement.insertBefore(w,cv);w.appendChild(cv);
@@ -97,7 +98,7 @@ function dogClosed(B,D,S){
     :`<div class="slres">${S.red?'Red lives on your Strip now. '+(G.red&&G.red.state==='sleep'?'He\'s asleep on his bed.':'He\'s doing zoomies.'):'Red went to a rescue centre. Someone will find him a sofa.'}</div>
       <p class="dogban">Greyhound racing is banned on the Strip, by order of Parliament.</p>`}`;
   dogDrawClosed($('#dogCv'));if(!DOG_RAF)DOG_RAF=requestAnimationFrame(dogOverlay);
-  const pic=$('#redPic');if(pic){const c=pic.getContext('2d');const g=c.createRadialGradient(120,80,10,120,80,130);g.addColorStop(0,'#4a2a5e');g.addColorStop(1,'#1a0f24');c.fillStyle=g;c.fillRect(0,0,240,150);c.fillStyle='rgba(0,0,0,.35)';c.beginPath();c.ellipse(120,128,80,10,0,0,TAU);c.fill();c.translate(112,86);drawCreature(c,{b:'greyhound',face:'beady',c1:RED_COAT},62,0,0);}
+  const pic=$('#redPic');if(pic){const c=pic.getContext('2d');const g=c.createRadialGradient(120,80,10,120,80,130);g.addColorStop(0,'#4a2a5e');g.addColorStop(1,'#1a0f24');c.fillStyle=g;c.fillRect(0,0,240,150);c.fillStyle='rgba(0,0,0,.35)';c.beginPath();c.ellipse(120,128,80,10,0,0,TAU);c.fill();c.translate(118,90);drawGreyhound(c,'stand',0,3.6);}
   const y=$('#redYes'),n=$('#redNo');
   if(y)y.onclick=()=>{dogAdopt();renderDog();};
   if(n)n.onclick=()=>{S.red=false;Snd.play('click');gameLog('Red went to a rescue centre.','');renderDog();};}
@@ -124,19 +125,27 @@ dogGo=function(){const D=ARC.dog,S=dogStory();if(!D||D.running||S.banned||G.me.c
       setTimeout(()=>{if(ARC.dog===D&&!D.running){D.field=newField('dog');D.R=null;D.u=0;if(ARC.tab==='dog'&&$('#slotPanel'))renderDog();}},2600);renderDog();}};
   requestAnimationFrame(step);};
 
-async function dogMP(D){const S=dogStory(),wait=ms=>new Promise(r=>setTimeout(r,ms)),alive=()=>ARC.dog===D&&!!D.mp;
-  D.mp={t0:performance.now()/1000,say:""};const say=(bubble,line)=>{D.mp.say=bubble;D.last=line;const r=$('#arcBody .slres');if(r)r.innerHTML=line;Snd.play('megaphone');};
-  await wait(2000);if(!alive())return dogSettleBan(D);
-  say('STOP THE RACE!',`<b>“Stop the race!”</b> An MP has marched straight onto the track.`);await wait(2800);if(!alive())return dogSettleBan(D);
-  say('IT\'S BANNED!',`<b>“As of tonight, greyhound racing on the Strip is banned.</b> Every dog on this track is retiring. All bets are refunded.”`);
-  dogSettleBan(D);await wait(3000);if(!alive())return;
-  say('MEET RED',`<b>“This lad's called Red.</b> He's run his last race and what he needs now is a sofa. Will you give him a home?”`);await wait(2600);if(!alive())return;
-  D.mp=null;D.running=false;if(ARC.tab==='dog'&&$('#slotPanel'))renderDog();}
+const DOG_MP_LINES=[
+  {say:'STOP THE RACE!',text:'<b>“Stop the race!”</b> An MP has marched straight onto the track.'},
+  {say:"IT'S BANNED!",text:'<b>“As of tonight, greyhound racing on the Strip is banned.</b> Every dog on this track is retiring, and all bets are refunded.”',ban:true},
+  {say:'MEET RED',text:'<b>“This lad\'s called Red.</b> He\'s run his last race, and what he needs now is a sofa. Will you give him a home?”'}];
+// the MP walks on, then each line waits for you to click on
+function dogMP(D){D.mp={t0:performance.now()/1000,step:-1,say:''};D.last='<b>A whistle!</b> Someone is walking out onto the track…';
+  setTimeout(()=>{if(ARC.dog===D&&D.mp&&D.mp.step<0)dogMPNext(D);},1900);if(ARC.tab==='dog'&&$('#slotPanel'))renderDog();}
+function dogMPNext(D){const M=D.mp;if(!M)return;M.step++;
+  if(M.step>=DOG_MP_LINES.length){D.mp=null;D.running=false;if(ARC.tab==='dog'&&$('#slotPanel'))renderDog();return;}
+  const L=DOG_MP_LINES[M.step];M.say=L.say;D.last=L.text;Snd.play('megaphone');if(L.ban)dogSettleBan(D);if(ARC.tab==='dog'&&$('#slotPanel'))renderDog();}
+function dogMPView(B,D){const M=D.mp,L=M.step>=0?DOG_MP_LINES[M.step]:null;
+  B.innerHTML=`<div class="dogwrap stands"><canvas id="dogCv" width="360" height="190"></canvas><canvas id="dogCrowd"></canvas></div>
+    <div class="dogtalk">${L?`<small>The MP · ${M.step+1} of ${DOG_MP_LINES.length}</small><p>${L.text}</p><div class="mgrow"><button class="pb main" id="dogNext">${M.step===DOG_MP_LINES.length-1?'Meet Red':'Continue'}</button></div>`
+      :`<p>${D.last}</p>`}</div>`;
+  drawTrack($('#dogCv'),'dog',D.field,D.R,D.u);if(!DOG_RAF)DOG_RAF=requestAnimationFrame(dogOverlay);
+  const b=$('#dogNext');if(b)b.onclick=()=>{Snd.play('click');dogMPNext(D);};}
 // the ban holds even if the panel is closed mid-speech
 function dogSettleBan(D){const S=dogStory();if(S.banned)return;S.banned=true;if(D.paid){G.me.chips+=D.paid;gambleTally(D.paid);D.paid=0;}
   gameLog(`An MP has shut down the dog track. Greyhound racing is banned on the Strip.`,'');for(const p of D.crowd||[])p.sign=p.sign||DOG_SIGNS[0];}
-{const _tog=toggleArcade;toggleArcade=function(force,tab){const D=ARC.dog;const open=!!$('#slotPanel'),on=force!=null?force:!open;
-  if(!on&&D&&D.mp){D.mp=null;D.running=false;dogSettleBan(D);}return _tog(force,tab);};}
+// closing the arcade mid-scene just pauses it: the MP is still there when you come back
+{const _tog=toggleArcade;toggleArcade=function(force,tab){const D=ARC.dog;if(D&&D.mp&&(force==null||force)&&!$('#slotPanel'))tab='dog';return _tog(force,tab);};}
 
 /* ---------- Red on your Strip ---------- */
 const RED_HOME={x:15*TILE,y:2.75*TILE},RED_LOOP={x:19.5*TILE,y:10*TILE,rx:255,ry:168};
@@ -144,42 +153,95 @@ function dogAdopt(){const S=dogStory();if(S.red)return;S.red=true;
   G.red={isRed:true,x:RED_HOME.x,y:RED_HOME.y,hx:RED_HOME.x,hy:RED_HOME.y,state:'sleep',t:7+Math.random()*4,face:1,run:0};
   Snd.play('bark');for(let i=0;i<40;i++)confetti();toast('Red has moved onto your Strip. He mostly sleeps.');gameLog('You gave Red a home. He\'s asleep on the pavement outside the chapel.','good');
   if(typeof Meta!=='undefined')Meta.ach('forever');}
-function redTick(dt){const R=G&&G.red;if(!R)return;R.t-=dt;
-  const toward=(tx,ty,spd)=>{const dx=tx-R.x,dy=ty-R.y,d=Math.hypot(dx,dy),st=spd*dt;if(Math.abs(dx)>.5)R.face=dx>0?1:-1;if(d<=st){R.x=tx;R.y=ty;return true;}R.x+=dx/d*st;R.y+=dy/d*st;return false;};
-  if(R.state==='sleep'){if(R.t<=0){R.state='wake';R.t=1.1;Snd.play('bark');floatText(R.x,R.y-24,'woof!','#fdba74',11);}}
-  else if(R.state==='wake'){if(R.t<=0){R.state='out';R.dir=Math.random()<.5?1:-1;R.a0=Math.atan2((R.hy-RED_LOOP.y)/RED_LOOP.ry,(R.hx-RED_LOOP.x)/RED_LOOP.rx);R.lap=0;}}
-  else if(R.state==='out'){R.run+=dt;if(toward(RED_LOOP.x+Math.cos(R.a0)*RED_LOOP.rx,RED_LOOP.y+Math.sin(R.a0)*RED_LOOP.ry,240))R.state='lap';}
-  else if(R.state==='lap'){R.run+=dt;R.lap+=330*dt/((RED_LOOP.rx+RED_LOOP.ry)/2);const a=R.a0+R.dir*R.lap,nx=RED_LOOP.x+Math.cos(a)*RED_LOOP.rx,ny=RED_LOOP.y+Math.sin(a)*RED_LOOP.ry;
-    if(Math.abs(nx-R.x)>.3)R.face=nx>R.x?1:-1;R.x=nx;R.y=ny;if(Math.random()<dt*14)spark(R.x-R.face*8,R.y+6,'rgba(214,190,150,.8)',40,.4);if(R.lap>=TAU*1.25)R.state='back';}
-  else if(R.state==='back'){R.run+=dt;if(toward(R.hx,R.hy,200)){R.state='settle';R.t=1.2;}}
-  else if(R.state==='settle'){if(R.t<=0){R.state='sleep';R.t=24+Math.random()*22;}}}
-{const _upd=update;update=function(dt){_upd(dt);try{redTick(dt);}catch(e){}};}
-function drawRed(c,R,t){c.save();c.translate(R.hx,R.hy);c.scale(1.35,1.35);c.translate(-R.hx,-R.hy);drawRedBed(c,R,t);c.restore();if(R.state!=='sleep')drawRedUp(c,R,t);}
-function drawRedBed(c,R,t){const bx=R.hx,by=R.hy;
-  // his bed
-  c.fillStyle='rgba(0,0,0,.35)';c.beginPath();c.ellipse(bx,by+5,20,7,0,0,TAU);c.fill();
-  c.fillStyle='#3b1d5e';c.beginPath();c.ellipse(bx,by+2,19,8.5,0,0,TAU);c.fill();c.strokeStyle='#a78bfa';c.lineWidth=3;c.stroke();
-  c.fillStyle='#6d28d9';c.beginPath();c.ellipse(bx,by+1.5,14,5.6,0,0,TAU);c.fill();
-  if(R.state==='sleep'){const br=Math.sin(t*1.6)*.04,coat=RED_COAT,dk=shade(RED_COAT,-.32),lt=shade(RED_COAT,.35);
-    c.strokeStyle=coat;c.lineWidth=2.6;c.lineCap='round';c.beginPath();c.moveTo(bx-11,by-1);c.quadraticCurveTo(bx-14,by+5,bx-4,by+5.5);c.quadraticCurveTo(bx+4,by+6,bx+8,by+4);c.stroke();
-    c.save();c.translate(bx,by-1.5);c.scale(1+br,1+br*1.4);c.fillStyle=coat;c.beginPath();c.ellipse(0,0,11.5,5,0,0,TAU);c.fill();c.fillStyle=dk;c.beginPath();c.ellipse(-1,-2.4,8.5,2,0,Math.PI,0);c.fill();
-      c.fillStyle=shade(RED_COAT,-.12);c.beginPath();c.ellipse(-7,0,5.5,4.6,0,0,TAU);c.fill();c.strokeStyle=dk;c.lineWidth=.8;c.beginPath();c.arc(-7,.4,3.6,-2.2,.6);c.stroke();c.restore();
-    c.fillStyle=lt;c.beginPath();c.ellipse(bx+12,by+3.4,4,1.6,0,0,TAU);c.fill();
-    c.save();c.translate(bx+10,by-1);c.rotate(.18);c.fillStyle='#f3e3d3';c.beginPath();c.ellipse(1,2.6,3.2,1.6,0,0,TAU);c.fill();c.fillStyle=coat;c.beginPath();c.ellipse(0,0,4.6,3.3,0,0,TAU);c.fill();c.beginPath();c.moveTo(2,-2.2);c.quadraticCurveTo(8,-1.4,10.5,1);c.quadraticCurveTo(8,2.6,2,2.4);c.closePath();c.fill();
-      c.fillStyle='#1b1b22';c.beginPath();c.arc(10.2,.9,1,0,TAU);c.fill();c.fillStyle=dk;c.beginPath();c.moveTo(-2.5,-2.5);c.quadraticCurveTo(-5,-5,-6,-2);c.quadraticCurveTo(-4,-1,-2,-1);c.fill();
-      c.strokeStyle='#1b1b22';c.lineWidth=.9;c.beginPath();c.arc(1.6,-.6,1.3,.2,Math.PI-.2);c.stroke();c.restore();
-    for(let k=0;k<3;k++){const ph=(t*.45+k/3)%1;c.globalAlpha=1-ph;c.fillStyle='#c4b5fd';c.font=`700 ${7+ph*5}px Barlow,sans-serif`;c.textAlign='center';c.fillText('z',bx+14+ph*9,by-9-ph*15);}c.globalAlpha=1;
-    return;}
-}
-function drawRedUp(c,R,t){
-  const moving=R.state==='out'||R.state==='lap'||R.state==='back';
-  c.save();c.translate(R.x,R.y);c.fillStyle='rgba(0,0,0,.3)';c.beginPath();c.ellipse(0,12,17,4.5,0,0,TAU);c.fill();
-  c.scale(R.face,1);if(R.state==='wake'||R.state==='settle')c.rotate(Math.sin(t*6)*.04);
-  drawCreature(c,{b:'greyhound',face:'beady',c1:RED_COAT},19,moving?t*1.7:0,0);c.restore();}
-// say hello
-cv.addEventListener('pointerdown',ev=>{const R=G&&G.red;if(!R||ev.button!==0||G.mode)return;const p=boardPos(ev),sx=R.state==='sleep'?R.hx:R.x,sy=R.state==='sleep'?R.hy:R.y;
-  if(Math.hypot(p.x-sx,p.y-sy)<20){if(R.state==='sleep'){toast('Red is fast asleep. Good boy.');floatText(sx,sy-18,'zzz','#c4b5fd',10);}else{toast('Red is doing zoomies.');Snd.play('bark');}}});
+/* ---------- Red, drawn as a proper greyhound ----------
+   Side view, facing right, at one scale for every pose. ph is the gallop phase (0..1): a double-suspension
+   gallop that stretches out fully in flight, then gathers all four legs under a flexed spine. */
+const RED_DK=shade(RED_COAT,-.3),RED_LT=shade(RED_COAT,.38),RED_BELLY='#f2dcc8';
+function greyLeg(c,x,y,a1,a2,L1,L2,w,col,paw){c.save();c.translate(x,y);c.rotate(a1);c.strokeStyle=col;c.lineCap='round';c.lineJoin='round';c.lineWidth=w;
+  c.beginPath();c.moveTo(0,0);c.lineTo(0,L1);c.translate(0,L1);c.rotate(a2);c.lineTo(0,L2);c.stroke();c.fillStyle=col;c.beginPath();c.ellipse(paw*1.2,L2,w*.85,w*.55,0,0,TAU);c.fill();c.restore();}
+function drawGreyhound(c,pose,ph,s){s=s||1;c.save();c.scale(s,s);
+  const run=pose==='run',S=run?Math.sin(ph*TAU):0,C=run?Math.cos(ph*TAU):0;
+  // flight is highest when fully stretched or fully gathered; the body stretches and flexes through the stride
+  const lift=run?-2.2*Math.abs(S)-.6:0,stretch=run?1+.07*S:1,arch=run?-1.8*S:0;c.translate(0,lift);
+  const chestX=9*stretch,hipX=-12*stretch,backY=-9+arch*.4;
+  // far legs first (darker), then the body, then the near legs
+  const legs=(far)=>{const col=far?RED_DK:RED_COAT,off=far?.08:0,p2=ph+off,s2=run?Math.sin(p2*TAU):0,c2=run?Math.cos(p2*TAU):0;
+    if(run){// front: reach forward in flight, fold back under when gathered
+      greyLeg(c,chestX-1,-2,-1.05*s2-.1,s2>0?-.1*s2:1.15*(-s2)+.15,8.2,8.4,far?1.8:2.1,col,1);
+      // hind: drive back in flight, swing forward under the belly when gathered
+      greyLeg(c,hipX+1,-4,1.0*s2+.05,s2>0?.55*s2:-.6*(-s2)-.1,8.6,9.2,far?2:2.4,col,1);}
+    else if(pose==='stand'){greyLeg(c,chestX-1+(far?1.5:0),-2,-.04,.05,8.2,8.3,far?1.8:2.1,col,1);greyLeg(c,hipX+1+(far?1.5:0),-4,.32,-.5,8.6,9.4,far?2:2.4,col,1);}};
+  legs(true);
+  // tail: long, thin, a low sweep with a hook at the end
+  c.strokeStyle=RED_COAT;c.lineWidth=1.5;c.lineCap='round';c.beginPath();const tw=run?3*C:0;c.moveTo(hipX-3,-5);c.quadraticCurveTo(hipX-10,2+tw,hipX-16,0+tw*.7);c.quadraticCurveTo(hipX-19,-1+tw*.5,hipX-19.5,-3.5+tw*.4);c.stroke();
+  // body: deep chest, tucked waist, arched loin, rounded rump
+  c.fillStyle=RED_COAT;c.beginPath();c.moveTo(chestX+3,-6);c.quadraticCurveTo(chestX+5.5,-1,chestX+2,3.2);c.quadraticCurveTo(chestX-4,5,chestX-8,1.6);
+  c.quadraticCurveTo(-2,-2.6+arch*.3,hipX+3,-1.5);c.quadraticCurveTo(hipX-1,1.2,hipX-4,-2.5);c.quadraticCurveTo(hipX-5,-7,hipX+1,backY+1.5);c.quadraticCurveTo((hipX+chestX)/2,backY-2.2+arch,chestX-1,backY+.6);c.quadraticCurveTo(chestX+2.5,-9,chestX+3,-6);c.fill();
+  c.fillStyle=RED_BELLY;c.beginPath();c.moveTo(chestX+3.6,-3);c.quadraticCurveTo(chestX+3,2.4,chestX-1,3);c.quadraticCurveTo(chestX+1.2,0,chestX+3.6,-3);c.fill();
+  c.fillStyle=RED_DK;c.globalAlpha=.35;c.beginPath();c.ellipse((hipX+chestX)/2,backY+1.4,9*stretch,1.3,0,0,TAU);c.fill();c.globalAlpha=1;
+  // neck and head: long neck, wedge head, long snout, folded rose ear
+  const hb=run?.9*S:0,hx=chestX+(run?11+1.5*S:7.5),hy=(run?-12.5:-16.5)+hb;
+  c.fillStyle=RED_COAT;c.beginPath();c.moveTo(chestX-2.5,-7.8);c.quadraticCurveTo(chestX+(run?4:2.5),hy-(run?1.5:2.5),hx-2.5,hy-1.6);c.lineTo(hx+.5,hy+2.4);c.quadraticCurveTo(chestX+(run?5.5:4.5),hy+4,chestX+3.6,-4.5);c.closePath();c.fill();
+  c.beginPath();c.moveTo(hx-3.5,hy-1);c.quadraticCurveTo(hx-1,hy-4.2,hx+2.6,hy-2.6);c.lineTo(hx+9.5,hy+.6);c.quadraticCurveTo(hx+10.2,hy+1.8,hx+9,hy+2.3);c.lineTo(hx+1,hy+3.3);c.quadraticCurveTo(hx-3,hy+3,hx-3.5,hy-1);c.fill();
+  c.fillStyle=RED_BELLY;c.beginPath();c.moveTo(hx+3,hy+2.6);c.lineTo(hx+9,hy+2.2);c.lineTo(hx+4,hy+3.3);c.closePath();c.fill();
+  c.fillStyle='#1b1b22';c.beginPath();c.arc(hx+9.6,hy+1,1,0,TAU);c.fill();c.beginPath();c.arc(hx+2.2,hy-.8,.9,0,TAU);c.fill();
+  c.fillStyle=RED_DK;c.beginPath();c.moveTo(hx-1.2,hy-2.4);c.quadraticCurveTo(hx-4.5,hy-4.6,hx-6,hy-2.2);c.quadraticCurveTo(hx-3.5,hy-1.6,hx-1,hy-1);c.closePath();c.fill();
+  legs(false);
+  c.restore();}
+// curled up asleep: legs tucked, head on the paws, tail wrapped round, at the same scale as the running dog
+function drawGreySleep(c,t,s){s=s||1;c.save();c.scale(s,s);const br=Math.sin(t*1.6)*.03;
+  c.strokeStyle=RED_COAT;c.lineWidth=1.5;c.lineCap='round';c.beginPath();c.moveTo(-10,1);c.quadraticCurveTo(-13,6,-4,6.4);c.quadraticCurveTo(4,6.8,8,5);c.stroke();
+  c.save();c.scale(1+br,1+br*1.5);c.fillStyle=RED_COAT;c.beginPath();c.ellipse(0,-1,11,5,0,0,TAU);c.fill();
+    c.fillStyle=shade(RED_COAT,-.12);c.beginPath();c.ellipse(-6.5,-.5,5.4,4.6,0,0,TAU);c.fill();c.strokeStyle=RED_DK;c.lineWidth=.7;c.beginPath();c.arc(-6.5,0,3.4,-2.2,.7);c.stroke();
+    c.fillStyle=RED_DK;c.globalAlpha=.4;c.beginPath();c.ellipse(-.5,-4.2,8,1.6,0,Math.PI,0);c.fill();c.globalAlpha=1;c.restore();
+  c.fillStyle=RED_LT;c.beginPath();c.ellipse(9,4.2,4.4,1.4,0,0,TAU);c.fill();c.beginPath();c.ellipse(6,4.8,3.6,1.2,0,0,TAU);c.fill();
+  c.save();c.translate(9,.5);c.rotate(.12);c.fillStyle=RED_COAT;c.beginPath();c.moveTo(-4,-1);c.quadraticCurveTo(-1.5,-4,2,-3);c.lineTo(9,0);c.quadraticCurveTo(9.6,1.2,8.6,1.7);c.lineTo(1,2.6);c.quadraticCurveTo(-3.5,2.4,-4,-1);c.fill();
+    c.fillStyle=RED_BELLY;c.beginPath();c.moveTo(2.5,2.1);c.lineTo(8.4,1.6);c.lineTo(3.5,2.7);c.closePath();c.fill();c.fillStyle='#1b1b22';c.beginPath();c.arc(9.1,.5,.9,0,TAU);c.fill();
+    c.strokeStyle='#1b1b22';c.lineWidth=.8;c.beginPath();c.arc(1.4,-.9,1.1,.2,Math.PI-.2);c.stroke();
+    c.fillStyle=RED_DK;c.beginPath();c.moveTo(-1.6,-2.2);c.quadraticCurveTo(-4.6,-4.4,-6,-2);c.quadraticCurveTo(-3.6,-1.4,-1.4,-1);c.closePath();c.fill();c.restore();
+  c.restore();}
 
+const redCalm=()=>G.phase!=='wave'&&!G.enemies.some(e=>!e.dead);
+function redTick(dt){const R=G&&G.red;if(!R)return;R.t-=dt;R.id='red';
+  const toward=(tx,ty,spd)=>{const dx=tx-R.x,dy=ty-R.y,d=Math.hypot(dx,dy),st=spd*dt;if(Math.abs(dx)>.5)R.face=dx>0?1:-1;R.ph=((R.ph||0)+Math.min(d,st)/46)%1;if(d<=st){R.x=tx;R.y=ty;return true;}R.x+=dx/d*st;R.y+=dy/d*st;return false;};
+  const fight=!redCalm();
+  if(R.state==='sleep'){if(R.t<=0){if(fight){R.t=2;return;}R.state='wake';R.t=1.1;Snd.play('bark');floatText(R.x,R.y-26,'woof!','#fdba74',11);}}
+  else if(R.state==='wake'){if(fight){R.state='settle';R.t=.6;return;}if(R.t<=0){R.state='out';R.dir=Math.random()<.5?1:-1;R.a0=Math.atan2((R.hy-RED_LOOP.y)/RED_LOOP.ry,(R.hx-RED_LOOP.x)/RED_LOOP.rx);R.lap=0;R.laps=(R.laps||0)+1;}}
+  else if(R.state==='out'){if(fight){R.state='back';return;}if(toward(RED_LOOP.x+Math.cos(R.a0)*RED_LOOP.rx,RED_LOOP.y+Math.sin(R.a0)*RED_LOOP.ry,240))R.state='lap';}
+  else if(R.state==='lap'){if(fight){R.state='back';return;}const step=330*dt;R.lap+=step/((RED_LOOP.rx+RED_LOOP.ry)/2);R.ph=((R.ph||0)+step/46)%1;const a=R.a0+R.dir*R.lap,nx=RED_LOOP.x+Math.cos(a)*RED_LOOP.rx,ny=RED_LOOP.y+Math.sin(a)*RED_LOOP.ry;
+    if(Math.abs(nx-R.x)>.3)R.face=nx>R.x?1:-1;R.x=nx;R.y=ny;if(Math.random()<dt*14)spark(R.x-R.face*10,R.y+14,'rgba(214,190,150,.8)',40,.4);if(R.lap>=TAU*1.25)R.state='back';}
+  else if(R.state==='back'){if(toward(R.hx,R.hy,fight?260:200)){R.state='settle';R.t=1.2;}}
+  else if(R.state==='settle'){if(R.t<=0){R.state='sleep';R.t=24+Math.random()*22;R.naps=(R.naps||0)+1;}}}
+{const _upd=update;update=function(dt){_upd(dt);try{redTick(dt);}catch(e){}};}
+const RED_S=1.05;
+function drawRed(c,R,t){const bx=R.hx,by=R.hy,sel=G.inspect===R;
+  // his bed, at the same scale as he is
+  c.fillStyle='rgba(0,0,0,.3)';c.beginPath();c.ellipse(bx,by+6,17,5,0,0,TAU);c.fill();
+  c.fillStyle='#3b1d5e';c.beginPath();c.ellipse(bx,by+3,16,6.8,0,0,TAU);c.fill();c.strokeStyle='#a78bfa';c.lineWidth=2.4;c.stroke();
+  c.fillStyle='#6d28d9';c.beginPath();c.ellipse(bx,by+2.5,11.5,4.4,0,0,TAU);c.fill();
+  if(R.state==='sleep'){if(sel)redRing(c,bx,by+3,t);c.save();c.translate(bx,by-1.5);drawGreySleep(c,t,RED_S);c.restore();
+    for(let k=0;k<3;k++){const ph=(t*.45+k/3)%1;c.globalAlpha=1-ph;c.fillStyle='#c4b5fd';c.font=`700 ${7+ph*5}px Barlow,sans-serif`;c.textAlign='center';c.fillText('z',bx+12+ph*9,by-9-ph*15);}c.globalAlpha=1;return;}
+  const moving=R.state==='out'||R.state==='lap'||R.state==='back';
+  c.save();c.translate(R.x,R.y);c.fillStyle='rgba(0,0,0,.3)';c.beginPath();c.ellipse(0,15.5,16,4,0,0,TAU);c.fill();
+  if(sel)redRing(c,0,15,t);c.scale(R.face,1);if(R.state==='wake'||R.state==='settle')c.rotate(Math.sin(t*6)*.03);
+  drawGreyhound(c,moving?'run':'stand',R.ph||0,RED_S);c.restore();}
+function redRing(c,x,y,t){c.save();c.strokeStyle='#fdba74';c.lineWidth=1.8;c.setLineDash([4,3]);c.lineDashOffset=-t*10;c.beginPath();c.ellipse(x,y,22,7.5,0,0,TAU);c.stroke();c.restore();}
+const redSpot=R=>R.state==='sleep'?[R.hx,R.hy]:[R.x,R.y];
+// click him to see how he is, like you would a bad luck creature (but nobody can attack him)
+let RED_PICK=false;
+cv.addEventListener('pointerup',ev=>{RED_PICK=ev.button===0;},{capture:true});
+cv.addEventListener('pointerup',()=>{RED_PICK=false;});
+{const _ea=enemyAt;enemyAt=function(x,y){const e=_ea(x,y);if(e||!RED_PICK||!G||!G.red)return e;const [rx,ry]=redSpot(G.red);return Math.hypot(x-rx,y-ry)<22?G.red:null;};}
+{const _mt=mapTip;mapTip=function(p){const R=G&&G.red;if(R){const [rx,ry]=redSpot(R);if(Math.hypot(p.x-rx,p.y-ry)<22)return `Red|Retired greyhound · ${redStatus(R)}`;}return _mt(p);};}
+const redStatus=R=>R.state==='sleep'?'fast asleep':R.state==='wake'?'stretching':R.state==='settle'?'turning round three times':(redCalm()?'doing zoomies':'heading back to bed');
+{const _ps=paneSignature;paneSignature=function(){if(G&&G.inspect&&G.inspect.isRed&&!G.sel.length)return 'RED'+G.inspect.state;return _ps();};}
+{const _bp=buildPane;buildPane=function(){const R=G&&G.inspect;if(!R||!R.isRed||G.sel.length)return _bp();const box=$('#unitPane');
+  box.innerHTML=`<div class="ph"><canvas class="por big" id="redPor"></canvas><div class="pmain"><div class="pname">Red</div><div class="porig">Retired greyhound · your dog</div>
+    <div class="hpt">${redStatus(R)[0].toUpperCase()+redStatus(R).slice(1)}</div>
+    <div class="stats">${statHTML('heart','Good boy','Very good boy')}${statHTML('speed',R.laps||0,'Laps of the Strip')}${statHTML('hold',R.naps||0,'Naps taken')}</div></div></div>
+    <div class="edesc">Red doesn't take orders. He sleeps on his bed outside the chapel, and when the street is quiet he does a lap at full speed.</div>`;
+  const cv2=$('#redPor');const c=cv2.getContext('2d');const sz=92;cv2.width=sz*2;cv2.height=sz*2;c.setTransform(2,0,0,2,0,0);c.translate(sz/2-1,sz/2+4);
+  if(R.state==='sleep'){c.translate(0,6);drawGreySleep(c,performance.now()/1000,2.4);}else drawGreyhound(c,'stand',0,1.8);};}
 /* ---------- styles ---------- */
 (function(){const css=`
 .dogwrap{position:relative;margin-bottom:8px}.dogwrap #dogCv{margin-bottom:0}
@@ -190,5 +252,7 @@ cv.addEventListener('pointerdown',ev=>{const R=G&&G.red;if(!R||ev.button!==0||G.
 .redoffer canvas{width:104px;height:65px;border-radius:8px}
 .redoffer b{font:400 18px var(--head);color:#fdba74}.redoffer small{display:block;color:var(--muted);font-size:11px;margin:2px 0 4px}
 .redoffer p{font-size:12.5px;line-height:1.35;margin:0 0 8px;color:#e9e1f5}.redoffer .mgrow{justify-content:flex-start;gap:6px;margin:0}.redoffer .pb{height:28px;margin:0;padding:0 10px;font-size:11.5px}
+.dogtalk{padding:10px 12px;border-radius:10px;background:#1d1626;box-shadow:inset 0 0 0 1px #16a34a,0 0 16px rgba(22,163,74,.2)}.dogtalk small{font:400 10px var(--head);color:#86efac;letter-spacing:.06em;text-transform:uppercase}
+.dogtalk p{margin:4px 0 8px;font-size:13px;line-height:1.4;color:#f3e8ff}.dogtalk .mgrow{margin:0;justify-content:flex-end}.dogtalk .pb{height:30px;margin:0}
 .dogban{text-align:center;font-size:12px;color:var(--muted);margin:6px 0 0}`;
 const s=document.createElement('style');s.textContent=css;document.head.appendChild(s);})();
