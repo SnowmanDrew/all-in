@@ -300,9 +300,10 @@ body.watchfull #board{cursor:default}
 #logPanel.off{display:none}
 #logPanel .lh{display:flex;align-items:center;gap:8px;padding:5px 6px 3px 10px;font:400 11px var(--head);color:#bfb6cf;letter-spacing:.04em}#logPanel .lh span{flex:1;color:var(--muted)}
 #logPanel .lh button{width:22px;height:20px;border-radius:5px;display:grid;place-items:center;color:#cfc6dd}#logPanel .lh button:hover{background:#2e2540}#logPanel .lh .ic{width:13px;height:13px}
-#logList{display:flex;flex-direction:column;justify-content:flex-end;gap:2px;padding:0 10px;margin-bottom:10px;max-height:84px;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 16px);mask-image:linear-gradient(180deg,transparent 0,#000 16px);font-size:12.5px;line-height:1.3;color:#d8d1e6}
-#logPanel.open #logList{max-height:260px;overflow-y:auto;justify-content:flex-start;-webkit-mask-image:none;mask-image:none}
-#logList div{animation:logIn .3s both}#logList .good{color:#a7f3d0}#logList .bad{color:#fda4af}#logList .chat b{font-weight:700}#logList .sys{color:var(--muted);font-style:italic}
+#logList{display:flex;flex-direction:column;gap:2px;padding:0 10px;margin-bottom:10px;max-height:84px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(167,139,250,.35) transparent;-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 16px);mask-image:linear-gradient(180deg,transparent 0,#000 16px);font-size:12.5px;line-height:1.3;color:#d8d1e6}
+#logPanel.open #logList{max-height:260px;-webkit-mask-image:none;mask-image:none}
+#logList::-webkit-scrollbar{width:5px}#logList::-webkit-scrollbar-thumb{background:rgba(167,139,250,.35);border-radius:3px}
+#logList div{animation:logIn .3s both;flex:none}#logList .good{color:#a7f3d0}#logList .bad{color:#fda4af}#logList .chat b{font-weight:700}#logList .sys{color:var(--muted);font-style:italic}
 @keyframes logIn{from{opacity:0;transform:translateY(4px)}}
 #chatForm{display:none;padding:0 8px 8px}body.mp #chatForm{display:block}
 #chatIn{width:100%;height:28px;border:0;border-radius:6px;background:#0d0912;color:#fff;padding:0 9px;font-size:13px;box-shadow:inset 0 0 0 1px #3f3850}#chatIn:focus{outline:none;box-shadow:inset 0 0 0 1px var(--cyan)}

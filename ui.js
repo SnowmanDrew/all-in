@@ -115,12 +115,12 @@ function potWin(n){if(G&&G.stats)G.stats.bigPot=Math.max(G.stats.bigPot||0,n);co
   document.body.appendChild(f);f.style.left=pot.left+pot.width/2+'px';f.style.top=pot.top+'px';requestAnimationFrame(()=>{f.style.transform=`translate(${me.left+me.width/2-pot.left-pot.width/2}px,${me.top-pot.top+10}px)`;f.style.opacity='0';});setTimeout(()=>f.remove(),1300);}
 const LOG=[];let logSeq=0;
 function gameLog(msg,cls,who){LOG.unshift({msg:String(msg),cls:cls||'',who,id:++logSeq});LOG.length=Math.min(LOG.length,60);renderLog();}
-function renderLog(){const el=$('#logList');if(!el)return;const open=$('#logPanel').classList.contains('open'),list=LOG.slice(0,open?60:4).reverse();
+function renderLog(){const el=$('#logList');if(!el)return;const open=$('#logPanel').classList.contains('open'),list=LOG.slice(0,open?80:40).reverse();const pinned=el.scrollTop+el.clientHeight>=el.scrollHeight-8;
   const have=new Set([...el.children].map(c=>+c.dataset.id));const want=new Set(list.map(l=>l.id));
   [...el.children].forEach(c=>{if(!want.has(+c.dataset.id))c.remove();});
   for(const l of list){if(have.has(l.id))continue;const d=document.createElement('div');d.dataset.id=l.id;d.className=l.cls;
     if(l.who){const b=document.createElement('b');b.textContent=l.who.name+': ';b.style.color=l.who.col;d.appendChild(b);d.appendChild(document.createTextNode(l.msg));}else d.textContent=l.msg;el.appendChild(d);}
-  if(open)el.scrollTop=el.scrollHeight;$('#logCount').textContent='';}
+  if(pinned||open&&!renderLog.wasOpen)el.scrollTop=el.scrollHeight;renderLog.wasOpen=open;$('#logCount').textContent='';}
 function toggleLog(force){const p=$('#logPanel'),on=force!=null?force:!p.classList.contains('open');p.classList.toggle('open',on);$('#logMore').innerHTML=icon(on?'stop':'all');
   $('#logList').innerHTML='';renderLog();}
 
@@ -653,7 +653,7 @@ function roundSummary(r){const el=$('#roundCard');const bad=r.hpLost>=1;
     (r.mvp?`<div class="mv"><canvas></canvas><div><b>${UNITS[r.mvp.k].name}</b><small>MVP · ${fmt(Math.round(r.mvp.dmg))} dmg</small></div></div>`:'');
   if(r.mvp)portrait(el.querySelector('canvas'),r.mvp.k,34);
   el.classList.add('show');clearTimeout(roundSummary._t);roundSummary._t=setTimeout(()=>el.classList.remove('show'),4800);
-  gameLog(`Round ${r.w}: ${fmt(Math.round(r.dmg))} damage, ${r.kills} busted, ${r.leaks} leaks, +${fmt(r.earned)} chips${r.mvp?', MVP '+UNITS[r.mvp.k].name:''}.`,bad?'':'good');}
+  gameLog(`Round ${r.w}: ${fmt(Math.round(r.dmg))} damage, ${r.kills} busted, ${r.leaks} leaks, +${fmt(r.earned)} chips${r.mvp?', MVP '+UNITS[r.mvp.k].name:''}${r.hurtTxt?'. Casino hit by '+r.hurtTxt:''}.`,bad?'':'good');}
 
 /* ---------- damage meter ---------- */
 let dmSig='';

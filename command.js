@@ -25,7 +25,7 @@ function lineSlots(units,x0,y0,x1,y1){const L=Math.hypot(x1-x0,y1-y0)||1,dx=(x1-
 function orderLine(units,x0,y0,x1,y1,amove){const slots=lineSlots(units,x0,y0,x1,y1);
   for(const [u,px0,py0] of slots){let px=px0,py=py0;if(!walkable(px,py,u.r)){px=(x0+x1)/2;py=(y0+y1)/2;}
     u.order={t:amove?'amove':'move',x:px,y:py};u.path=findPath(u.x,u.y,px,py);u.target=null;u.anchor={x:px,y:py};u.stuck=0;}
-  G.lineMark={x0,y0,x1,y1,t:.8};Snd.play('click');gameLog(`Formed a line of ${units.length}.`,'');}
+  G.lineMark={x0,y0,x1,y1,t:.8};Snd.play('click');}
 let rdrag=null;
 cv.addEventListener('pointerdown',ev=>{if(ev.button!==2||!G||G.over||G.mode||!G.sel.length||(NET.watch&&NET.watch.full))return;
   const p=boardPos(ev);if(enemyAt(p.x,p.y))return; // right-click on an enemy is still an attack order
@@ -61,7 +61,7 @@ function abilityResults(){if(!G.abTallies||!G.abTallies.length)return;
     const big=T.kills>=3||T.hit.size>=6||T.stun>=4;
     if(!u.dead)floatText(u.x,u.y-u.r-28,`${A.name}: ${bits.join(' · ')}`,big?'#f0abfc':'#d8b4fe',big?14:12);
     if(big){if(typeof hitPause==='function')hitPause(60);G.shake=Math.min(8,G.shake+2);Snd.play('rankup');}
-    gameLog(`${u.def.name} · ${A.name}: ${bits.join(', ')}.`,big?'good':'');}
+  }
   G.abTallies=G.abTallies.filter(T=>!T.done);}
 {const _u=update;update=function(dt){_u(dt);try{abilityResults();if(G.lineMark){G.lineMark.t-=dt;if(G.lineMark.t<=0)G.lineMark=null;}}catch(e){}};}
 
@@ -100,7 +100,6 @@ function queueWrap(fn){return function(units){if(!units||!units.length)return fn
   const snap=new Map(units.filter(busyUnit).map(u=>[u,{order:u.order,path:u.path,anchor:u.anchor,target:u.target}]));
   const r=fn.apply(this,arguments);
   for(const [u,s] of snap){(u.queue=u.queue||[]).push(u.order);u.order=s.order;u.path=s.path;u.anchor=s.anchor;u.target=s.target;}
-  if(snap.size&&!G.queueTold){G.queueTold=1;gameLog('Order queued. Creatures carry out Shift-orders one after another.','');}
   return r;};}
 orderMove=queueWrap(orderMove);orderAttack=queueWrap(orderAttack);orderLine=queueWrap(orderLine);
 {const _os=orderStop;orderStop=function(units){for(const u of units)u.queue=[];return _os(units);};}

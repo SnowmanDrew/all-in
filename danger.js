@@ -40,10 +40,10 @@ function casinoTicker(dt){if(!G.hurtNow)return;G.hurtT=(G.hurtT||0)+dt;if(G.hurt
   const ent=Object.entries(G.hurtNow).sort((a,b)=>b[1]-a[1]);G.hurtNow={};let y=BASE.r0*TILE-30;
   for(const [k,d] of ent.slice(0,2)){if(d<1)continue;floatText(BASE.x,y,`−${Math.round(d)} ${ENEMIES[k].name}`,'#ff8fa3',11);y-=14;}}
 // the round card says what hurt you
-{const _rs=roundSummary;roundSummary=function(r){const hb=G&&G.round&&G.round.hurtBy;_rs(r);if(!hb)return;const ent=Object.entries(hb).filter(x=>x[1]>=1).sort((a,b)=>b[1]-a[1]).slice(0,3);if(!ent.length)return;
+{const _rs=roundSummary;roundSummary=function(r){const hb=G&&G.round&&G.round.hurtBy;if(hb){const e=Object.entries(hb).filter(x=>x[1]>=1).sort((a,b)=>b[1]-a[1]).slice(0,3);if(e.length)r.hurtTxt=e.map(([k,v])=>`${ENEMIES[k].name} −${Math.round(v)}`).join(', ');}_rs(r);if(!hb)return;const ent=Object.entries(hb).filter(x=>x[1]>=1).sort((a,b)=>b[1]-a[1]).slice(0,3);if(!ent.length)return;
   const el=$('#roundCard');const d=document.createElement('div');d.className='rhurt';d.innerHTML=`<small>Casino hit by</small>${ent.map(([k,v])=>`<span><canvas data-ek="${k}"></canvas>${esc(ENEMIES[k].name)} <b>−${Math.round(v)}</b></span>`).join('')}`;
   el.appendChild(d);d.querySelectorAll('canvas').forEach(c=>enemyPortrait(c,c.dataset.ek,18));
-  gameLog(`Casino damage this round: ${ent.map(([k,v])=>`${ENEMIES[k].name} −${Math.round(v)}`).join(', ')}.`,'bad');};}
+};}
 
 /* ---------- the plan card: what is coming, what it punishes, how to answer ---------- */
 function planUI(){let el=$('#scout');if(!G||G.over){if(el)el.classList.remove('show');return;}

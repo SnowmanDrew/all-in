@@ -353,7 +353,7 @@ function hurtUnit(u,dmg){if(u.jump)return;dmg=Math.max(dmg*.25,dmg-((u.def.armor
   if(u.hp<=0&&u.def.sp&&u.def.sp.rebirth&&!u.reborn){u.reborn=true;u.hp=u.maxHp*.6;G.fires.push({x:u.x,y:u.y,r:60,t:2.2,max:2.2,dps:u.def.dmg*.6,u});G.fx.push({t:'ring',x:u.x,y:u.y,r0:10,r1:90,col:'#f97316',life:.6,max:.6,w:5});for(let i=0;i<30;i++)spark(u.x,u.y,i%2?'#f97316':'#fde047',180,.7);floatText(u.x,u.y-u.r-14,'Reborn!','#fdba74',14);Snd.play('boom');return;}
   if(u.hp<=0&&u.temp&&!u.dead){u.dead=true;for(let i=0;i<10;i++)spark(u.x,u.y,'#e11d48',90,.4);return;}
   if(u.hp<=0&&!u.dead){u.dead=true;for(let i=0;i<16;i++)spark(u.x,u.y,u.def.look.c1,110,.6);
-  G.stats.kos=(G.stats.kos||0)+1;const t=10+Math.min(20,UNITS[u.k].hp/80);G.ko.push({u,t,max:t});G.fx.push({t:'ko',k:u.k,x:u.x,y:u.y,face:u.face,life:1.1,max:1.1});u.siegeP=0;u.siegeTo=false;u.fanT=u.infT=u.lockT=0;gameLog(`${u.def.name} was knocked out · back in ${Math.round(t)}s`,'bad');Snd.play('die');}}
+  G.stats.kos=(G.stats.kos||0)+1;const t=10+Math.min(20,UNITS[u.k].hp/80);G.ko.push({u,t,max:t});G.fx.push({t:'ko',k:u.k,x:u.x,y:u.y,face:u.face,life:1.1,max:1.1});u.siegeP=0;u.siegeTo=false;u.fanT=u.infT=u.lockT=0;Snd.play('die');}}
 function updateKO(dt){for(const k of G.ko){k.t-=dt;if(k.t<=0){const u=k.u;u.dead=false;u.hp=u.maxHp;u.x=BASE.fx-10+(rnd()-.5)*20;u.y=BASE.y+(rnd()-.5)*60;u.order={t:'idle'};u.anchor={x:u.x,y:u.y};u.path=[];u.target=null;u.sel=false;u.spawnT=.45;G.units.push(u);
   G.fx.push({t:'ring',x:u.x,y:u.y,r0:4,r1:30,col:'#4ade80',life:.5,max:.5,w:3});}}G.ko=G.ko.filter(k=>k.t>0);}
 const BOSS_MOVES=['summon','dash','shield','edge'];
@@ -364,7 +364,7 @@ function enemySpecials(e,dt){const k=e.k;
     if(e.chewT>0){e.chewT-=dt;e.atk=.6;const i=e.chewTile;if(grid[i]!==2){e.chewT=0;return false;}
       if(e.chewT<=0){grid[i]=0;G.barricades=Math.max(0,G.barricades-1);computeFlow();e.chewed=(e.chewed||0)+1;const x=(i%COLS)*TILE+15,y=((i/COLS)|0)*TILE+15;
         for(let j=0;j<14;j++)spark(x,y,j%2?'#c0193f':'#e5e7eb',120,.5);floatText(x,y-14,'Snip!','#fda4af',13);Snd.play('sell');
-        if(!G.ratWarn){G.ratWarn=1;toast('A Rope Rat chewed through a velvet rope!');}gameLog('A Rope Rat chewed through one of your velvet ropes.','bad');}
+        if(!G.ratWarn){G.ratWarn=1;toast('A Rope Rat chewed through a velvet rope!');}if(G.ratLogW!==G.wave){G.ratLogW=G.wave;gameLog('A Rope Rat is chewing through your velvet ropes.','bad');}}
       return true;}
     if((e.chewed||0)<2){e.chewChk=(e.chewChk||0)-dt;if(e.chewChk<=0){e.chewChk=.3;const c=Math.floor(e.x/TILE),r=Math.floor(e.y/TILE);
       for(const [dc,dr] of NB){const cc=c+dc,rr=r+dr;if(cc<0||rr<0||cc>=COLS||rr>=ROWS)continue;const i=gi(cc,rr);if(grid[i]===2){e.chewT=1.7;e.chewTile=i;e.face=(cc*TILE+15)>e.x?1:-1;return true;}}}}
@@ -531,7 +531,7 @@ function rivalSim(w){
     if(dmg>=1)(G.rivalRep=G.rivalRep||[]).push(`${p.short||p.name} −${Math.round(dmg)}`);
     if(p.hp<=0){p.hp=0;bark(p,'bust');p.alive=false;p.outWave=w;G.outOrder.push(p);banner(p.name+' is busted','','bust');p.bustT=G.time;gameLog(`${p.name}'s casino fell on round ${w}.`,'bad');Snd.play('bust');}
   }
-  gameLog(G.rivalRep.length?'Rival casinos hit: '+G.rivalRep.join(' · '):'Every rival casino held this round.',G.rivalRep.length?'':'good');
+  if(G.rivalRep.length)gameLog('Rival casinos hit: '+G.rivalRep.join(' · '),'');
 }
 function endWave(){
   const w=G.wave;
@@ -551,7 +551,7 @@ function localEndWave(w){
   if(w===10&&!G.stats.leaks&&typeof Meta!=='undefined')Meta.ach('velvet');
   if(G.round&&typeof roundSummary==='function'){const R=G.round,all=G.units.concat(G.ko.map(k=>k.u));const mvp=all.reduce((a,b)=>(b.rdmg||0)>(a&&a.rdmg||0)?b:a,null);
     setTimeout(()=>roundSummary({w,dmg:R.dmg,kills:R.kills,leaks:R.leaks,hpLost:R.hpLost,earned:G.stats.earned-R.earned0,mvp:mvp&&mvp.rdmg>0?{k:mvp.k,dmg:mvp.rdmg}:null}),900);}
-  const pay=Math.round(20+2.5*w);G.me.chips+=pay;floatText(BASE.x,BASE.r0*TILE-12,'+'+pay,'#e9c46a',16);for(let i=0;i<14;i++)chipBit(BASE.x,BASE.r0*TILE+10,160);G.stats.earned+=pay;gameLog(`Round ${w} cleared. The house pays ${pay} chips.`,'good');
+  const pay=Math.round(20+2.5*w);G.me.chips+=pay;floatText(BASE.x,BASE.r0*TILE-12,'+'+pay,'#e9c46a',16);for(let i=0;i<14;i++)chipBit(BASE.x,BASE.r0*TILE+10,160);G.stats.earned+=pay;
   if(!G.waveDmg&&G.enemies.length===0){G.streak=(G.streak||0)+1;const bonus=Math.min(40,10+5*(G.streak-1));G.me.chips+=bonus;G.stats.earned+=bonus;G.stats.clean=(G.stats.clean||0)+1;G.stats.bestStreak=Math.max(G.stats.bestStreak||0,G.streak);
     if(G.streak>=5&&typeof Meta!=='undefined')Meta.ach('spotless');
     banner('Clean round',`+${bonus} chips${G.streak>1?', streak '+G.streak:''}`,'info');for(let i=0;i<30;i++)chipBit(BASE.x-20,BASE.r0*TILE+20,240);Snd.play('coin');}
