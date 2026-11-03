@@ -203,28 +203,30 @@ function drawGreySleep(c,t,s){s=s||1;c.save();c.scale(s,s);const br=Math.sin(t*1
 
 const redCalm=()=>G.phase!=='wave'&&!G.enemies.some(e=>!e.dead);
 function redTick(dt){const R=G&&G.red;if(!R)return;R.t-=dt;R.id='red';
-  const toward=(tx,ty,spd)=>{const dx=tx-R.x,dy=ty-R.y,d=Math.hypot(dx,dy),st=spd*dt;if(Math.abs(dx)>.5)R.face=dx>0?1:-1;R.ph=((R.ph||0)+Math.min(d,st)/46)%1;if(d<=st){R.x=tx;R.y=ty;return true;}R.x+=dx/d*st;R.y+=dy/d*st;return false;};
+  const toward=(tx,ty,spd)=>{const dx=tx-R.x,dy=ty-R.y,d=Math.hypot(dx,dy),st=spd*dt;if(Math.abs(dx)>.5)R.face=dx>0?1:-1;R.ph=((R.ph||0)+Math.min(d,st)/RED_STRIDE)%1;if(d<=st){R.x=tx;R.y=ty;return true;}R.x+=dx/d*st;R.y+=dy/d*st;return false;};
   const fight=!redCalm();
   if(R.state==='sleep'){if(R.t<=0){if(fight){R.t=2;return;}R.state='wake';R.t=1.1;Snd.play('bark');floatText(R.x,R.y-26,'woof!','#fdba74',11);}}
   else if(R.state==='wake'){if(fight){R.state='settle';R.t=.6;return;}if(R.t<=0){R.state='out';R.dir=Math.random()<.5?1:-1;R.a0=Math.atan2((R.hy-RED_LOOP.y)/RED_LOOP.ry,(R.hx-RED_LOOP.x)/RED_LOOP.rx);R.lap=0;R.laps=(R.laps||0)+1;}}
   else if(R.state==='out'){if(fight){R.state='back';return;}if(toward(RED_LOOP.x+Math.cos(R.a0)*RED_LOOP.rx,RED_LOOP.y+Math.sin(R.a0)*RED_LOOP.ry,240))R.state='lap';}
-  else if(R.state==='lap'){if(fight){R.state='back';return;}const step=330*dt;R.lap+=step/((RED_LOOP.rx+RED_LOOP.ry)/2);R.ph=((R.ph||0)+step/46)%1;const a=R.a0+R.dir*R.lap,nx=RED_LOOP.x+Math.cos(a)*RED_LOOP.rx,ny=RED_LOOP.y+Math.sin(a)*RED_LOOP.ry;
+  else if(R.state==='lap'){if(fight){R.state='back';return;}const step=330*dt;R.lap+=step/((RED_LOOP.rx+RED_LOOP.ry)/2);R.ph=((R.ph||0)+step/RED_STRIDE)%1;const a=R.a0+R.dir*R.lap,nx=RED_LOOP.x+Math.cos(a)*RED_LOOP.rx,ny=RED_LOOP.y+Math.sin(a)*RED_LOOP.ry;
     if(Math.abs(nx-R.x)>.3)R.face=nx>R.x?1:-1;R.x=nx;R.y=ny;if(Math.random()<dt*14)spark(R.x-R.face*10,R.y+14,'rgba(214,190,150,.8)',40,.4);if(R.lap>=TAU*1.25)R.state='back';}
   else if(R.state==='back'){if(toward(R.hx,R.hy,fight?260:200)){R.state='settle';R.t=1.2;}}
   else if(R.state==='settle'){if(R.t<=0){R.state='sleep';R.t=24+Math.random()*22;R.naps=(R.naps||0)+1;}}}
 {const _upd=update;update=function(dt){_upd(dt);try{redTick(dt);}catch(e){}};}
-const RED_S=1.05;
+const RED_S=.8,RED_SLEEP_S=.95,RED_STRIDE=80;
+// a gallop is not even: it lingers stretched out and gathered up, and snaps through the moment the legs pass under
+const gaitPhase=u=>u+.6*Math.sin(4*Math.PI*u)/(4*Math.PI);
 function drawRed(c,R,t){const bx=R.hx,by=R.hy,sel=G.inspect===R;
   // his bed, at the same scale as he is
   c.fillStyle='rgba(0,0,0,.3)';c.beginPath();c.ellipse(bx,by+6,17,5,0,0,TAU);c.fill();
   c.fillStyle='#3b1d5e';c.beginPath();c.ellipse(bx,by+3,16,6.8,0,0,TAU);c.fill();c.strokeStyle='#a78bfa';c.lineWidth=2.4;c.stroke();
   c.fillStyle='#6d28d9';c.beginPath();c.ellipse(bx,by+2.5,11.5,4.4,0,0,TAU);c.fill();
-  if(R.state==='sleep'){if(sel)redRing(c,bx,by+3,t);c.save();c.translate(bx,by-1.5);drawGreySleep(c,t,RED_S);c.restore();
+  if(R.state==='sleep'){if(sel)redRing(c,bx,by+3,t);c.save();c.translate(bx,by-1.5);drawGreySleep(c,t,RED_SLEEP_S);c.restore();
     for(let k=0;k<3;k++){const ph=(t*.45+k/3)%1;c.globalAlpha=1-ph;c.fillStyle='#c4b5fd';c.font=`700 ${7+ph*5}px Barlow,sans-serif`;c.textAlign='center';c.fillText('z',bx+12+ph*9,by-9-ph*15);}c.globalAlpha=1;return;}
   const moving=R.state==='out'||R.state==='lap'||R.state==='back';
-  c.save();c.translate(R.x,R.y);c.fillStyle='rgba(0,0,0,.3)';c.beginPath();c.ellipse(0,15.5,16,4,0,0,TAU);c.fill();
-  if(sel)redRing(c,0,15,t);c.scale(R.face,1);if(R.state==='wake'||R.state==='settle')c.rotate(Math.sin(t*6)*.03);
-  drawGreyhound(c,moving?'run':'stand',R.ph||0,RED_S);c.restore();}
+  c.save();c.translate(R.x,R.y);c.fillStyle='rgba(0,0,0,.3)';c.beginPath();c.ellipse(0,12.5,13,3.4,0,0,TAU);c.fill();
+  if(sel)redRing(c,0,12,t);c.scale(R.face,1);if(R.state==='wake'||R.state==='settle')c.rotate(Math.sin(t*6)*.03);
+  drawGreyhound(c,moving?'run':'stand',gaitPhase(R.ph||0),RED_S);c.restore();}
 function redRing(c,x,y,t){c.save();c.strokeStyle='#fdba74';c.lineWidth=1.8;c.setLineDash([4,3]);c.lineDashOffset=-t*10;c.beginPath();c.ellipse(x,y,22,7.5,0,0,TAU);c.stroke();c.restore();}
 const redSpot=R=>R.state==='sleep'?[R.hx,R.hy]:[R.x,R.y];
 // click him to see how he is, like you would a bad luck creature (but nobody can attack him)
