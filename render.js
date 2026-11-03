@@ -559,7 +559,7 @@ function drawEnemyRaw(c,k,r,col,t){const body='#1a1022',bob=Math.sin(t*9)*r*.08,
       c.fillStyle='#111';c.beginPath();c.arc(-r*.13,-r*.64,r*.05,0,TAU);c.fill();c.strokeStyle='#fbbf24';c.lineWidth=1.4;c.beginPath();c.arc(r*.14,-r*.64,r*.1,0,TAU);c.stroke();c.fillStyle='#111';c.beginPath();c.arc(r*.14,-r*.64,r*.04,0,TAU);c.fill();
       c.fillStyle='#111';c.beginPath();c.ellipse(0,-r*.92,r*.5,r*.09,0,0,TAU);c.fill();rr(c,-r*.3,-r*1.5,r*.6,r*.6,3);c.fill();c.fillStyle='#fbbf24';c.fillRect(-r*.3,-r*1.02,r*.6,r*.09);
       c.fillStyle='#fbbf24';c.font=`800 ${r*.3}px Georgia`;c.textAlign='center';c.textBaseline='middle';c.fillText('$',0,-r*1.25);break;}
-    case 'boss':{const w=TAU/SPP,sw=Math.sin(t*w);c.fillStyle='#0b0f1a';for(const sx of [-1,1]){c.beginPath();c.moveTo(sx*r*.55,r*.3);c.quadraticCurveTo(sx*r*(1.05+.12*sw*sx),r*.8,sx*r*(.9+.15*sw*sx),r*1.15);c.lineTo(sx*r*.45,r*.9);c.closePath();c.fill();}
+    case 'boss':{if(typeof bossArt==='function'){bossArt(c,r,col,t,bossVariant());break;}const w=TAU/SPP,sw=Math.sin(t*w);c.fillStyle='#0b0f1a';for(const sx of [-1,1]){c.beginPath();c.moveTo(sx*r*.55,r*.3);c.quadraticCurveTo(sx*r*(1.05+.12*sw*sx),r*.8,sx*r*(.9+.15*sw*sx),r*1.15);c.lineTo(sx*r*.45,r*.9);c.closePath();c.fill();}
       c.save();c.translate(r*.95,r*.05);c.rotate(-.25+sw*.35);c.strokeStyle='#0b0612';c.lineWidth=r*.13;c.lineCap='round';c.beginPath();c.moveTo(0,-r*.2);c.lineTo(0,r*.95);c.stroke();c.strokeStyle='#d4a12a';c.lineWidth=r*.08;c.stroke();c.fillStyle='#fde68a';c.beginPath();c.arc(0,-r*.24,r*.12,0,TAU);c.fill();c.restore();}
       c.fillStyle='#111827';c.beginPath();c.moveTo(-r,r*.9);c.lineTo(-r*.8,-r*.3);c.quadraticCurveTo(0,-r*1.1,r*.8,-r*.3);c.lineTo(r,r*.9);c.closePath();c.fill();
       c.fillStyle='#e5e7eb';c.beginPath();c.moveTo(-r*.25,-r*.45);c.lineTo(0,r*.3);c.lineTo(r*.25,-r*.45);c.fill();c.fillStyle=col;c.beginPath();c.moveTo(-r*.1,-r*.3);c.lineTo(0,r*.2);c.lineTo(r*.1,-r*.3);c.fill();
@@ -803,7 +803,7 @@ function buildSprite(draw,r,outline){
 }
 function unitSprite(k,f,a){if(a)f=f-f%3;const id='u'+k+'|'+f+'|'+a;let s=SPR.get(id);if(!s){const d=UNITS[k];NO_TURRET=d.look.b==='tank';s=buildSprite(c=>drawCreature(c,d.look,d.r,f/SPF*SPP,a),d.r);NO_TURRET=false;SPR.set(id,s);}return s;}
 const WALKERS=new Set(['horse','greyhound','seven','goose','human','robot','hound','chip','crab','rider','chimera','coin','tank','hydra']);
-function enemySprite(k,r,f){const id='e'+k+'|'+f;let s=SPR.get(id);if(!s){const d=ENEMIES[k];s=buildSprite(c=>drawEnemyRaw(c,k,r,d.col,f/SPF*SPP),r,hexA(d.col,.95));SPR.set(id,s);}return s;}
+function enemySprite(k,r,f){const id='e'+k+(k==='boss'&&typeof bossVariant==='function'?bossVariant():'')+'|'+f;let s=SPR.get(id);if(!s){const d=ENEMIES[k];s=buildSprite(c=>drawEnemyRaw(c,k,r,d.col,f/SPF*SPP),r,hexA(d.col,.95));SPR.set(id,s);}return s;}
 function frameOf(t,off){return Math.floor(((t/SPP)*SPF+off*7)%SPF+SPF)%SPF;}
 function blit(c,s,x,y,sx,sy,flash,rot){c.save();c.translate(x,y);if(rot)c.rotate(rot);c.scale(sx,sy);c.drawImage(s.img,-s.half,-s.half,s.S,s.S);if(flash>0){c.globalAlpha=Math.min(1,flash*10);c.drawImage(s.sil,-s.half,-s.half,s.S,s.S);}c.restore();}
 function hpBar(c,x,y,w,f){c.fillStyle='rgba(8,5,12,.85)';c.fillRect(x-w/2-1,y-1,w+2,4);c.fillStyle=f>.5?'#4ade80':f>.25?'#fbbf24':'#f43f5e';c.fillRect(x-w/2,y,w*clamp(f,0,1),2);}
@@ -1140,7 +1140,7 @@ function render(){
 function portrait(canvas,k,size){const c=canvas.getContext('2d');canvas.width=size*2;canvas.height=size*2;c.setTransform(2,0,0,2,0,0);const d=UNITS[k];const r=size*(d.look.b==='wheel'||d.look.b==='drake'||d.look.b==='hound'?.2:.25);
   const id='p'+k+'|'+size;let s=SPR.get(id);if(!s){s=buildSprite(cc=>drawCreature(cc,d.look,r,.3,0),r);SPR.set(id,s);}c.drawImage(s.img,size/2-s.half,size/2-s.half+r*.1,s.S,s.S);}
 function enemyPortrait(canvas,k,size){const c=canvas.getContext('2d');canvas.width=size*2;canvas.height=size*2;c.setTransform(2,0,0,2,0,0);const E=ENEMIES[k],r=size*(E.boss?.27:k==='getaway'?.2:k==='shard'||k==='gnat'?.22:.25);
-  const id='pe'+k+'|'+size;let s=SPR.get(id);if(!s){s=buildSprite(cc=>drawEnemyRaw(cc,k,r,ENEMIES[k].col,.3),r,ENEMIES[k].col);SPR.set(id,s);}c.drawImage(s.img,size/2-s.half,size/2-s.half+r*.08,s.S,s.S);}
+  const id='pe'+k+(k==='boss'&&typeof bossVariant==='function'?bossVariant():'')+'|'+size;let s=SPR.get(id);if(!s){s=buildSprite(cc=>drawEnemyRaw(cc,k,r,ENEMIES[k].col,.3),r,ENEMIES[k].col);SPR.set(id,s);}c.drawImage(s.img,size/2-s.half,size/2-s.half+r*.08,s.S,s.S);}
 
 /* draw another player's board (a lightweight copy rebuilt from their updates) into any canvas */
 function renderView(c2,scale,GV,ropes){
