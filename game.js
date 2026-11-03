@@ -509,7 +509,7 @@ function startWave(){
   G.phase='wave';G.waveT=0;G.waveSpread=spread;G.waveDmg=0;G.round={w,dmg:0,kills:0,leaks:0,hpLost:0,earned0:G.stats.earned,croup0:G.stats.croup||0};for(const u of G.units){u.rdmg=0;u.reborn=false;}for(const k of G.ko){k.u.rdmg=0;k.u.reborn=false;}
   if(typeof miniAfter==='function'&&miniAfter(w))gameLog(`After this round: ${MINI_NAME[miniAfter(w)]} for everyone.`,'good');
   if(c.secret){banner(c.name,c.secret.sub,'boss');Snd.play('boss');G.shake=Math.min(9,G.shake+5);}
-  else if(c.boss){banner(c.name,'Round '+w,'boss');Snd.play('boss');}
+  else if(c.boss){banner(c.name,'Round '+w+(typeof bossInfo==='function'?' · '+bossInfo().tag:''),'boss');Snd.play('boss');}
   else if(c.mini){banner('Repo Ogre','Round '+w,'boss');Snd.play('wave');}
   else{banner('Round '+w,c.name,'round');Snd.play('wave');}
   if(typeof waveFeel==='function')waveFeel();

@@ -239,7 +239,7 @@ let paneSig='';
 function paneSignature(){if(!G)return '';if(G.inspect&&G.inspect.dead)G.inspect=null;if(G.inspect&&!G.sel.length)return 'E'+G.inspect.id;const s=G.sel;let k=s.map(u=>u.id).join(',');if(s.length===1)k+='|'+(s[0].rank||0)+'|'+recipesFor(s[0].k).map(r=>G.units.some(o=>o!==s[0]&&o.k===r.partner)?1:0).join('');if(!s.length)k+='c'+G.workers.length+G.workers.filter(w=>w.mode==='repair').length+G.base.tier+G.base.cannon+G.up.dmg+G.up.hp+G.barricades+G.base.plate;return k;}
 function statHTML(ic,val,tip){return `<span class="st" data-tip="${tip}">${icon(ic)}<b>${val}</b></span>`;}
 function enemyTraits(e){const d=e.def,out=[];
-  {const MV={summon:'Summoner',dash:'Charger',shield:'Shield',edge:'Trickster',slam:'Ground slam'},m=d.mini?'slam':e.move||bossMove(e);if(d.moves)out.push(['crown','Secret boss',d.movesDesc]);else if(d.boss||d.mini)out.push(['crown',(d.boss?'Boss':'Mini-boss')+' · '+MV[m],BOSS_MOVE_DESC[m]||'']);}
+  {const MV={summon:'Summoner',dash:'Charger',shield:'Shield',edge:'Trickster',slam:'Ground slam'},m=d.mini?'slam':e.move||bossMove(e);if(d.moves)out.push(['crown','Secret boss',d.movesDesc]);else if(d.boss&&typeof bossInfo==='function'&&e.k==='boss'){const I=bossInfo();out.push(['crown','Boss · '+I.move,I.moveDesc]);}else if(d.boss||d.mini)out.push(['crown',(d.boss?'Boss':'Mini-boss')+' · '+MV[m],BOSS_MOVE_DESC[m]||'']);}
   if(d.dodge&&!d.fly)out.push(['next','Ignores creatures','Runs past your creatures for the casino']);
   if(d.fly)out.push(['sparkles','Flies','Crosses ropes and buildings in a straight line']);
   if(d.split)out.push(['armor','Shatters','Splits into '+d.split+' shards when broken']);
@@ -249,10 +249,10 @@ function enemyTraits(e){const d=e.def,out=[];
 function buildPane(){
   const box=$('#unitPane'),s=G.sel;
   if(G.inspect&&!s.length){const e=G.inspect,d=e.def,tr=enemyTraits(e);
-    box.innerHTML=`<div class="ph"><canvas class="por big enemy" data-tip="${esc(e.name)}|${ENEMY_DESC[e.k]||''}"></canvas><div class="pmain"><div class="pname">${esc(e.name)}</div><div class="porig foe">Bad luck${d.boss?' · Boss':d.mini?' · Mini-boss':''}</div>
+    box.innerHTML=`<div class="ph"><canvas class="por big enemy" data-tip="${esc(e.name)}|${e.k==='boss'&&typeof bossInfo==='function'?bossInfo().desc:ENEMY_DESC[e.k]||''}"></canvas><div class="pmain"><div class="pname">${esc(e.name)}</div><div class="porig foe">Bad luck${d.boss?' · Boss':d.mini?' · Mini-boss':''}</div>
       <div class="hp foe"><i data-f="hp"></i></div><div class="hpt" data-f="hpt"></div>
       <div class="stats">${statHTML('armor',Math.round(e.armor),'Armor: flat damage soaked from every hit')}${statHTML('speed',Math.round(e.spd),'Speed')}${statHTML('casino',Math.round(d.bite*.6*10)/10,'Damage to your casino per bite')}${statHTML('dmg',d.dmg,'Damage to your creatures per hit')}${statHTML('chips',d.gold+Math.floor(G.wave/8),'Chips paid when busted')}</div></div></div>
-      <div class="edesc">${ENEMY_DESC[e.k]||''}</div>${tr.length?`<div class="etraits">${tr.map(([ic,n,tp])=>`<span data-tip="${n}|${tp}">${icon(ic)}${n}</span>`).join('')}</div>`:''}`;
+      <div class="edesc">${e.k==='boss'&&typeof bossInfo==='function'?bossInfo().desc:ENEMY_DESC[e.k]||''}</div>${tr.length?`<div class="etraits">${tr.map(([ic,n,tp])=>`<span data-tip="${n}|${tp}">${icon(ic)}${n}</span>`).join('')}</div>`:''}`;
     enemyPortrait(box.querySelector('.por'),e.k,92);return;}
   if(!s.length){box.innerHTML=`<div class="ph"><canvas class="por big" id="casPor"></canvas><div class="pmain"><div class="pname">Your casino</div><div class="hp"><i data-f="hp"></i></div><div class="hpt" data-f="hpt"></div>
       <div class="stats">${statHTML('croupier',G.workers.filter(w=>w.mode!=='repair').length+'/'+G.workers.filter(w=>w.mode==='repair').length,'Croupiers gathering / repairing')}${statHTML('casino',CASINO_TIERS[G.base.tier].name.split(' ')[0],CASINO_TIERS[G.base.tier].name)}${statHTML('rope',G.barricades,'Velvet ropes laid')}${statHTML('dmg','+'+G.up.dmg*12+'%','Creature damage bonus')}${statHTML('hp','+'+G.up.hp*12+'%','Creature health bonus')}</div></div></div><div class="dmeter" data-f="dmeter"></div>`;

@@ -98,3 +98,19 @@ function bossArt(c,r,col,t,v){
   c.fillStyle='#14532d';c.beginPath();c.moveTo(-r*.34,-r*1.08);c.quadraticCurveTo(0,-r*1.36,r*.34,-r*1.08);c.lineTo(r*.3,-r*1.0);c.quadraticCurveTo(0,-r*1.2,-r*.3,-r*1.0);c.closePath();c.fill();
   c.strokeStyle='#e0b040';c.lineWidth=r*.035;c.stroke();
 }
+
+/* what each boss is, and what its signature move does (stats and moves unchanged) */
+const BOSS_INFO=[
+  {tag:'He has come to collect',move:'Calling in debts',
+   desc:'He keeps a ledger of every chip you have ever lost, and he has come to collect. Every so often he opens the book, and the people who owe him answer.',
+   moveDesc:'Opens his ledger and calls in a crowd of extra bad luck around him. Kill the crowd before it reaches the casino.'},
+  {tag:'Charming smile, terrible rates',move:'Feeding frenzy',
+   desc:'All teeth and pinstripes. He smells blood in the water and swims straight for the casino, and anything in his way gets chewed.',
+   moveDesc:'Charges through your line at four times his speed, mauling every creature he passes. Stand aside, then hit him from behind.'},
+  {tag:'Seven-two off-suit, and it still got there',move:'Running bad',
+   desc:'The worst hand in poker that somehow got up and walked. However far ahead you are, it finds a way to come back.',
+   moveDesc:'Throws up a shield that soaks damage for a few seconds. Save your big hitters and abilities for when it drops.'},
+  {tag:'The house always wins',move:'House rules',
+   desc:'Four arms, a roulette wheel for a halo, and the odds on its side. It deals the game, and it has stacked the deck.',
+   moveDesc:'Alternates between calling in a crowd of bad luck and shielding itself. Clear the crowd on one turn, burst it down on the next.'}];
+const bossInfo=()=>BOSS_INFO[bossVariant()]||BOSS_INFO[0];
