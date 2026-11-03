@@ -170,6 +170,9 @@ const ENEMIES={
  charm:{name:'Lucky Charm',hp:1.3,spd:50,armor:0,bite:2,dmg:4,rate:1,r:8,gold:5,col:'#4ade80',trait:'healer'},
  bondsman:{name:'Bail Bondsman',hp:2.2,spd:46,armor:1,bite:3,dmg:8,rate:.9,r:10,gold:6,col:'#60a5fa',trait:'shield'},
  bomber:{name:'Dice Bomber',hp:1.3,spd:48,armor:0,bite:3,dmg:8,rate:.9,r:9,gold:5,col:'#fb923c',trait:'bomber'},
+ thug:{name:'Back-Alley Thug',hp:1.6,spd:62,armor:1,bite:5,dmg:9,rate:1,r:9,gold:4,col:'#94a3b8',trait:'ambush'},
+ cooler:{name:'The Cooler',hp:3.2,spd:34,armor:2,bite:6,dmg:10,rate:.8,r:12,gold:9,col:'#7dd3fc',trait:'cooler'},
+ dozer:{name:'Debt Bulldozer',hp:9,spd:30,armor:5,bite:14,dmg:20,rate:.5,r:16,gold:30,col:'#facc15',trait:'dozer',dodge:true},
  cheat:{name:'Card Cheat',hp:1.1,spd:64,armor:0,bite:3,dmg:7,rate:1.1,r:8,gold:5,col:'#cbd5e1',trait:'stealth',stealth:true},
  ogre:{name:'Repo Ogre',hp:12,spd:42,armor:2,bite:12,dmg:34,rate:.7,r:16,gold:70,col:'#84cc16',mini:true},
  boss:{name:'Boss',hp:36,spd:38,armor:3,bite:35,dmg:70,rate:.6,r:21,gold:220,col:'#f43f5e',boss:true},
@@ -188,6 +191,9 @@ const ENEMY_DESC={
  charm:'Every few seconds it heals all the bad luck around it. Take it out first.',
  bondsman:'Posts bail for its friends: shields the bad luck around it.',
  bomber:'Lobs exploding dice at clumps of creatures. Watch for the red circle and step out of it.',
+ thug:'Climbs out of the manholes near your casino, behind your lines.',
+ cooler:'Bad luck that rubs off: every creature near it attacks at half speed.',
+ dozer:'Flattens velvet ropes and shoves creatures out of its lane. Stuns barely slow it.',
  cheat:'Invisible until it gets near your casino or a sharp-eyed creature spots it.'};
 const BOSS_MOVE_DESC={summon:'Calls in a crowd of extra bad luck.',dash:'Charges through your line at speed.',shield:'Throws up a shield that soaks damage.',edge:'Alternates between its tricks.',slam:'Slams the ground, stunning creatures nearby.'};
 const TRAITS={
@@ -200,6 +206,9 @@ const TRAITS={
  healer:{name:'Healers',icon:'heart',tip:'Lucky Charms heal the bad luck around them. Focus them down first.'},
  shield:{name:'Shields',icon:'plate',tip:'Bail Bondsmen shield nearby bad luck. Kill the bondsman or bring burst damage.'},
  bomber:{name:'Bombers',icon:'bomb',tip:'Dice Bombers lob explosives at clumps of creatures. Spread out (right-drag a line) or step out of the red circle.'},
+ ambush:{name:'Ambush',icon:'next',tip:'Back-Alley Thugs climb out of manholes near your casino. Keep a rear guard.'},
+ cooler:{name:'Coolers',icon:'armor',tip:'The Cooler halves the attack speed of every creature near it. Fight it from range or from the side.'},
+ dozer:{name:'Bulldozers',icon:'casino',tip:'Bulldozers flatten ropes and shove anything in their lane. Step aside and hit them from the flanks.'},
  stealth:{name:'Invisible',icon:'sparkles',tip:'Card Cheats are invisible until near your casino or a sharp-eyed creature: Snake Eyes, Card Sharp, the Jinn, snipers and storm casters.'},
 };
 for(const k of ['p_hi','s_lo','t_hi','m_bounty','m_marshal','m_phantom','m_djinn','m_sultan','m_rail','m_gauss','sf_lo','sf_hi','m_pitboss','m_tempest','m_engine','m_diva'])if(UNITS[k])UNITS[k].detect=true;
@@ -208,30 +217,47 @@ function waveHp(w){return (24*Math.pow(1.172,w-1)+5*w);}
 function rivalHpScale(w){return (24*Math.pow(1.135,w-1)+5*w)/waveHp(w);}
 /* From round 11 every round is a set piece built to punish one approach, the same in every game.
    why: what it punishes; answer: how to respond. Shown on the board a round ahead. */
-const WAVE_PLAN={
+const WAVE_PLAN={ // rounds 11-19
  1:{name:'Firing line',why:'armies that wait for the fight',answer:'Hexers stop and shoot from range. Charge them with attack-move (A), or out-range them.',icon:'range',
     list:(w,s)=>({hexer:5+s,bondsman:1+(s>>2),jinx:6+s})},
  2:{name:'Smash and grab',why:'casinos with nobody at the door',answer:'Cats and getaway cars run past your army. Leave a guard by the casino (Ctrl+2 to group them).',icon:'next',spread:4,
     list:(w,s)=>({cat:9+s*2,getaway:1+(s>>2),chewer:2})},
- 3:{name:'Hall of mirrors',why:'armies that only splash',answer:'Armored mirrors shrug off small hits, and charms heal them. Right-click to focus the charm, then the mirrors.',icon:'armor',
-    list:(w,s)=>({mirror:7+s,bondsman:1+(s>>2),charm:1+(s>>2),jinx:5})},
+ 3:{name:'The Cooler',why:'brawling in one spot',answer:'Coolers halve the attack speed of every creature near them. Shoot them from range, or let them pass and hit them from the side.',icon:'armor',
+    list:(w,s)=>({cooler:2+(s>>1),mirror:3+(s>>1),jinx:8+s})},
  4:{name:'Omen storm',why:'armies without splash',answer:'A sky full of fliers that ignore ropes. Splash and chains, and pull back toward the casino cannon.',icon:'sparkles',spread:7,
     list:(w,s)=>({gnat:40+s*6})},
  6:{name:'Card sharps',why:'armies that cannot see',answer:'Card Cheats are invisible until they are near the casino or a sharp-eyed creature. Guard the door.',icon:'sparkles',
     list:(w,s)=>({cheat:5+s,hexer:4+(s>>1),jinx:6})},
  7:{name:'Bomb squad',why:'armies bunched in one spot',answer:'Dice Bombers lob explosives at clumps. Spread out (right-drag a line) and step out of the red circles.',icon:'bomb',
     list:(w,s)=>({bomber:4+(s>>1),jinx:10,mirror:2+(s>>1)})},
- 8:{name:'Rope cutters',why:'mazes left to do the work',answer:'Rope Rats chew through your ropes while omens fly over them. Kill the rats first.',icon:'rope',spread:8,
-    list:(w,s)=>({chewer:5+s,cat:8+s,gnat:10+s*2})}};
+ 8:{name:'Bulldozers',why:'lines that block the road',answer:'Bulldozers flatten ropes and shove anything in their lane. Step aside and hit them from the flanks.',icon:'casino',
+    list:(w,s)=>({dozer:1+(s>>2),jinx:9+s,chewer:2})},
+ 9:{name:'Back-alley ambush',why:'armies with nobody behind them',answer:'Thugs climb out of the manholes by your casino (watch for the glow). Keep a few creatures back as a rear guard.',icon:'next',
+    list:(w,s)=>({thug:6+s,jinx:8,hexer:2})}};
+const WAVE_PLAN_B={ // rounds 21-29, and again for 31-39
+ 1:{name:'Cold front',why:'armies that wait for the fight',answer:'Hexers hold and shoot while Coolers slow your attacks. Charge past the Coolers and take the hexers first.',icon:'range',
+    list:(w,s)=>({hexer:4+s,cooler:1+(s>>2),bondsman:1})},
+ 2:{name:'Pincer',why:'guarding only one side',answer:'Cats run at the door while thugs climb out behind your lines. Split the army: a guard at the casino, the rest in the street.',icon:'next',spread:5,
+    list:(w,s)=>({cat:8+s*2,getaway:1+(s>>2),thug:3+(s>>1)})},
+ 3:{name:'Hall of mirrors',why:'armies that only splash',answer:'Armored mirrors shrug off small hits, and charms heal them. Right-click to focus the charm, then the mirrors.',icon:'armor',
+    list:(w,s)=>({mirror:7+s,bondsman:1+(s>>2),charm:1+(s>>2),jinx:5})},
+ 4:{name:'Air raid',why:'armies without splash',answer:'Omens fly over everything while bombers punish anyone who bunches up against them. Spread out, splash the swarm.',icon:'sparkles',spread:7,
+    list:(w,s)=>({gnat:30+s*5,bomber:2+(s>>2)})},
+ 6:{name:'Inside job',why:'armies that cannot see behind them',answer:'Invisible cheats walk up the road while thugs climb out by the casino. A sharp-eyed rear guard wins this.',icon:'sparkles',
+    list:(w,s)=>({cheat:4+s,thug:3+(s>>1),hexer:3})},
+ 7:{name:'Demolition',why:'one big blob in the road',answer:'A bulldozer ploughs through your line while bombers wait for you to bunch up. Open a gap for the dozer and spread out.',icon:'bomb',
+    list:(w,s)=>({dozer:1,bomber:3+(s>>1),jinx:8})},
+ 8:{name:'Rope cutters',why:'mazes left to do the work',answer:'Rope Rats chew through ropes and bulldozers flatten the rest. Kill the rats first and fight in the open.',icon:'rope',spread:8,
+    list:(w,s)=>({chewer:5+s,cat:6+s,dozer:1+(s>>2)})}};
 function seededShuffle(a,seed){let x=seed>>>0;const r=()=>{x=(x+0x6D2B79F5)>>>0;let t=x;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296;};
   for(let i=a.length-1;i>0;i--){const j=(r()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
-function wavePlan(w){return w>10&&w<MAX_WAVE&&w%5!==0?WAVE_PLAN[w%10]||null:null;}
+function wavePlan(w){if(w<=10||w>=MAX_WAVE||w%5===0)return null;return (w>20?WAVE_PLAN_B:WAVE_PLAN)[w%10]||null;}
 function waveComp(w){
   const L=[],add=(t,n)=>{for(let i=0;i<n;i++)L.push(t);},s=Math.floor(w/5),late=w>10;
   let name,spread;
   if(w%10===0){add('jinx',6);add('hexer',4);if(w>=20){add('charm',2);add('bondsman',1);}L.push('boss');return {name:BOSS_NAMES[w/10-1],list:L,boss:true,traits:w>=20?['boss','healer','shield']:['boss']};}
   if(w%5===0){add('jinx',5);add('mirror',3);if(w>=15){add('bondsman',1);add('charm',1);}L.push('ogre');return {name:'Repo Ogre',list:L,mini:true,traits:w>=15?['boss','armored','shield','healer']:['boss','armored']};}
-  if(late&&WAVE_PLAN[w%10]){const P=WAVE_PLAN[w%10];for(const [k,n] of Object.entries(P.list(w,s)))add(k,n);name=P.name;spread=P.spread;}
+  if(late&&wavePlan(w)){const P=wavePlan(w);for(const [k,n] of Object.entries(P.list(w,s)))add(k,n);name=P.name;spread=P.spread;}
   else switch(w%10){
     case 1:add('jinx',13+s);if(late){add('hexer',2+(s>>1));add('charm',1);}name='Jinxes';break;
     case 2:add('cat',w<10?8:10+s*2);if(w>=12){add('getaway',1+(s>>1));add('chewer',2);}name='Black cat stampede';spread=6;break;
