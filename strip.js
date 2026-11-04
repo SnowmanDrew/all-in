@@ -105,6 +105,8 @@ const STRIP_STEAM=[[9*TILE,5.2*TILE],[26.5*TILE,14.8*TILE],[16.4*TILE,13.6*TILE]
 /* ---------- live layer ---------- */
 const STRIP_PEDS=Array.from({length:12},(_,i)=>{const top=i%2===0;return {top,x0:150+((i*137)%900),span:120+((i*71)%260),spd:9+((i*13)%9),ph:i*1.7,
   col:['#e11d48','#2563eb','#f59e0b','#10b981','#a855f7','#f5f5f4','#0ea5e9','#f97316'][i%8],hair:['#1f1308','#5b3a1e','#f5d0a9','#111'][i%4],y:top?3.6*TILE-8-(i%3)*1.5:16.4*TILE+8+(i%3)*1.5};});
+// keep strollers on the pavement: it ends before the armoured truck and the casino
+for(const p of STRIP_PEDS){const end=34*TILE-16;if(p.x0>end-80)p.x0=end-80-((p.x0*7)%300);p.span=Math.min(p.span,end-p.x0);}
 let SIGN_SPR=null;
 function buildSigns(){
   if(document.fonts&&document.fonts.check&&!document.fonts.check('14px Bungee'))return null;

@@ -105,7 +105,7 @@ const QUIPS={
 function eggState(){if(!G.egg)G.egg={};const E=G.egg;
   if(E.clover==null){let tries=0;while(tries++<400){const c=4+((rnd()*30)|0),r=1+((rnd()*18)|0);const i=gi(c,r);if(grid[i]===0&&!NO_BUILD.has(i)){E.clover={x:c*TILE+TILE/2,y:r*TILE+TILE/2};break;}}if(!E.clover)E.clover=false;}
   return E;}
-function honk(){const E=eggState();E.honk=(E.honk||0)+1;
+function honk(){const E=eggState();E.honk=(E.honk||0)+1;G.honkT=performance.now()/1000;
   if(Snd.ctx&&!Snd.muted&&Snd.ctx.state==='running'){Snd.tone(392,.28,'square',.14);Snd.tone(311,.28,'square',.12);}
   floatText(VAULT.x,VAULT.y-24,'HONK','#fde047',14);for(const w of G.workers)w.bob=(w.bob||0)+3;
   if(E.honk===10){toast('The croupiers would like you to stop honking.');if(typeof Meta!=='undefined')Meta.ach('honk');}return true;}

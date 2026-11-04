@@ -48,17 +48,68 @@ function drawFountain(b,o){
   b.strokeStyle='rgba(255,255,255,.35)';b.lineWidth=1;for(let k=1;k<4;k++){b.beginPath();b.ellipse(cx,cy,(w/2-8)*k/4,(h/2-8)*k/4,0,0,TAU);b.stroke();}
   b.fillStyle='#d8d2e6';b.beginPath();b.arc(cx,cy,7,0,TAU);b.fill();b.fillStyle='#9aa3b5';b.beginPath();b.arc(cx,cy,4,0,TAU);b.fill();
 }
+// the armoured truck, seen from above: cab to the east, rear doors swung open towards the carpet,
+// a lit ramp with chip racks and cash bags the croupiers load from
 function drawTruck(b){
-  const x=VAULT.c0*TILE,y=VAULT.r0*TILE,w=VAULT.w*TILE,h=VAULT.h*TILE;
-  b.fillStyle='rgba(0,0,0,.55)';rr(b,x+4,y+8,w-4,h-6,8);b.fill();
-  b.fillStyle='#5b6170';rr(b,x+16,y+8,w-22,h-16,5);b.fill();b.fillStyle='#4a505d';rr(b,x+22,y+12,w-40,h-24,3);b.fill();
-  b.strokeStyle='#2c3039';b.lineWidth=1;for(let i=0;i<4;i++){b.beginPath();b.moveTo(x+28+i*11,y+12);b.lineTo(x+28+i*11,y+h-12);b.stroke();}
-  b.fillStyle='#3d424d';rr(b,x+w-22,y+12,18,h-24,4);b.fill();b.fillStyle='#9fd6ff';b.fillRect(x+w-10,y+15,4,h-30);
-  // open rear doors and spilled chips
-  b.fillStyle='#6b7180';b.save();b.translate(x+16,y+8);b.rotate(-.9);b.fillRect(-2,0,4,18);b.restore();b.save();b.translate(x+16,y+h-8);b.rotate(.9);b.fillRect(-2,-18,4,18);b.restore();
-  const cols=['#d4a937','#e94b5a','#3b82f6','#d4a937'];for(let i=0;i<7;i++){const cx=x+4+srnd()*16,cy=y+18+srnd()*(h-36);b.fillStyle=cols[i%4];b.beginPath();b.ellipse(cx,cy,4,2.2,0,0,TAU);b.fill();b.strokeStyle='rgba(0,0,0,.4)';b.stroke();}
-  b.fillStyle='#ffb020';b.beginPath();b.arc(x+w-6,y+12,2,0,TAU);b.arc(x+w-6,y+h-12,2,0,TAU);b.fill();
+  const x=VAULT.c0*TILE,y=VAULT.r0*TILE,w=VAULT.w*TILE,h=VAULT.h*TILE,bx0=x+14,bx1=x+w-27,cx0=bx1-1,cx1=x+w-3,by0=y+7,by1=y+h-7;
+  // shadow and the warm light spilling out of the hold
+  b.fillStyle='rgba(0,0,0,.35)';rr(b,x+6,y+6,w-4,h-4,10);b.fill();b.fillStyle='rgba(0,0,0,.3)';rr(b,x+9,y+9,w-8,h-8,8);b.fill();
+  let g=b.createRadialGradient(bx0-4,y+h/2,2,bx0-4,y+h/2,34);g.addColorStop(0,'rgba(255,196,90,.42)');g.addColorStop(1,'rgba(255,196,90,0)');b.fillStyle=g;b.fillRect(bx0-40,y-6,44,h+12);
+  // tyres poking out under the body
+  b.fillStyle='#0b0c10';for(const tx of [bx0+8,cx0+6])for(const ty of [by0-4,by1-2]){rr(b,tx,ty,14,6,2.5);b.fill();}
+  b.fillStyle='#2a2d35';for(const tx of [bx0+8,cx0+6])for(const ty of [by0-4,by1-2]){b.fillRect(tx+3,ty+(ty<y+h/2?1:3),8,2);}
+  // ramp with tread, then the open rear doors on their hinges
+  g=b.createLinearGradient(x,0,bx0,0);g.addColorStop(0,'#5b6272');g.addColorStop(1,'#8a92a3');b.fillStyle=g;rr(b,x+1,y+h/2-11,bx0-x+1,22,2);b.fill();
+  b.strokeStyle='rgba(30,33,40,.55)';b.lineWidth=1;for(let i=0;i<5;i++){b.beginPath();b.moveTo(x+3+i*2.6,y+h/2-9);b.lineTo(x+3+i*2.6,y+h/2+9);b.stroke();}
+  const door=(hy,dir)=>{b.save();b.translate(bx0,hy);b.rotate(dir*-2.25);b.fillStyle='#141a26';rr(b,-1.5,-1,3.5,19,1.2);b.fill();b.fillStyle='#2b3547';b.fillRect(-.5,0,1.8,17.5);b.fillStyle='#d4a937';b.fillRect(-.6,6,2,1.4);b.fillStyle='#9aa3b5';b.beginPath();b.arc(.3,0,1.3,0,TAU);b.fill();b.restore();};
+  door(by0+1,1);door(by1-1,-1);
+  // chips on the ramp: neat stacks, and two cash bags
+  const stack=(sx,sy,col,n)=>{for(let k=0;k<n;k++){b.fillStyle='rgba(0,0,0,.35)';b.beginPath();b.ellipse(sx+.6,sy+1-k*1.4+1,3.6,2.2,0,0,TAU);b.fill();b.fillStyle=col;b.beginPath();b.ellipse(sx,sy-k*1.4,3.6,2.2,0,0,TAU);b.fill();}
+    b.strokeStyle='rgba(255,255,255,.75)';b.lineWidth=.7;b.setLineDash([1.2,1.4]);b.beginPath();b.ellipse(sx,sy-(n-1)*1.4,2.5,1.4,0,0,TAU);b.stroke();b.setLineDash([]);};
+  stack(x+6,y+h/2-4,'#d4a937',3);stack(x+9,y+h/2+5,'#e94b5a',4);stack(x+12,y+h/2-1,'#3b82f6',2);
+  const bag=(sx,sy)=>{b.fillStyle='rgba(0,0,0,.35)';b.beginPath();b.ellipse(sx+1,sy+1.5,4.6,3.4,0,0,TAU);b.fill();b.fillStyle='#c8b48a';b.beginPath();b.ellipse(sx,sy,4.4,3.6,0,0,TAU);b.fill();b.fillStyle='#a8925f';b.beginPath();b.arc(sx-3.2,sy-.4,1.5,0,TAU);b.fill();
+    b.fillStyle='#3f6b3a';b.font='700 5px Barlow,Arial,sans-serif';b.textAlign='center';b.textBaseline='middle';b.fillText('$',sx+.6,sy+.3);};
+  bag(x+5,y+h/2+9);bag(x+3,y+h/2-11);
+  // the armoured box: dark navy, a bevel, roof ribs, gold pinstripe and rivets
+  b.fillStyle='#0d121b';rr(b,bx0,by0,bx1-bx0,by1-by0,4);b.fill();
+  g=b.createLinearGradient(bx0,by0,bx0+8,by1);g.addColorStop(0,'#46536a');g.addColorStop(.5,'#2a3446');g.addColorStop(1,'#1c2433');b.fillStyle=g;rr(b,bx0+2,by0+2,bx1-bx0-4,by1-by0-4,3);b.fill();
+  b.strokeStyle='rgba(0,0,0,.35)';b.lineWidth=1;for(let xx=bx0+7;xx<bx1-3;xx+=6){b.beginPath();b.moveTo(xx+.5,by0+3);b.lineTo(xx+.5,by1-3);b.stroke();}
+  b.strokeStyle='rgba(255,255,255,.07)';for(let xx=bx0+8;xx<bx1-3;xx+=6){b.beginPath();b.moveTo(xx+.5,by0+3);b.lineTo(xx+.5,by1-3);b.stroke();}
+  b.strokeStyle='#d4a937';b.lineWidth=1;rr(b,bx0+4.5,by0+4.5,bx1-bx0-9,by1-by0-9,2);b.stroke();
+  b.fillStyle='#b9c2d3';for(let xx=bx0+3;xx<=bx1-3;xx+=5){b.fillRect(xx,by0+1,1,1);b.fillRect(xx,by1-2,1,1);}
+  // roof emblem: a big house chip
+  const ex=(bx0+bx1)/2,ey=y+h/2,R=10.5;b.fillStyle='rgba(0,0,0,.4)';b.beginPath();b.arc(ex+1,ey+1.4,R,0,TAU);b.fill();
+  b.fillStyle='#b91c3a';b.beginPath();b.arc(ex,ey,R,0,TAU);b.fill();b.fillStyle='#f8f1e0';for(let i=0;i<8;i++){b.save();b.translate(ex,ey);b.rotate(i/8*TAU);b.fillRect(R-3.4,-1.5,3.4,3);b.restore();}
+  b.strokeStyle='#e9c46a';b.lineWidth=1;b.beginPath();b.arc(ex,ey,R-4.2,0,TAU);b.stroke();b.fillStyle='#7f1029';b.beginPath();b.arc(ex,ey,R-4.7,0,TAU);b.fill();
+  b.fillStyle='#ffe7a3';b.font='800 8px Barlow,Arial,sans-serif';b.textAlign='center';b.textBaseline='middle';b.fillText('♠',ex,ey+.5);
+  // roof vents
+  b.fillStyle='#141a26';rr(b,bx0+6,by0+6,6,4,1);b.fill();rr(b,bx0+6,by1-10,6,4,1);b.fill();b.fillStyle='rgba(255,255,255,.12)';b.fillRect(bx0+7,by0+7,4,.8);b.fillRect(bx0+7,by1-9,4,.8);
+  // cab: windscreen with a glint, hood with grille, mirrors, headlights
+  const cy0=by0+2,cy1=by1-2;b.fillStyle='#0d121b';rr(b,cx0,cy0,cx1-cx0,cy1-cy0,6);b.fill();
+  g=b.createLinearGradient(cx0,cy0,cx0+6,cy1);g.addColorStop(0,'#46536a');g.addColorStop(1,'#222b3b');b.fillStyle=g;rr(b,cx0+1.5,cy0+1.5,cx1-cx0-3,cy1-cy0-3,5);b.fill();
+  const wx=cx0+6;g=b.createLinearGradient(wx,cy0,wx+7,cy1);g.addColorStop(0,'#9fd6ff');g.addColorStop(.5,'#3a6f96');g.addColorStop(1,'#1b3550');b.fillStyle=g;rr(b,wx,cy0+3,7,cy1-cy0-6,2);b.fill();
+  b.strokeStyle='rgba(255,255,255,.55)';b.lineWidth=1.2;b.beginPath();b.moveTo(wx+2,cy0+5);b.lineTo(wx+5.5,cy0+12);b.stroke();
+  b.fillStyle='#0d121b';b.fillRect(wx-1.5,cy0-2.5,3,3);b.fillRect(wx-1.5,cy1-.5,3,3);
+  b.strokeStyle='rgba(0,0,0,.45)';b.lineWidth=.8;for(let yy=cy0+8;yy<cy1-7;yy+=2.5){b.beginPath();b.moveTo(cx1-3.5,yy);b.lineTo(cx1-1.5,yy);b.stroke();}
+  b.fillStyle='#d4a937';b.fillRect(wx+8.5,cy0+2,1,cy1-cy0-4);
+  b.fillStyle='#fff6d6';b.beginPath();b.arc(cx1-2.6,cy0+4,1.7,0,TAU);b.arc(cx1-2.6,cy1-4,1.7,0,TAU);b.fill();
+  b.fillStyle='#ff7a1a';b.beginPath();b.arc(bx0+1.6,by0+1.6,1.2,0,TAU);b.arc(bx0+1.6,by1-1.6,1.2,0,TAU);b.fill();
 }
+// live touches drawn each frame: a turning roof beacon, blinking hazards, headlight beams, the hold's glow, and a flash when you honk
+function drawTruckLive(c,t){const x=VAULT.c0*TILE,y=VAULT.r0*TILE,w=VAULT.w*TILE,h=VAULT.h*TILE,bx0=x+14,bx1=x+w-27,cx1=x+w-3,by0=y+7,by1=y+h-7;
+  const honkK=G&&G.honkT?Math.max(0,1-(t-G.honkT)/.45):0;
+  c.save();c.globalCompositeOperation='lighter';
+  // headlights
+  for(const yy of [by0+6,by1-6]){const g=c.createRadialGradient(cx1,yy,1,cx1+18,yy,26+honkK*20);g.addColorStop(0,`rgba(255,240,200,${.2+honkK*.55})`);g.addColorStop(1,'rgba(255,240,200,0)');c.fillStyle=g;c.beginPath();c.moveTo(cx1-1,yy-2);c.lineTo(cx1+32+honkK*24,yy-10);c.lineTo(cx1+32+honkK*24,yy+10);c.closePath();c.fill();}
+  // the hold's glow breathes a little; brighter while a croupier is loading
+  const loading=G&&G.workers&&G.workers.some(wk=>wk.st===1),a=.16+.05*Math.sin(t*2.2)+(loading?.08:0);
+  let g=c.createRadialGradient(bx0-2,y+h/2,1,bx0-2,y+h/2,20);g.addColorStop(0,`rgba(255,200,110,${a})`);g.addColorStop(1,'rgba(255,200,110,0)');c.fillStyle=g;c.fillRect(bx0-22,y+h/2-20,40,40);
+  // hazards
+  if(Math.sin(t*5)>0||honkK>0){for(const [hx,hy] of [[bx0+1.6,by0+1.6],[bx0+1.6,by1-1.6],[cx1-1.2,by0+2.5],[cx1-1.2,by1-2.5]]){g=c.createRadialGradient(hx,hy,0,hx,hy,6);g.addColorStop(0,'rgba(255,140,30,.9)');g.addColorStop(1,'rgba(255,140,30,0)');c.fillStyle=g;c.fillRect(hx-6,hy-6,12,12);}}
+  // roof beacon: an amber dome with a sweeping beam
+  const lx=bx1-6,ly=y+h/2,ang=t*4;c.fillStyle='rgba(255,170,40,.18)';c.beginPath();c.moveTo(lx,ly);c.arc(lx,ly,22,ang-.35,ang+.35);c.closePath();c.fill();c.beginPath();c.moveTo(lx,ly);c.arc(lx,ly,22,ang+Math.PI-.35,ang+Math.PI+.35);c.closePath();c.fill();
+  c.restore();
+  c.fillStyle='#7a4a0c';c.beginPath();c.arc(lx,ly,3.2,0,TAU);c.fill();c.fillStyle='#ffb020';c.beginPath();c.arc(lx,ly,2.3,0,TAU);c.fill();c.fillStyle='rgba(255,255,255,.7)';c.beginPath();c.arc(lx-.7,ly-.8,.8,0,TAU);c.fill();}
 function buildBg(){
   SEED=7;
   const c=document.createElement('canvas');c.width=W*DPR;c.height=H*DPR;const b=c.getContext('2d');b.scale(DPR,DPR);
@@ -1133,6 +1184,7 @@ function render(){
     ctx.fillStyle=`rgba(80,20,0,${.25*a})`;ctx.beginPath();ctx.ellipse(f.x,f.y,f.r,f.r*.5,0,0,TAU);ctx.fill();}
   for(const tr of G.traps||[]){const a=Math.min(1,tr.t),pul=.5+.5*Math.sin(t*5+tr.x);ctx.save();ctx.translate(tr.x,tr.y);ctx.globalAlpha=a*(tr.arm>0?.4:1);ctx.strokeStyle=`rgba(74,222,128,${.5+.4*pul})`;ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(0,0,tr.r,tr.r*.5,0,0,TAU);ctx.stroke();
     ctx.beginPath();for(let k=0;k<6;k++){const an=k/6*TAU+t*.6;ctx.lineTo(Math.cos(an)*tr.r*.75,Math.sin(an)*tr.r*.38);}ctx.closePath();ctx.stroke();ctx.fillStyle='#bbf7d0';ctx.font='bold 12px Georgia';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('♣',0,0);ctx.restore();}
+  drawTruckLive(ctx,t);
   drawCasino(ctx,t);
   for(const w of G.workers)drawWorker(ctx,w,t);
   if(!VIEWING&&typeof hover!=='undefined'&&hover&&!drag&&G.units&&typeof unitAt==='function'){const hu=unitAt(hover.x,hover.y);if(hu&&!(G.sel.length===1&&G.sel[0]===hu)){ctx.strokeStyle='rgba(255,255,255,.22)';ctx.setLineDash([5,5]);ctx.lineWidth=1;ctx.beginPath();ctx.arc(hu.x,hu.y,hu.def.range+hu.r,0,TAU);ctx.stroke();ctx.setLineDash([]);}}
