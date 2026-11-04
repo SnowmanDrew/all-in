@@ -1171,7 +1171,6 @@ function render(){
   ctx.drawImage(bg,0,0,W,H);if(!G)return;
   const t=performance.now()/1000;
   if(typeof drawStrip==='function')drawStrip(ctx,t);
-  if(typeof drawSky==='function')drawSky(ctx,t,'ground');
   if(G.mode==='rope'){ctx.fillStyle='rgba(255,255,255,.035)';for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(grid[gi(c,r)]===0&&!NO_BUILD.has(gi(c,r)))ctx.fillRect(c*TILE+1,r*TILE+1,TILE-2,TILE-2);
     ctx.fillStyle='rgba(244,63,94,.10)';for(const k of NO_BUILD){if(grid[k]===0)ctx.fillRect((k%COLS)*TILE+1,((k/COLS)|0)*TILE+1,TILE-2,TILE-2);}}
   if(G.mode==='rope'||G.showRoute)drawRoute(ctx);
@@ -1211,7 +1210,6 @@ function render(){
     else if(p.leaf){ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot+=.15);ctx.fillStyle=p.col;ctx.beginPath();ctx.ellipse(0,0,3,1.6,0,0,TAU);ctx.fill();ctx.restore();}
     else{ctx.fillStyle=p.col;ctx.fillRect(p.x-p.size/2,p.y-p.size/2,p.size,p.size);}}
   ctx.globalAlpha=1;
-  if(typeof drawSky==='function')drawSky(ctx,t,'top');
   for(const m of G.marks){const x=m.follow&&!m.follow.dead?m.follow.x:m.x,y=m.follow&&!m.follow.dead?m.follow.y:m.y,k=m.t/.6,d=6+12*k;ctx.fillStyle=m.col;ctx.globalAlpha=Math.min(1,k*1.5);
     for(let i=0;i<4;i++){const an=i*Math.PI/2+Math.PI/4;ctx.save();ctx.translate(x+Math.cos(an)*d,y+Math.sin(an)*d*.6);ctx.rotate(an+Math.PI);ctx.beginPath();ctx.moveTo(4,0);ctx.lineTo(-3,-3.5);ctx.lineTo(-3,3.5);ctx.closePath();ctx.fill();ctx.restore();}}
   ctx.globalAlpha=1;ctx.textAlign='center';
