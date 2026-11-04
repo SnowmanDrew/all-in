@@ -671,8 +671,8 @@ function castAbility(abk,units,tgt){
   const ready=cands.filter(u=>!(u.cds[abk]>0));
   if(!ready.length){toast(A.name+' is recharging');Snd.play('error');return false;}
   if(A.type==='self'){for(const u of ready)doAbility(u,abk,null);return true;}
-  let best=null,bd=1e9;for(const u of ready){const d=Math.hypot(u.x-tgt.x,u.y-tgt.y);if(d<bd){bd=d;best=u;}}
-  best.order={t:'cast',ab:abk,x:tgt.x,y:tgt.y,e:tgt.e||null};best.path=[];best.target=null;
+  // every selected creature with the ability casts it at the target
+  for(const u of ready){u.order={t:'cast',ab:abk,x:tgt.x,y:tgt.y,e:tgt.e||null};u.path=[];u.target=null;}
   G.marks.push({x:tgt.x,y:tgt.y,t:.6,col:'#c084fc',follow:tgt.e||null});Snd.play('click');return true;
 }
 function doAbility(u,abk,tgt){

@@ -173,17 +173,20 @@ function setRally(p){if(!G||G.over)return;
   if(G.rally&&Math.hypot(p.x-G.rally.x,p.y-G.rally.y)<20){G.rally=null;Snd.play('sell');toast('Rally point cleared: new creatures wait by the casino');return;}
   if(!walkable(p.x,p.y,8)){Snd.play('error');return;}
   const first=!G.rally;G.rally={x:p.x,y:p.y,t:G.time};Snd.play('click');G.fx.push({t:'ring',x:p.x,y:p.y,r0:4,r1:26,col:'#fbbf24',life:.45,max:.45,w:2});
-  if(first)toast('Rally point set: new creatures head here. Right-click the flag to clear it.');}
+  if(first)toast('Rally point set: new creatures head here. Click the flag with the casino selected to clear it.');}
 {const _sh=spawnHandUnits;spawnHandUnits=function(){const before=new Set(G.units);const r=_sh.apply(this,arguments);
   if(G.rally){for(const u of G.units)if(!before.has(u))u.rallyAt=G.time+.5;}return r;};}
 {const _u=update;update=function(dt){_u(dt);if(!G||!G.rally)return;const go=G.units.filter(u=>u.rallyAt&&G.time>=u.rallyAt&&!u.dead);
   if(go.length){for(const u of go)u.rallyAt=0;const q=QUEUE_SHIFT;QUEUE_SHIFT=false;orderMove(go,G.rally.x,G.rally.y,true);QUEUE_SHIFT=q;}};}
 function drawRally(c,t){const R=G&&G.rally;if(!R)return;const x=R.x,y=R.y,age=G.time-(R.t||0),pop=age<.35?1+Math.sin(age/.35*Math.PI)*.35:1;
   // a faint dotted path from the casino door, the base ring, then a gold pennant that flutters
-  c.save();c.globalAlpha=G.sel.length?.18:.32;c.strokeStyle='#fbbf24';c.lineWidth=1.3;c.setLineDash([2,6]);c.lineDashOffset=-t*18;c.beginPath();c.moveTo(BASE.fx-8,BASE.y);c.lineTo(x,y);c.stroke();c.restore();
+  c.save();c.globalAlpha=G.selBase?.6:G.sel.length?.14:.26;c.strokeStyle='#fbbf24';c.lineWidth=1.3;c.setLineDash([2,6]);c.lineDashOffset=-t*18;c.beginPath();c.moveTo(BASE.fx-8,BASE.y);c.lineTo(x,y);c.stroke();c.restore();
   c.save();c.translate(x,y);c.scale(pop*1.25,pop*1.25);c.fillStyle="rgba(0,0,0,.4)";c.beginPath();c.ellipse(1,1.5,7,2.6,0,0,TAU);c.fill();
   c.strokeStyle=`rgba(251,191,36,${.35+.2*Math.sin(t*3)})`;c.lineWidth=1.2;c.beginPath();c.ellipse(0,0,9+Math.sin(t*3),3.4,0,0,TAU);c.stroke();
   c.strokeStyle='#3b2f1a';c.lineWidth=1.6;c.beginPath();c.moveTo(0,0);c.lineTo(0,-22);c.stroke();c.fillStyle='#fde68a';c.beginPath();c.arc(0,-22.5,1.4,0,TAU);c.fill();
   c.fillStyle='#f59e0b';c.beginPath();c.moveTo(0,-21);for(let i=0;i<=6;i++){const fx=i*2.2,fy=-21+Math.sin(t*7-i*.8)*1.2*(i/6);c.lineTo(fx,fy);}for(let i=6;i>=0;i--){const fx=i*2.2,fy=-14.5+Math.sin(t*7-i*.8)*1.2*(i/6)-(i/6)*2.4;c.lineTo(fx,fy);}c.closePath();c.fill();
   c.fillStyle='#fff7d6';c.font='700 5px Barlow,Arial,sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText('♠',5.5,-18.2+Math.sin(t*7-2)*.6);c.restore();}
-{const _g=drawCommandGround;drawCommandGround=function(c,t){_g(c,t);drawRally(c,t);};}
+// the casino, when it is selected
+function drawBaseSel(c,t){if(!G||!G.selBase)return;const x=BASE.c0*TILE-3,y=BASE.r0*TILE-3,w=BASE.w*TILE+6,h=BASE.h*TILE+6,p=.5+.5*Math.sin(t*6);
+  c.save();c.strokeStyle=`rgba(94,234,212,${.55+.3*p})`;c.lineWidth=2;c.shadowColor='#5eead4';c.shadowBlur=10;rr(c,x,y,w,h,8);c.stroke();c.restore();}
+{const _g=drawCommandGround;drawCommandGround=function(c,t){_g(c,t);drawRally(c,t);drawBaseSel(c,t);};}

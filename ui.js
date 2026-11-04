@@ -290,49 +290,69 @@ function refreshPane(force){if(!G)return;const sig=paneSignature();if(sig!==pane
 function doMerge(){const s=G.sel;if(s.length===2&&mergeResult(s[0].k,s[1].k)){mergeUnits(s[0],s[1]);G.units.forEach(u=>u.sel=G.sel.includes(u));refreshPane(true);return;}
   if(s.length===1){const r=recipesFor(s[0].k).find(r=>G.units.some(o=>o!==s[0]&&o.k===r.partner));if(r){mergeNearest(s[0],r.partner);G.units.forEach(u=>u.sel=G.sel.includes(u));refreshPane(true);return;}}
   toast('Select two creatures that merge');Snd.play('error');}
-function selectAll(){G.units.forEach(u=>u.sel=true);G.sel=G.units.slice();refreshPane(true);}
+function selectAll(){G.units.forEach(u=>u.sel=true);G.sel=G.units.slice();G.selBase=false;refreshPane(true);}
+const onCasino=(x,y)=>x>=BASE.c0*TILE-4&&x<=(BASE.c0+BASE.w)*TILE+4&&y>=BASE.r0*TILE-4&&y<=(BASE.r0+BASE.h)*TILE+4;
+function selectBase(){if(!G)return;G.sel=[];G.units.forEach(u=>u.sel=false);G.inspect=null;G.selBase=true;Snd.play('click');if(G.fx)G.fx.push({t:'ring',x:BASE.x,y:BASE.y,r0:20,r1:70,col:'#5eead4',life:.35,max:.35,w:2});refreshPane(true);refreshCmd();}
 
 /* ---------- command card ---------- */
-const CMDS=[
-  {k:'amove',ic:'amove',key:'A',name:'Attack-move',desc:'Move, fighting anything on the way'},{k:'stop',ic:'stop',key:'S',name:'Stop',desc:'Stop and guard this spot'},
-  {k:'hold',ic:'hold',key:'H',name:'Hold position',desc:'Never move, only fire in range'},{k:'merge',ic:'merge',key:'M',name:'Merge',desc:'Fuse two selected creatures that make a recipe'},
-  {k:'all',ic:'all',key:'Q',name:'Select army',desc:'Select every creature'},
-  {k:'rope',ic:'rope',key:'V',name:'Velvet rope',desc:'Lay ropes to make a maze (10 chips each). Click a rope to take it back.'},
-  {k:'casino',ic:'casino',up:1},{k:'crRepair',ic:'reinforce',key:'+',name:'Send a croupier to repair',desc:'A croupier stops fetching chips and patches up the casino: about 0.8 health a second each, for 1 chip per point of health.'},{k:'crGather',ic:'croupier',key:'−',name:'Send a croupier back to the truck',desc:'A repairing croupier goes back to fetching chips.'},{k:'croupier',ic:'croupier',up:1},{k:'dmg',ic:'dmg',up:1},{k:'hp',ic:'hp',up:1},{abSlot:0},{abSlot:1},{abSlot:2},
-];
+// two command cards, like any RTS: what your creatures can do, and what the casino can do
+const CMD_DEF={
+  amove:{k:'amove',ic:'amove',key:'A',name:'Attack-move',desc:'Move, fighting anything on the way'},stop:{k:'stop',ic:'stop',key:'S',name:'Stop',desc:'Stop and guard this spot'},
+  hold:{k:'hold',ic:'hold',key:'H',name:'Hold position',desc:'Never move, only fire in range'},merge:{k:'merge',ic:'merge',key:'M',name:'Merge',desc:'Fuse two selected creatures that make a recipe'},
+  all:{k:'all',ic:'all',key:'F2',name:'Select army',desc:'Select every creature'},
+  base:{k:'base',ic:'casino',key:'B',name:'Select casino',desc:'Select your casino: upgrades, croupiers, ropes and the rally point'},
+  rally:{k:'rally',ic:'flag',key:'Y',name:'Rally point',desc:'Click the street to plant a flag: newly summoned creatures attack-move there. With the casino selected you can also right-click. Click or right-click the flag to take it down.'},
+  rope:{k:'rope',ic:'rope',key:'V',name:'Velvet rope',desc:'Lay ropes to make a maze (10 chips each). Click a rope to take it back.'},
+  casino:{k:'casino',ic:'casino',up:1},
+  crRepair:{k:'crRepair',ic:'reinforce',key:'+',name:'Send a croupier to repair',desc:'A croupier stops fetching chips and patches up the casino: about 0.8 health a second each, for 1 chip per point of health.'},
+  crGather:{k:'crGather',ic:'croupier',key:'−',name:'Send a croupier back to the truck',desc:'A repairing croupier goes back to fetching chips.'},
+  croupier:{k:'croupier',ic:'croupier',up:1},dmg:{k:'dmg',ic:'dmg',up:1},hp:{k:'hp',ic:'hp',up:1}};
+const CMD_SETS={
+  unit:['amove','stop','hold','merge','all',{abSlot:0},{abSlot:1},{abSlot:2},{abSlot:3},'base',{abSlot:4},{abSlot:5},{abSlot:6},{abSlot:7},null],
+  base:['rally','rope','crRepair','crGather','all','casino','croupier','dmg','hp',null,null,null,null,null,null]};
+let CMD_CTX=null;
+const cmdCtx=()=>G&&G.sel.length?'unit':'base';
 const AB_KEYS=['E','D','G'];
-function selAbilities(){const out=[];for(const u of G.sel){const a=u.def.ab;if(a&&!out.includes(a))out.push(a);}return out.slice(0,3);}
-function buildCmd(){$('#cmd').innerHTML=CMDS.map((c,i)=>{if(c.abSlot!=null)return `<button class="slot abs" data-abslot="${c.abSlot}"><span class="ii"></span><span class="key">${AB_KEYS[c.abSlot]}</span><span class="cdv"></span><span class="cdn"></span></button>`;if(!c.k)return '<div class="slot empty"></div>';
+// every ability has its own key, always the same one (Bombardment and Rocket Salvo share R: both are artillery)
+const ABIL_KEY={siege:'E',deadshot:'D',fan:'W',storm:'X',lullaby:'Z',thunder:'T',barrage:'R',salvo:'R',frag:'G',inferno:'I',haymaker:'K',lockdown:'O',jackpot:'U',fanknives:'C',pounce:'N',decree:'Q'};
+const abKey=ab=>ABIL_KEY[ab]||'';
+function selAbilities(){const out=[];for(const u of G.sel){const a=u.def.ab;if(a&&!out.includes(a))out.push(a);}return out.slice(0,8);}
+function buildCmd(){CMD_CTX=cmdCtx();$('#cmd').dataset.ctx=CMD_CTX;$('#cmd').innerHTML=CMD_SETS[CMD_CTX].map(x=>typeof x==='string'?CMD_DEF[x]:x||{}).map((c,i)=>{if(c.abSlot!=null)return `<button class="slot abs" data-abslot="${c.abSlot}"><span class="ii"></span><span class="key"></span><span class="cdv"></span><span class="cdn"></span></button>`;if(!c.k)return '<div class="slot empty"></div>';
   if(c.up){const U=UPGRADES[c.k];return `<button class="slot up" data-c="${c.k}">${icon(c.ic)}<span class="cost">${icon('chips')}<em></em></span><span class="pips"></span></button>`;}
   return `<button class="slot" data-c="${c.k}" data-tip="${c.name} (${c.key})|${c.desc}">${icon(c.ic)}<span class="key">${c.key}</span></button>`;}).join('');
   $('#cmd').querySelectorAll('[data-c]').forEach(b=>b.addEventListener('click',()=>{Snd.init();cmd(b.dataset.c);}));
   $('#cmd').querySelectorAll('[data-abslot]').forEach(b=>b.addEventListener('click',()=>{Snd.init();useAbilitySlot(+b.dataset.abslot);}));}
-function useAbilitySlot(i){if(!G||G.over)return;const ab=selAbilities()[i];if(!ab)return;const A=ABIL[ab];
-  if(A.type==='self'||A.type==='toggle'){castAbility(ab,G.sel,null);refreshCmd();return;}
-  const ready=G.sel.some(u=>u.def.ab===ab&&!(u.cds[ab]>0));if(!ready){toast(A.name+' is recharging');Snd.play('error');return;}
-  setMode({ab});}
+function useAbilitySlot(i){const ab=selAbilities()[i];if(ab)useAbilities([ab]);}
+function useAbilities(abs){if(!G||G.over||!abs.length)return;const A=ABIL[abs[0]];
+  if(abs.every(ab=>ABIL[ab].type==='self'||ABIL[ab].type==='toggle')){for(const ab of abs)castAbility(ab,G.sel,null);refreshCmd();return;}
+  const ready=abs.filter(ab=>ABIL[ab].type!=='self'&&ABIL[ab].type!=='toggle'&&G.sel.some(u=>u.def.ab===ab&&!(u.cds[ab]>0)));
+  for(const ab of abs)if(ABIL[ab].type==='self'||ABIL[ab].type==='toggle')castAbility(ab,G.sel,null);
+  if(!ready.length){toast(A.name+' is recharging');Snd.play('error');return;}
+  setMode({ab:ready[0],abs:ready});}
+function abilitiesForKey(k){const K=k.toUpperCase();return selAbilities().filter(ab=>abKey(ab)===K);}
 function cmd(k){if(!G||G.over)return;
   if(UPGRADES[k]){buyUpgrade(k);refreshCmd();return;}
-  if(k==='amove'){if(G.sel.length)setMode('amove');}else if(k==='stop')orderStop(G.sel);else if(k==='hold')orderHold(G.sel);else if(k==='merge')doMerge();else if(k==='all')selectAll();else if(k==='rope')setMode(G.mode==='rope'?null:'rope');else if(k==='crRepair')setDuty(1);else if(k==='crGather')setDuty(-1);
+  if(k==='amove'){if(G.sel.length)setMode('amove');}else if(k==='stop')orderStop(G.sel);else if(k==='hold')orderHold(G.sel);else if(k==='merge')doMerge();else if(k==='all')selectAll();else if(k==='base')selectBase();else if(k==='rally')setMode(G.mode==='rally'?null:'rally');else if(k==='rope')setMode(G.mode==='rope'?null:'rope');else if(k==='crRepair')setDuty(1);else if(k==='crGather')setDuty(-1);
   refreshCmd();}
-function refreshCmd(){if(!G)return;refreshAbilitySlots();
+function refreshCmd(){if(!G)return;if(cmdCtx()!==CMD_CTX)buildCmd();refreshAbilitySlots();
   $('#cmd').querySelectorAll('[data-c]').forEach(b=>{const k=b.dataset.c;
     if(UPGRADES[k]){const U=UPGRADES[k],l=upLevel(k),max=l>=U.max;b.disabled=max||G.me.chips<U.cost(l)||G.over;b.querySelector('em').textContent=max?'MAX':U.cost(l);
       const pips=Math.min(U.max,10);b.querySelector('.pips').innerHTML=Array.from({length:pips},(_,i)=>`<i class="${i<l?'on':''}"></i>`).join('');
       b.dataset.tip=`${U.name}|${U.desc}|${k==='croupier'?G.workers.length+' hired':k==='casino'?'Now: '+CASINO_TIERS[G.base.tier].name:'Level '+l+' of '+U.max}${max?'':'|Cost '+U.cost(l)+' chips'}`;}
-    else{b.classList.toggle('lit',(k==='rope'&&G.mode==='rope')||(k==='amove'&&G.mode==='amove'));
+    else{b.classList.toggle('lit',(k==='rope'&&G.mode==='rope')||(k==='amove'&&G.mode==='amove')||(k==='rally'&&G.mode==='rally')||(k==='base'&&G.selBase));
       if(k==='crRepair'||k==='crGather'){const rep=G.workers.filter(w=>w.mode==='repair').length;b.disabled=k==='crRepair'?rep>=G.workers.length:rep===0;b.querySelector('.key').textContent=k==='crRepair'?rep+'⚒':(G.workers.length-rep)+'$';return;}
       b.disabled=(['amove','stop','hold'].includes(k)&&!G.sel.length)||(k==='merge'&&!(G.sel.length===2&&mergeResult(G.sel[0].k,G.sel[1].k))&&!(G.sel.length===1&&recipesFor(G.sel[0].k).some(r=>G.units.some(o=>o!==G.sel[0]&&o.k===r.partner))));}});}
 function setMode(m){G.mode=m;refreshCmd();}
 function refreshAbilitySlots(){const abs=selAbilities();
   $('#cmd').querySelectorAll('[data-abslot]').forEach(b=>{const i=+b.dataset.abslot,ab=abs[i];
-    if(!ab){if(b.dataset.ab){b.dataset.ab='';b.querySelector('.ii').innerHTML='';}b.classList.add('empty');b.disabled=true;b.removeAttribute('data-tip');b.style.setProperty('--p',0);b.querySelector('.cdn').textContent='';return;}
+    if(!ab){if(b.dataset.ab){b.dataset.ab='';b.querySelector('.ii').innerHTML='';b.querySelector('.key').textContent='';}b.classList.add('empty');b.disabled=true;b.removeAttribute('data-tip');b.style.setProperty('--p',0);b.querySelector('.cdn').textContent='';return;}
     const A=ABIL[ab];if(b.dataset.ab!==ab){b.dataset.ab=ab;b.querySelector('.ii').innerHTML=icon(A.icon);}
     b.classList.remove('empty');b.disabled=false;
     const us=G.sel.filter(u=>u.def.ab===ab);const cd=Math.min(...us.map(u=>Math.max(0,u.cds[ab]||0)));
     b.style.setProperty('--p',cd>0?cd/A.cd:0);b.querySelector('.cdn').textContent=cd>0?Math.ceil(cd):'';
-    b.classList.toggle('lit',(A.type==='toggle'&&us.some(u=>u.siegeTo))||(G.mode&&G.mode.ab===ab));
-    b.dataset.tip=`${A.name} (${AB_KEYS[i]})|${A.desc}|${A.type==='toggle'?'Toggle':'Recharge '+A.cd+'s'}${A.type==='area'?'|Click a spot on the Strip':A.type==='enemy'?'|Click an enemy':''}`;});}
+    b.classList.toggle('lit',(A.type==='toggle'&&us.some(u=>u.siegeTo))||(G.mode&&(G.mode.ab===ab||(G.mode.abs||[]).includes(ab))));
+    const kk=b.querySelector('.key');if(kk&&kk.textContent!==abKey(ab))kk.textContent=abKey(ab);
+    b.dataset.tip=`${A.name} (${abKey(ab)})|${A.desc}|${us.length>1?'All '+us.length+' selected cast it together|':''}|${A.type==='toggle'?'Toggle':'Recharge '+A.cd+'s'}${A.type==='area'?'|Click a spot on the Strip':A.type==='enemy'?'|Click an enemy':''}`;});}
 
 /* ---------- resource bar ---------- */
 let nextSig='';
@@ -374,12 +394,13 @@ function unitAt(x,y){let best=null,bd=1e9;for(const u of G.units){const d=Math.h
 function enemyAt(x,y){let best=null,bd=1e9;for(const e of G.enemies){if(e.hidden)continue;const d=Math.hypot(e.x-x,e.y-y);if(d<e.r*1.15+7&&d<bd){bd=d;best=e;}}return best;}
 cv.addEventListener('pointerdown',ev=>{if(NET.watch&&NET.watch.full)return;
   Snd.init();hideTip();if(!G||G.over)return;const p=boardPos(ev);
-  if(ev.button===2){if(G.mode){setMode(null);return;}if(!G.sel.length){if(typeof setRally==='function')setRally(p);return;}const e=enemyAt(p.x,p.y);if(e)orderAttack(G.sel,e);else orderMove(G.sel,p.x,p.y,false);return;}
+  if(ev.button===2){if(G.mode){setMode(null);return;}if(!G.sel.length){if(G.selBase&&typeof setRally==='function')setRally(p);return;}const e=enemyAt(p.x,p.y);if(e)orderAttack(G.sel,e);else orderMove(G.sel,p.x,p.y,false);return;}
   if(ev.button!==0)return;
+  if(G.mode==='rally'){if(typeof setRally==='function')setRally(p);setMode(null);return;}
   if(G.mode==='rope'){const c=Math.floor(p.x/TILE),r=Math.floor(p.y/TILE);let kind;if(grid[gi(c,r)]===2){removeBarricade(c,r);kind='remove';}else{placeBarricade(c,r);kind='add';}ropePaint={kind,last:gi(c,r)};cv.setPointerCapture(ev.pointerId);return;}
   if(G.mode&&G.mode.ab){const ab=G.mode.ab,A=ABIL[ab],e=enemyAt(p.x,p.y);
     if(A.type==='enemy'&&!e){toast('Pick an enemy');Snd.play('error');return;}
-    castAbility(ab,G.sel,{x:e&&A.type==='enemy'?e.x:p.x,y:e&&A.type==='enemy'?e.y:p.y,e:A.type==='enemy'?e:null});if(!ev.shiftKey)setMode(null);return;}
+    for(const ak of (G.mode.abs||[ab])){const AA=ABIL[ak];castAbility(ak,G.sel,{x:e&&AA.type==='enemy'?e.x:p.x,y:e&&AA.type==='enemy'?e.y:p.y,e:AA.type==='enemy'?e:null});}if(!ev.shiftKey)setMode(null);return;}
   if(G.mode==='amove'){const e=enemyAt(p.x,p.y);if(e)orderAttack(G.sel,e);else orderMove(G.sel,p.x,p.y,true);if(!ev.shiftKey)setMode(null);return;}
   drag={x0:p.x,y0:p.y,x1:p.x,y1:p.y,box:false,shift:ev.shiftKey};cv.setPointerCapture(ev.pointerId);
 });
@@ -393,10 +414,11 @@ cv.addEventListener('pointerup',ev=>{if(NET.watch&&NET.watch.full)return;
   if(d.box){const x0=Math.min(d.x0,d.x1),x1=Math.max(d.x0,d.x1),y0=Math.min(d.y0,d.y1),y1=Math.max(d.y0,d.y1);picked=G.units.filter(u=>u.x>=x0-u.r&&u.x<=x1+u.r&&u.y>=y0-u.r&&u.y<=y1+u.r);}
   else{const u=unitAt(d.x0,d.y0);if(u){const now=performance.now();picked=now-lastClick.t<320&&lastClick.k===u.k?G.units.filter(o=>o.k===u.k):[u];lastClick={t:now,k:u.k};}
     else if(!d.shift){const e=enemyAt(d.x0,d.y0);if(e){G.inspect=e;G.sel=[];G.units.forEach(o=>o.sel=false);Snd.play('click');refreshPane(true);refreshCmd();return;}
+      if(onCasino(d.x0,d.y0)){selectBase();return;}
       if(typeof mapClick==='function')mapClick(d.x0,d.y0);}}
   if(picked.length||!d.shift)G.inspect=null;
   if(d.shift){for(const u of picked){if(G.sel.includes(u)&&!d.box)G.sel=G.sel.filter(o=>o!==u);else if(!G.sel.includes(u))G.sel.push(u);}}else G.sel=picked;
-  G.units.forEach(u=>u.sel=G.sel.includes(u));if(picked.length)Snd.play(selSound(picked[0]));refreshPane(true);refreshCmd();
+  if(G.sel.length||!d.shift)G.selBase=false;G.units.forEach(u=>u.sel=G.sel.includes(u));if(picked.length)Snd.play(selSound(picked[0]));refreshPane(true);refreshCmd();
 });
 $('#pActions').addEventListener('click',e=>{if(e.target.closest('[data-slots]')){Snd.play('click');toggleSlots(true);}});
 $('#btnSlots').addEventListener('click',()=>{Snd.init();toggleSlots();});
@@ -411,7 +433,7 @@ document.addEventListener('keydown',ev=>{
   if(k==='l'&&!ev.ctrlKey&&!ev.metaKey){toggleLog();return;}
   if(k==='j'&&!ev.ctrlKey&&!ev.metaKey){toggleSlots();return;}
   if(k==='escape'&&$('#slotPanel')){toggleSlots(false);return;}
-  if(G.mp&&k==='t'&&!ev.ctrlKey&&!ev.metaKey){toggleEmotes();return;}
+  if(G.mp&&k==='t'&&!ev.ctrlKey&&!ev.metaKey&&!(G.sel.length&&abilitiesForKey('t').length)){toggleEmotes();return;}
   if(G.mp&&$('#emotes').classList.contains('show')&&/^[1-6]$/.test(k)){sendEmote(+k-1);toggleEmotes(false);return;}
   if(G.paused||G.over)return;
   if(/^[1-9]$/.test(k)){const n=+k;if(ev.ctrlKey||ev.metaKey){ev.preventDefault();G.groups[n]=G.sel.slice();toast('Group '+n+' saved');}else if(G.groups[n]){G.sel=G.groups[n].filter(u=>!u.dead);G.units.forEach(u=>u.sel=G.sel.includes(u));refreshPane(true);}return;}
@@ -419,9 +441,10 @@ document.addEventListener('keydown',ev=>{
   const hs=humanSeat(),myTurn=HD&&(HD.phase==='bet1'||HD.phase==='bet2')&&hs&&HD.actor===HD.seats.indexOf(hs);
   if(k==='enter'){if(HD&&HD.phase==='tip'&&hs)uiDeal();else if(HD&&HD.phase==='draw')uiConfirmDraw();else if(myTurn)uiAct('call');refreshTable(true);return;}
   if(myTurn&&(k==='c'||k==='x'||k==='r')){uiAct(k==='c'?'call':k==='x'?'fold':'raise');refreshTable(true);return;}
-  const ai={e:0,d:1,g:2}[k];if(ai!=null&&G.sel.length){useAbilitySlot(ai);return;}
-  const map={a:'amove',s:'stop',h:'hold',m:'merge',q:'all',v:'rope'};
-  if(map[k])cmd(map[k]);else if(k==='escape'){if(NET.watch)closeWatch();else if(G.inspect){G.inspect=null;refreshPane(true);}else if(G.mode)setMode(null);else{G.sel=[];G.units.forEach(u=>u.sel=false);refreshPane(true);refreshCmd();}}
+  if(ev.key==='F2'){ev.preventDefault();selectAll();refreshCmd();return;}
+  if(G.sel.length&&k.length===1){const abs=abilitiesForKey(k);if(abs.length){useAbilities(abs);return;}}
+  const map={a:'amove',s:'stop',h:'hold',m:'merge',v:'rope',b:'base',y:'rally'};
+  if(map[k])cmd(map[k]);else if(k==='escape'){if(NET.watch)closeWatch();else if(G.inspect){G.inspect=null;refreshPane(true);}else if(G.mode)setMode(null);else{G.sel=[];G.selBase=false;G.units.forEach(u=>u.sel=false);refreshPane(true);refreshCmd();}}
   else if(k==='f'){if(!G.mp)setSpeed(G.speed%3+1);}else if(k==='p')toggleRoute();
 });
 function setSpeed(s){G.speed=s;$('#btnSpeed span').textContent=s+'×';}
@@ -486,7 +509,7 @@ function showHow(back){
     <div><b>Ante and tip</b>Each hand costs 20 chips. A tip before the deal gets you the best of several hands, and your swap is drawn best of several too. The biggest tipper is the dealer's favourite and may swap one extra card. Rivals' tips water yours down.</div>
     <div><b>Bet, swap, bet</b>Five-card draw with fixed limits: 10 before the swap, 20 after, three raises at most. You may swap up to 3 cards once.</div>
     <div><b>Summon</b>Your final hand summons a creature, folded or not. Jacks or better make the high version; for a flush it takes an ace.</div>
-    <div><b>Command</b>Drag to select. Right-click to move or attack. Shift+1–9 saves a control group and 1–9 selects it again. With nothing selected, right-click to plant a rally flag for new creatures. Velvet ropes reroute the bad luck. A few elite creatures, like the tanks, have an ability on E.</div>
+    <div><b>Command</b>Drag to select. Right-click to move or attack. Shift+1–9 saves a control group and 1–9 selects it again. With the casino selected, right-click to plant a rally flag for new creatures. Velvet ropes reroute the bad luck. Elite creatures have abilities, each always on its own key (the tanks' Siege Mode is E); with several selected, they all cast it together. Click your casino (B) for upgrades, croupiers, ropes and the rally point.</div>
     <div><b>Merge</b>The right pairs fuse into something new. Chip Mites and Dice Sprites can merge three times over. Select both and press M.</div>
     <div><b>Outlast</b>Rival casinos face the same waves. The last casino standing wins. So does surviving round 40.</div>
    </div>
