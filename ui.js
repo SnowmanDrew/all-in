@@ -108,7 +108,11 @@ function ribbon(h,p,withFoes){
   el.innerHTML=`<b>${h}</b>${p?`<small>${p}</small>`:''}${foes}${tr}`;el.querySelectorAll('[data-ek] canvas').forEach(c=>enemyPortrait(c,c.parentNode.dataset.ek,26));
   el.className='';void el.offsetWidth;el.className='show';
 }
-function neonSign(h,p){const el=$('#neonSign');el.innerHTML=`<span>${h}</span>${p?`<small>${p}</small>`:''}`;el.className='';void el.offsetWidth;el.className='show';}
+function neonSign(h,p){const el=$('#neonSign');el.innerHTML=`<span>${h}</span>${p?`<small>${p}</small>`:''}`;el.className='';void el.offsetWidth;el.className='show';
+  neonSign._until=performance.now()+2800;dodgeRoundCard();clearTimeout(neonSign._t);neonSign._t=setTimeout(dodgeRoundCard,2850);}
+// the round summary and a big neon announcement can land at the same moment: the card steps down below the sign while it's lit
+function dodgeRoundCard(){const rc=$('#roundCard'),ns=$('#neonSign');if(!rc||!ns)return;const lit=(neonSign._until||0)>performance.now();
+  if(lit&&rc.classList.contains('show')){rc.style.top=(ns.offsetTop+ns.offsetHeight+14)+'px';}else rc.style.top='';}
 function bossPlate(h,p){const el=$('#bossPlate');const k=h==='Repo Ogre'?'ogre':'boss';el.innerHTML=`<canvas></canvas><div><b>${h}</b><small>${p||''}</small></div>`;enemyPortrait(el.querySelector('canvas'),k,56);
   el.className='';void el.offsetWidth;el.className='show';const bw=$('#boardWrap');bw.classList.remove('alarm');void bw.offsetWidth;bw.classList.add('alarm');}
 function potWin(n){if(G&&G.stats)G.stats.bigPot=Math.max(G.stats.bigPot||0,n);const pot=$('#pot').getBoundingClientRect(),me=$('#cards').getBoundingClientRect(),f=document.createElement('div');f.className='flychips';f.innerHTML=`${icon('chips')}+${n}`;
@@ -654,7 +658,7 @@ function roundSummary(r){const el=$('#roundCard');const bad=r.hpLost>=1;
   el.className=bad?'bad':'';el.innerHTML=`<div><h4>Round ${r.w} ${bad?'survived':'cleared'}</h4></div><div class="rs"><span>${fmt(Math.round(r.dmg))}<small>DAMAGE</small></span><span>${r.kills}<small>BUSTED</small></span><span>${r.leaks}<small>LEAKS</small></span>${bad?`<span style="color:#ff8fa3">−${Math.round(r.hpLost)}<small>CASINO</small></span>`:''}<span style="color:#ffd27a">+${fmt(r.earned)}<small>CHIPS</small></span></div>`+
     (r.mvp?`<div class="mv"><canvas></canvas><div><b>${UNITS[r.mvp.k].name}</b><small>MVP · ${fmt(Math.round(r.mvp.dmg))} dmg</small></div></div>`:'');
   if(r.mvp)portrait(el.querySelector('canvas'),r.mvp.k,34);
-  el.classList.add('show');clearTimeout(roundSummary._t);roundSummary._t=setTimeout(()=>el.classList.remove('show'),4800);
+  el.classList.add('show');dodgeRoundCard();clearTimeout(roundSummary._t);roundSummary._t=setTimeout(()=>{el.classList.remove('show');el.style.top='';},4800);
   gameLog(`Round ${r.w}: ${fmt(Math.round(r.dmg))} damage, ${r.kills} busted, ${r.leaks} leaks, +${fmt(r.earned)} chips${r.mvp?', MVP '+UNITS[r.mvp.k].name:''}${r.hurtTxt?'. Casino hit by '+r.hurtTxt:''}.`,bad?'':'good');}
 
 /* ---------- damage meter ---------- */
