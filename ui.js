@@ -471,9 +471,12 @@ function showMenu(){
   $('#mHow').addEventListener('click',()=>showHow(showMenu));$('#mCol').addEventListener('click',()=>{Snd.init();showCollection(showMenu);});{const c=$('#mCont');if(c)c.addEventListener('click',()=>{Snd.init();resumeRun();});}$('#mStart').addEventListener('click',()=>{Snd.init();startGame(menuDiff);});
 }
 function showHow(back){
-  const bestiary=Object.entries(UNITS).filter(([k,u])=>!u.merge).map(([k,u])=>`<div class="bx" data-tip="${u.name}|${u.desc}"><canvas data-k="${k}"></canvas><div><b>${u.name}</b><small>${HANDS[u.hand]}${u.hand<9?(u.hi?', high':', low'):''}</small></div></div>`).join('');
-  const chains=[['hc_lo','m_trooper','m_colossus','m_jugg'],['p_lo','m_dtroop','m_dmech','m_fortress'],['hc_hi','m_cerb','m_chimera']].map(ch=>`<div class="chain">${ch.map((k,i)=>`${i?icon('next'):''}<span data-tip="${UNITS[k].name}|${UNITS[k].desc}"><canvas data-k="${k}"></canvas><b>${i?'2× ':''}${UNITS[k].name}</b></span>`).join('')}</div>`).join('');
-  const merges=MERGES.filter(([a,b,o])=>!['m_trooper','m_colossus','m_jugg','m_dtroop','m_dmech','m_fortress','m_cerb','m_chimera'].includes(o)).map(([a,b,o])=>`<div class="mx" data-tip="${UNITS[o].name}|${UNITS[o].desc}"><canvas data-k="${a}"></canvas><span>+</span><canvas data-k="${b}"></canvas>${icon('next')}<canvas data-k="${o}"></canvas><b>${UNITS[o].name}</b></div>`).join('');
+  // no spoilers: creatures stay a mystery until you've summoned them; merges are found in play
+  const seen=(typeof Meta!=='undefined'&&Meta.data&&Meta.data.seen)||{};
+  const bestiary=Object.entries(UNITS).filter(([k,u])=>!u.merge&&!u.hidden&&!u.sig&&!u.secret).map(([k,u])=>{const hand=`${HANDS[u.hand]}${u.hand<9?(u.hi?', high':', low'):''}`;
+    return seen[k]?`<div class="bx" data-tip="${u.name}|${u.desc}"><canvas data-k="${k}"></canvas><div><b>${u.name}</b><small>${hand}</small></div></div>`
+      :`<div class="bx unk" data-tip="Not discovered yet|Make this hand to find out what it summons."><i>?</i><div><b>???</b><small>${hand}</small></div></div>`;}).join('');
+  const mOut=[...new Set(MERGES.map(m=>m[2]))].filter(o=>UNITS[o]&&!UNITS[o].hidden),mergeTot=mOut.length,mergeSeen=mOut.filter(o=>seen[o]).length;
   showOverlay(`<h2>How to play</h2>
    <div class="howto">
     <div><b>Ante and tip</b>Each hand costs 20 chips. A tip before the deal gets you the best of several hands, and your swap is drawn best of several too. The biggest tipper is the dealer's favourite and may swap one extra card. Rivals' tips water yours down.</div>
@@ -483,9 +486,8 @@ function showHow(back){
     <div><b>Merge</b>The right pairs fuse into something new. Chip Mites and Dice Sprites can merge three times over. Select both and press M.</div>
     <div><b>Outlast</b>Rival casinos face the same waves. The last casino standing wins. So does surviving round 40.</div>
    </div>
-   <h3>Hand creatures</h3><div class="bestiary">${bestiary}</div>
-   <h3>Bad cards add up</h3><p class="lead">The weakest creatures merge again and again. Two of a kind make the next step up.</p><div class="chains">${chains}</div>
-   <h3>Other merges</h3><div class="mergelist">${merges}</div>
+   <h3>Hand creatures</h3><p class="lead">Every hand summons something different, and the better the hand, the better the creature. You'll find out what each one is the first time you make it. A few special hands summon something else entirely.</p><div class="bestiary">${bestiary}</div>
+   <h3>Merges</h3><p class="lead">Some pairs of creatures fuse into something new, and the weakest ones can merge again and again. Select creatures and any merge they can make shows up as a button. You've found ${mergeSeen} of ${mergeTot} merged creatures.</p>
    <div class="mrow"><button class="pb main" id="mBack">Back</button></div>`,'how');
   document.querySelectorAll('.bx canvas').forEach(c=>portrait(c,c.dataset.k,40));document.querySelectorAll('.chain canvas').forEach(c=>portrait(c,c.dataset.k,46));document.querySelectorAll('.mx canvas').forEach(c=>portrait(c,c.dataset.k,26));document.querySelectorAll('.sigs canvas').forEach(c=>portrait(c,c.dataset.k,40));
   $('#mBack').addEventListener('click',()=>{Snd.init();back();});
