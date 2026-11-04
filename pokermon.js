@@ -19,7 +19,7 @@ function tradeOffer(){const mine=G.units.filter(u=>!u.dead&&!u.temp&&!u.def.hidd
   if(!pool.length)return null;const fresh=pool.filter(k=>!(Meta.data&&Meta.data.seen&&Meta.data.seen[k]));const list=fresh.length?fresh:pool;
   return {give:give.id,giveK:give.k,get:list[Math.floor(Math.random()*list.length)]};}
 const TRADE_LINES=[
-  o=>`“Psst. Over here. Collector. Your <b>${tradeName(o.giveK)}</b> for my <b>${tradeName(o.get)}</b>? Mint condition. Rarest Pokér— …rarest <i>creature</i> on the Strip.”`,
+  o=>`“Psst. Over here. Collector. Your <b>${tradeName(o.giveK)}</b> for my <b>${tradeName(o.get)}</b>? Mint condition. Rarest Pokérmon— …rarest <i>creature</i> on the Strip.”`,
   o=>`“Is he gone? …Right. Your <b>${tradeName(o.giveK)}</b> for my <b>${tradeName(o.get)}</b>. And I said <i>creature</i>. Everybody heard me say creature.”`,
   o=>`“Last trade, I promise. Gotta trade 'em a— no. Just this one. Your <b>${tradeName(o.giveK)}</b> for my <b>${tradeName(o.get)}</b>.”`];
 {const _sh=startHand;startHand=function(){_sh.apply(this,arguments);if(!G||G.mp||G.over)return;const w=G.wave+1,i=TRADE_ROUNDS.indexOf(w);if(i<0||(G.trades||{})[w])return;
