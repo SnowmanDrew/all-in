@@ -178,9 +178,9 @@ function setRally(p){if(!G||G.over)return;
   if(G.rally){for(const u of G.units)if(!before.has(u))u.rallyAt=G.time+.5;}return r;};}
 {const _u=update;update=function(dt){_u(dt);if(!G||!G.rally)return;const go=G.units.filter(u=>u.rallyAt&&G.time>=u.rallyAt&&!u.dead);
   if(go.length){for(const u of go)u.rallyAt=0;const q=QUEUE_SHIFT;QUEUE_SHIFT=false;orderMove(go,G.rally.x,G.rally.y,true);QUEUE_SHIFT=q;}};}
-function drawRally(c,t){const R=G&&G.rally;if(!R)return;const x=R.x,y=R.y,age=G.time-(R.t||0),pop=age<.35?1+Math.sin(age/.35*Math.PI)*.35:1;
+function drawRally(c,t){const R=G&&G.rally;if(!R||!(G.selBase||G.mode==='rally'))return;const x=R.x,y=R.y,age=G.time-(R.t||0),pop=age<.35?1+Math.sin(age/.35*Math.PI)*.35:1;
   // a faint dotted path from the casino door, the base ring, then a gold pennant that flutters
-  c.save();c.globalAlpha=G.selBase?.6:G.sel.length?.14:.26;c.strokeStyle='#fbbf24';c.lineWidth=1.3;c.setLineDash([2,6]);c.lineDashOffset=-t*18;c.beginPath();c.moveTo(BASE.fx-8,BASE.y);c.lineTo(x,y);c.stroke();c.restore();
+  c.save();c.globalAlpha=.6;c.strokeStyle='#fbbf24';c.lineWidth=1.3;c.setLineDash([2,6]);c.lineDashOffset=-t*18;c.beginPath();c.moveTo(BASE.fx-8,BASE.y);c.lineTo(x,y);c.stroke();c.restore();
   c.save();c.translate(x,y);c.scale(pop*1.25,pop*1.25);c.fillStyle="rgba(0,0,0,.4)";c.beginPath();c.ellipse(1,1.5,7,2.6,0,0,TAU);c.fill();
   c.strokeStyle=`rgba(251,191,36,${.35+.2*Math.sin(t*3)})`;c.lineWidth=1.2;c.beginPath();c.ellipse(0,0,9+Math.sin(t*3),3.4,0,0,TAU);c.stroke();
   c.strokeStyle='#3b2f1a';c.lineWidth=1.6;c.beginPath();c.moveTo(0,0);c.lineTo(0,-22);c.stroke();c.fillStyle='#fde68a';c.beginPath();c.arc(0,-22.5,1.4,0,TAU);c.fill();
