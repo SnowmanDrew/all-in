@@ -222,17 +222,51 @@ const DOG_S=.8,ORD=['1st','2nd','3rd','4th','5th','6th'],ORD_COL=['#fbbf24','#e5
 function sandPat(c,cv){if(cv._sand)return cv._sand;const p=document.createElement('canvas');p.width=96;p.height=48;const g=p.getContext('2d');g.fillStyle='#c48a45';g.fillRect(0,0,96,48);
   for(let i=0;i<300;i++){g.fillStyle=Math.random()<.5?'rgba(255,232,190,.2)':'rgba(90,50,10,.16)';g.fillRect(Math.random()*96,Math.random()*48,1+Math.random()*1.5,1);}
   for(let y=3;y<48;y+=6){g.fillStyle='rgba(120,70,20,.1)';g.fillRect(0,y,96,1);}return cv._sand=c.createPattern(p,'repeat');}
+// the trap bank: a steel housing with six boxes, each dark at the back and lit towards its door
+function trapBank(c,top,bot,lh,lanes,jolt,started){const X=58;c.save();c.translate(jolt,0);
+  let g=c.createLinearGradient(X,0,X+16,0);g.addColorStop(0,'rgba(40,20,0,.38)');g.addColorStop(1,'rgba(40,20,0,0)');c.fillStyle=g;c.fillRect(X,top,16,bot-top);
+  g=c.createLinearGradient(0,0,X,0);g.addColorStop(0,'#6b7280');g.addColorStop(.25,'#d1d5db');g.addColorStop(.6,'#9ca3af');g.addColorStop(1,'#e5e7eb');c.fillStyle=g;c.fillRect(0,top-3,X,bot-top+6);
+  c.fillStyle='#4b5563';c.fillRect(0,top-3,X,1.2);c.fillRect(0,bot+1.8,X,1.2);
+  for(let i=0;i<lanes;i++){const y0=top+i*lh,yi=y0+2.2,hi=lh-4.4;
+    g=c.createLinearGradient(15,0,54,0);g.addColorStop(0,'#07080a');g.addColorStop(.7,'#1c1f25');g.addColorStop(1,'#2b2f37');c.fillStyle=g;c.fillRect(15,yi,40,hi);
+    c.fillStyle='rgba(196,138,69,.22)';c.fillRect(15,yi+hi-3,40,3);
+    c.fillStyle='rgba(0,0,0,.45)';c.fillRect(15,yi,40,1.6);
+    c.fillStyle='rgba(255,255,255,.35)';c.fillRect(0,y0+.4,X,.6);if(started)trapPost(c,y0,lh);}
+  c.restore();}
+function trapPost(c,y0,lh){
+  const g=c.createLinearGradient(54,0,59,0);g.addColorStop(0,'#9ca3af');g.addColorStop(.5,'#f3f4f6');g.addColorStop(1,'#6b7280');c.fillStyle=g;c.fillRect(54.5,y0+.6,4,lh-1.2);
+  c.fillStyle='#4b5563';c.beginPath();c.arc(56.5,y0+3.2,.7,0,TAU);c.arc(56.5,y0+lh-3.2,.7,0,TAU);c.fill();
+}
+function trapFronts(c,field,top,lh,lanes,open,since,jolt,now,R){c.save();c.translate(jolt,0);
+  // doors overshoot a touch, then settle up in the roof
+  const k=open>=1?1:open,b=since<.5?1+Math.sin(Math.min(1,since/.5)*Math.PI*2)*.08*(1-since/.5):1,lift=Math.min(1.08,k*b);
+  for(let i=0;i<lanes;i++){const y0=top+i*lh,yi=y0+2.2,hi=lh-4.4,h=Math.max(2.6,hi*(1-lift));
+    // mesh door: a frame and a diamond weave you can see the dog through
+    c.save();c.beginPath();c.rect(15,yi,40,h);c.clip();c.fillStyle='rgba(15,17,20,.28)';c.fillRect(15,yi,40,h);
+    c.strokeStyle='rgba(203,213,225,.75)';c.lineWidth=.55;c.beginPath();const off=yi+h-hi;for(let x=7;x<62;x+=4.2){c.moveTo(x,off);c.lineTo(x+hi,off+hi);c.moveTo(x+hi,off);c.lineTo(x,off+hi);}c.stroke();c.restore();
+    c.fillStyle='#e5e7eb';c.fillRect(15,yi+h-1.6,40,1.6);c.fillStyle='#9ca3af';c.fillRect(15,yi+h-.5,40,.5);
+    // front post with bolts: in front of the dogs while they wait, behind them once they're out
+    if(!(R&&R.started))trapPost(c,y0,lh);
+    // number plate: painted panel with the trap's colours and a start lamp
+    const J=field[i].silk,P=JACKET_LOOK[String(i+1)],px=1.6,py=y0+2.2,pw=11.4,ph=lh-4.4;
+    c.fillStyle='rgba(0,0,0,.35)';c.fillRect(px+.8,py+.8,pw,ph);
+    const pg=c.createLinearGradient(0,py,0,py+ph);pg.addColorStop(0,P.hi);pg.addColorStop(1,P.lo);c.fillStyle=pg;c.beginPath();c.roundRect?c.roundRect(px,py,pw,ph,1.6):c.rect(px,py,pw,ph);c.fill();
+    if(P.stripe){c.save();c.clip();c.fillStyle='#f4f4f5';for(let x=px+.6;x<px+pw;x+=3.2)c.fillRect(x,py,1.6,ph);c.fillStyle='#fff';c.beginPath();c.arc(px+pw/2,py+ph/2+1.6,4.2,0,TAU);c.fill();c.restore();}
+    c.strokeStyle=P.trim==='#fff'||P.trim==='#f4f4f5'?'rgba(255,255,255,.6)':'rgba(0,0,0,.45)';c.lineWidth=.6;c.stroke();
+    c.font='900 10px Barlow,Arial,sans-serif';c.textAlign='center';c.textBaseline='middle';c.lineJoin='round';c.lineWidth=1.4;c.strokeStyle=P.out;c.strokeText(i+1,px+pw/2,py+ph/2+1.9);c.fillStyle=P.num;c.fillText(i+1,px+pw/2,py+ph/2+1.9);
+    const lit=R&&R.started,lc=lit?'#4ade80':'#ef4444',la=lit?1:.75+.25*Math.sin(now*5+i);c.save();c.shadowColor=lc;c.shadowBlur=4;c.globalAlpha=la;c.fillStyle=lc;c.beginPath();c.arc(px+pw/2,py+2.6,1.5,0,TAU);c.fill();c.restore();}
+  c.restore();}
 function dogX(i,u,R,G0){const raw=u/R.T[i];if(raw<=1)return {x:G0.sx+(G0.ex-G0.sx)*racePos(i,u,R),spd:1,raw};const o=raw-1;return {x:G0.ex+22*(1-Math.exp(-o*14)),spd:Math.exp(-o*14),raw};}
 function drawDogTrack(cv,field,R,u){if(cv.width<700){cv.width=720;cv.height=380;cv._sand=null;}const c=cv.getContext('2d');c.setTransform(2,0,0,2,0,0);
   const W2=360,H2=190,now=performance.now()/1000,lanes=field.length,top=16,bot=H2-22,lh=(bot-top)/lanes,fl=W2-30,G0={sx:31,ex:fl-25};
   const D=ARC.dog,pick=D&&D.field===field?D.pick:-1,running=R&&!R.stop;
   if(R){if(!R.gp){R.gp=field.map(()=>Math.random());R.lt=now;R.cross=[];R.call='';R.cs=0;}}
   const dt=R?Math.min(.05,Math.max(0,now-R.lt)):0;if(R)R.lt=now;
-  if(running&&!R.started){R.started=true;Snd.play('traps');Snd.play('lure');}
+  if(running&&!R.started){R.started=true;R.t0open=now;Snd.play('traps');Snd.play('lure');}
   // grandstand lights, outer rail
   c.fillStyle='#10241a';c.fillRect(0,0,W2,top);for(let x=5;x<W2;x+=10){const on=(Math.floor(now*(running?8:2)+x/10)%3)===0;c.fillStyle=on?'#fde68a':'#4a3d22';c.beginPath();c.arc(x,5.5,1.5,0,TAU);c.fill();}
   c.fillStyle=sandPat(c,cv);c.fillRect(0,top,W2,bot-top);
-  c.fillStyle='rgba(255,255,255,.07)';for(let i=1;i<lanes;i++)c.fillRect(54,top+i*lh,fl-54,1);
+  c.fillStyle='rgba(255,255,255,.07)';for(let i=1;i<lanes;i++)c.fillRect(60,top+i*lh,fl-60,1);
   c.fillStyle='#f8fafc';c.fillRect(0,top-3,W2,2);for(let x=4;x<W2;x+=16)c.fillRect(x,top-4,1.5,4);
   // inside rail and the lure rail
   c.fillStyle='#163322';c.fillRect(0,bot,W2,H2-bot);c.fillStyle='#f8fafc';c.fillRect(0,bot,W2,2);c.fillStyle='#94a3b8';c.fillRect(0,bot+13,W2,2);
@@ -241,9 +275,9 @@ function drawDogTrack(cv,field,R,u){if(cv.width<700){cv.width=720;cv.height=380;
   // finish line, chequer and judge's post
   c.fillStyle='rgba(255,255,255,.9)';c.fillRect(fl,top,2,bot-top);for(let k=0;k*4<bot-top;k++){c.fillStyle=k%2?'#111':'#fff';c.fillRect(fl+2,top+k*4,4,4);c.fillStyle=k%2?'#fff':'#111';c.fillRect(fl+6,top+k*4,4,4);}
   c.fillStyle='#dc2626';c.fillRect(fl-4,0,12,9);c.fillStyle='#fff';c.fillRect(fl-2,2,8,4);
-  // traps: the boxes behind the dogs; the doors and number plates go on after
-  const open=R?Math.min(1,u/.025):0;
-  for(let i=0;i<lanes;i++){const y0=top+i*lh;c.fillStyle='#262a31';c.fillRect(0,y0+1,56,lh-2);c.fillStyle='#14161a';c.fillRect(2,y0+3,52,lh-6);}
+  // traps: the steel bank and dark boxes behind the dogs; doors, posts and number plates go on after
+  const open=R?Math.min(1,u/.025):0,since=R&&R.started?now-R.t0open:9,jolt=since<.35?Math.sin(since*60)*(1-since/.35)*.8:0;
+  trapBank(c,top,bot,lh,lanes,jolt,!!(R&&R.started));
   // the runners, top lane first so the nearer dogs overlap
   const pos=field.map((f,i)=>R?dogX(i,u,R,G0):{x:G0.sx,spd:0,raw:0});
   field.forEach((f,i)=>{const y=top+i*lh+lh*.56,P=greyPal(f,i),p=pos[i];let x=p.x;const moving=running&&p.spd>.18;
@@ -256,12 +290,8 @@ function drawDogTrack(cv,field,R,u){if(cv.width<700){cv.width=720;cv.height=380;
     c.save();c.translate(x,y+(moving?0:Math.sin(now*2+i)*.25));drawGreyhound(c,moving?'run':'stand',moving?gaitPhase(R.gp[i]):0,DOG_S,P);c.restore();
     if(i===pick){const by=y-22+Math.sin(now*5)*1.5;c.fillStyle='#fbbf24';c.beginPath();c.moveTo(x+6,by+6);c.lineTo(x+1.5,by);c.lineTo(x+10.5,by);c.closePath();c.fill();c.font='800 7px Barlow,Arial,sans-serif';c.textAlign='center';c.fillText('YOU',x+6,by-4);}
     if(R&&p.raw>=1&&R.cross[i]==null)R.cross[i]=now;});
-  // trap doors lift as the lure passes: a grille you can see the dog through, then the trap's number plate
-  for(let i=0;i<lanes;i++){const y0=top+i*lh,h=(lh-2)*(1-open);
-    if(h>.5){c.save();c.beginPath();c.rect(12,y0+1,44,h);c.clip();c.fillStyle='rgba(20,22,26,.35)';c.fillRect(12,y0+1,44,h);c.fillStyle='#9ca3af';
-      for(let x=14;x<56;x+=4)c.fillRect(x,y0+1,1.2,lh);c.fillRect(12,y0+1+h-2,44,2);c.fillRect(54,y0+1,2,h);c.restore();}
-    const J=field[i].silk;c.fillStyle=i===5?'#111':J[0];c.fillRect(1,y0+2,11,lh-4);if(i===5){c.fillStyle='#f8fafc';for(let x=2;x<12;x+=4)c.fillRect(x,y0+2,2,lh-4);c.fillRect(2.5,y0+lh/2-6,8,12);}
-    c.strokeStyle='rgba(255,255,255,.45)';c.lineWidth=.8;c.strokeRect(1.4,y0+2.4,10.2,lh-4.8);c.fillStyle=i===5?'#dc2626':J[1];c.font='800 11px Barlow,Arial,sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(i+1,6.5,y0+lh/2+.5);}
+  // trap doors lift (with a bounce) as the lure passes; the plates light green when the traps fly
+  trapFronts(c,field,top,lh,lanes,open,since,jolt,now,R);
   // the lure, always just ahead of the pack
   if(R){const lead=Math.max(...pos.map(p=>p.x)),ov=Math.max(0,...pos.map(p=>p.raw))-1,lx=lead+34+Math.max(0,ov)*900;if(lx<W2+20){const ly=bot+9;
     c.strokeStyle='#cbd5e1';c.lineWidth=1.5;c.beginPath();c.moveTo(lx-6,bot+14);c.lineTo(lx,ly);c.stroke();c.fillStyle='#f5f5f4';c.beginPath();c.ellipse(lx,ly-1,6,3.6,0,0,TAU);c.fill();c.beginPath();c.ellipse(lx+4.5,ly-5,1.6,4,.35,0,TAU);c.fill();
