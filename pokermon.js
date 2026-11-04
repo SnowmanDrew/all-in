@@ -1,24 +1,30 @@
 'use strict';
 /* ============ ALL IN — the word we can't say ============
-   Type "pokermon" during a run: the neon sign flashes it, then a lawyer sprints across the Strip waving a cease and
-   desist, and everyone pretends it never happened. And the first time two of the same creature merge, someone
+   The first time you ever field six different creatures at once (a full team), the neon sign gets carried away and
+   flashes POKéRMON, then a lawyer sprints across the Strip waving a cease and desist and everyone pretends it never
+   happened. Typing "pokermon" in a run plays it again. And the first time two of the same creature merge, someone
    gets a little over-excited about what to call it. Shh. */
-HIDDEN_ACH.pokermon=['Gotta Deal \'Em All','Say the word we can\'t say.','sparkles','Some words get you a letter from a lawyer. Try typing one.'];
+HIDDEN_ACH.pokermon=['Gotta Deal \'Em All','Field a full team of six different creatures.','sparkles','Six different creatures on the Strip at once. Our lawyers have notes.'];
 ACH.pokermon=HIDDEN_ACH.pokermon.slice(0,3);
 
 let PKM_BUF='';
 window.addEventListener('keydown',ev=>{if(ev.target&&/^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName))return;if(ev.key.length!==1)return;
   PKM_BUF=(PKM_BUF+ev.key.toLowerCase()).slice(-8);if(PKM_BUF==='pokermon'){PKM_BUF='';pokermon();}},true);
-function pokermon(){
+function pokermon(why){
   if(!G||!G.running||G.over){toast('Shh. Not here. Not ever.');return;}
   if(G.lawyer&&G.time-G.lawyer.t0<4)return;
-  banner('POKéRMON','Gotta deal \'em all!','great');Snd.play('jackpot');
+  banner('POKéRMON',why==='team'?'A full team of six! Gotta deal \'em all!':'Gotta deal \'em all!','great');Snd.play('jackpot');
   for(const u of G.units)if(!u.dead&&Math.random()<.6)floatText(u.x,u.y-u.r*2-12,'!','#fde047',14);
   setTimeout(()=>{if(!G)return;G.lawyer={t0:G.time,y:BASE.y-60+Math.random()*120};Snd.play('whistle');
     setTimeout(()=>{const ns=document.getElementById('neonSign');if(ns)ns.innerHTML='<span>ALL IN</span><small>Nothing to see here</small>';},250);
     setTimeout(()=>{if(!G)return;
       toast('Shh. We never said that. Our lawyers would like a word.');for(const u of G.units)if(!u.dead&&Math.random()<.5)floatText(u.x,u.y-u.r*2-12,'…','#e5e7eb',13);
       if(typeof Meta!=='undefined')Meta.ach('pokermon');gameLog('Nothing happened just now. Please carry on.','');},1500);},1300);}
+// the natural way in: the first time you ever field six different creatures at once
+const pkmSave=()=>{try{localStorage.setItem('allin-meta',JSON.stringify(Meta.data));}catch(e){}};
+{const _u=update;update=function(dt){_u(dt);if(!G||G.over)return;if(typeof Meta==='undefined'||!Meta.data||Meta.data.pkmTeam)return;
+  if((G._pkT=(G._pkT||0)+dt)<1)return;G._pkT=0;const kinds=new Set(G.units.filter(u=>!u.dead&&!u.temp&&!u.def.hidden).map(u=>u.k));
+  if(kinds.size>=6&&!(G.lawyer)){Meta.data.pkmTeam=1;pkmSave();pokermon('team');}};}
 // the lawyer: grey suit, red tie, briefcase in one hand and the letter held high in the other
 function drawLawyer(c,t){const L=G&&G.lawyer;if(!L)return;const k=G.time-L.t0,x=-30+k*300,y=L.y;if(x>W+40){G.lawyer=null;return;}
   const step=Math.sin(k*28),s=1.6;c.save();c.translate(x,y);c.scale(s,s);
@@ -39,7 +45,7 @@ function drawLawyer(c,t){const L=G&&G.lawyer;if(!L)return;const k=G.time-L.t0,x=
 // "What? CHIP MITE is evolving!" ...it's merging. It's called merging.
 {const _mu=mergeUnits;mergeUnits=function(a,b){const same=a&&b&&a.k===b.k,name=a&&UNITS[a.k]?UNITS[a.k].name:'',seen=typeof Meta!=='undefined'&&Meta.data&&Meta.data.pkmEvo;
   const u=_mu.apply(this,arguments);
-  if(u&&same&&(!seen||Math.random()<.1)){if(typeof Meta!=='undefined'&&Meta.data){Meta.data.pkmEvo=1;try{localStorage.setItem('allin-meta',JSON.stringify(Meta.data));}catch(e){}}
+  if(u&&same&&!seen){if(typeof Meta!=='undefined'&&Meta.data){Meta.data.pkmEvo=1;pkmSave();}
     floatText(u.x,u.y-u.r*2.6-20,`What? ${name.toUpperCase()} is evolving!`,'#fde047',13);
     setTimeout(()=>{if(G&&!u.dead)floatText(u.x,u.y-u.r*2.6-6,'…merging. It\'s called merging.','#e5e7eb',11);},1300);}
   return u;};}
