@@ -32,7 +32,9 @@ cv.addEventListener('pointerdown',ev=>{if(ev.button!==2||!G||G.over||G.mode||!G.
   ev.stopImmediatePropagation();Snd.init();rdrag={x0:p.x,y0:p.y,x1:p.x,y1:p.y,amove:false,shift:ev.shiftKey};cv.setPointerCapture(ev.pointerId);},{capture:true});
 cv.addEventListener('pointermove',ev=>{if(!rdrag)return;const p=boardPos(ev);rdrag.x1=p.x;rdrag.y1=p.y;});
 cv.addEventListener('pointerup',ev=>{if(!rdrag||ev.button!==2)return;const d=rdrag;rdrag=null;if(!G||!G.sel.length)return;
-  QUEUE_SHIFT=d.shift||ev.shiftKey;if(Math.hypot(d.x1-d.x0,d.y1-d.y0)<22)orderMove(G.sel,d.x0,d.y0,false);else orderLine(G.sel,d.x0,d.y0,d.x1,d.y1,d.amove);QUEUE_SHIFT=false;},{capture:true});
+  QUEUE_SHIFT=d.shift||ev.shiftKey;const far=Math.hypot(d.x1-d.x0,d.y1-d.y0)>=22;
+  // a line needs at least two creatures: one creature just goes where you let go
+  if(!far)orderMove(G.sel,d.x0,d.y0,false);else if(G.sel.length<2)orderMove(G.sel,d.x1,d.y1,d.amove);else orderLine(G.sel,d.x0,d.y0,d.x1,d.y1,d.amove);QUEUE_SHIFT=false;},{capture:true});
 
 /* ---------- target priority ---------- */
 function targetScore(e,x,y){let b=0;
@@ -73,7 +75,7 @@ function drawCommandGround(c,t){if(!G)return;
         c.fillStyle=o.t==='amove'?'rgba(248,113,113,.7)':'rgba(94,234,212,.7)';c.beginPath();c.arc(o.x,o.y,2.6,0,TAU);c.fill();}
       else if(u.target&&!u.target.dead&&!u.target.hidden){c.strokeStyle='rgba(255,59,90,.35)';c.beginPath();c.moveTo(u.x,u.y);c.lineTo(u.target.x,u.target.y);c.stroke();}}c.restore();}
   // the line being drawn, with where each creature will stand
-  const L=rdrag&&Math.hypot(rdrag.x1-rdrag.x0,rdrag.y1-rdrag.y0)>=22?rdrag:G.lineMark;
+  const L=rdrag&&G.sel.length>=2&&Math.hypot(rdrag.x1-rdrag.x0,rdrag.y1-rdrag.y0)>=22?rdrag:G.lineMark;
   if(L){c.save();c.globalAlpha=L===G.lineMark?Math.min(1,G.lineMark.t*1.5):1;c.strokeStyle=L.amove?'#f87171':'#5eead4';c.lineWidth=3;c.lineCap='round';c.beginPath();c.moveTo(L.x0,L.y0);c.lineTo(L.x1,L.y1);c.stroke();
     if(L===rdrag)for(const [u,px,py] of lineSlots(G.sel,L.x0,L.y0,L.x1,L.y1)){c.fillStyle=isFront(u)?'rgba(94,234,212,.85)':'rgba(167,243,208,.55)';c.beginPath();c.arc(px,py,isFront(u)?4.5:3.5,0,TAU);c.fill();}
     c.restore();}}
