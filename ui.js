@@ -486,7 +486,7 @@ function showHow(back){
     <div><b>Ante and tip</b>Each hand costs 20 chips. A tip before the deal gets you the best of several hands, and your swap is drawn best of several too. The biggest tipper is the dealer's favourite and may swap one extra card. Rivals' tips water yours down.</div>
     <div><b>Bet, swap, bet</b>Five-card draw with fixed limits: 10 before the swap, 20 after, three raises at most. You may swap up to 3 cards once.</div>
     <div><b>Summon</b>Your final hand summons a creature, folded or not. Jacks or better make the high version; for a flush it takes an ace.</div>
-    <div><b>Command</b>Drag to select. Right-click to move or attack. Velvet ropes reroute the bad luck. A few elite creatures, like the tanks, have an ability on E.</div>
+    <div><b>Command</b>Drag to select. Right-click to move or attack. Shift+1–9 saves a control group and 1–9 selects it again. Velvet ropes reroute the bad luck. A few elite creatures, like the tanks, have an ability on E.</div>
     <div><b>Merge</b>The right pairs fuse into something new. Chip Mites and Dice Sprites can merge three times over. Select both and press M.</div>
     <div><b>Outlast</b>Rival casinos face the same waves. The last casino standing wins. So does surviving round 40.</div>
    </div>

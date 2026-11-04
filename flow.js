@@ -43,6 +43,8 @@ const COACH_STEPS=[
     text:'Two of your creatures can <b>merge</b> into something stronger. Select one, then press <b>Merge</b> (M) or its recipe button.'},
   {id:'ability',when:()=>G.phase==='wave'&&G.units.some(u=>u.def.ab&&ABIL[u.def.ab].type!=='toggle'),done:()=>COACH.flag.cast,at:'#boardWrap',
     text:'One of your creatures has an <b>ability</b>: a purple marker shows when it\'s ready. Select it and press <b>E</b>, ideally when the bad luck bunches up.'},
+  {id:'groups',when:()=>G.wave>=4&&G.units.length>=5&&G.sel.length>=2&&!G.groups.some(g=>g&&g.length),done:()=>G.groups.some(g=>g&&g.length),at:'#boardWrap',
+    text:'<b>Control groups</b>: press <b>Shift+1</b> to save this selection as group 1, then press <b>1</b> any time to grab them again. The <b>+ Group</b> button does the same.'},
   {id:'plan',when:()=>{const e=$('#scout');return e&&e.classList.contains('show')&&!e.classList.contains('live');},done:()=>G.phase==='wave',at:'#scout',
     text:'From round 11 some rounds are <b>set pieces</b> built to punish one approach. This card says what is coming, and how to answer it.'}];
 {const _ol=orderLine;orderLine=function(){COACH.flag.moved=true;return _ol.apply(this,arguments);};}
