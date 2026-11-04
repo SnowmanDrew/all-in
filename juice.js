@@ -188,20 +188,36 @@ bjSettle=function(natural,quiet,mm){const m=mm||MG;if(!m||m.state==='done')retur
    DOG TRACK
    ===================================================================== */
 // proper trap colours: 1 red, 2 blue, 3 white, 4 black, 5 orange, 6 black-and-white stripes
-const TRAP_JACKETS=[['#dc2626','#fff'],['#2563eb','#fff'],['#f1f5f9','#111'],['#111','#fff'],['#f97316','#111'],['#111','#dc2626']];
+const TRAP_JACKETS=[['#d4202a','#fff'],['#1f4fd1','#fff'],['#f3f4f6','#111'],['#18181b','#fff'],['#f26a12','#111'],['#18181b','#dc2626']];
 const GREY_COATS=['#2b2724','#d2b48c','#7d808a','#ece6da','#8a6646','#a8a29e','#57483c','#c9b8a0'];
 {const _nf=newField;newField=function(kind){const f=_nf(kind);if(kind==='dog'){const coats=GREY_COATS.slice().sort(()=>Math.random()-.5);f.forEach((d,i)=>{d.silk=TRAP_JACKETS[i];d.coat=coats[i];});}return f;};}
 function greyPal(f,i){if(f._pal&&f._pal.c===f.coat)return f._pal;const red=f.red||f.coat===RED_COAT,light=f.coat==='#ece6da';
   return f._pal={c:f.coat,d:shade(f.coat,light?-.18:-.3),b:red?RED_BELLY:light?'#fffaf0':shade(f.coat,.45),jacket:f.silk[0],jt:f.silk[1],stripe:i===5,num:String(i+1),muzzle:true};}
-function greyJacket(c,P,chestX,hipX,backY,arch){const mx=(hipX+chestX)/2;c.save();
-  c.beginPath();c.moveTo(hipX+2.5,backY+2.6);c.quadraticCurveTo(mx,backY-1.4+arch,chestX-1.5,backY+1.6);c.lineTo(chestX-.5,1.2);c.quadraticCurveTo(mx+2,-1.8+arch*.3,hipX+3.5,-.8);c.closePath();
-  c.fillStyle=P.jacket;c.fill();
-  if(P.stripe){c.clip();c.fillStyle='#f8fafc';for(let x=hipX;x<chestX;x+=4)c.fillRect(x,-14,2,16);}
-  c.restore();c.strokeStyle='rgba(0,0,0,.35)';c.lineWidth=.5;c.stroke();
-  c.fillStyle=P.stripe?'#dc2626':P.jt;c.font='800 7px Barlow,Arial,sans-serif';c.textAlign='center';c.textBaseline='middle';
-  if(P.stripe){c.fillStyle='#f8fafc';c.beginPath();c.arc(mx,backY+5,3.4,0,TAU);c.fill();c.fillStyle='#dc2626';}c.fillText(P.num,mx,backY+5.2);}
-function greyMuzzle(c,hx,hy){c.save();c.strokeStyle='rgba(28,25,23,.9)';c.lineWidth=.6;c.beginPath();c.moveTo(hx+2.2,hy-2.6);c.lineTo(hx+10.4,hy+.2);c.lineTo(hx+9.8,hy+3);c.lineTo(hx+2.2,hy+3.6);c.closePath();c.stroke();
-  c.beginPath();c.moveTo(hx+5,hy-1.7);c.lineTo(hx+5,hy+3.4);c.moveTo(hx+7.6,hy-.8);c.lineTo(hx+7.6,hy+3.2);c.moveTo(hx+2.2,hy-1.6);c.lineTo(hx-2.6,hy-1.2);c.stroke();c.restore();}
+// a racing jacket: follows the topline from the withers to the loin, drapes down the ribs with a curved hem,
+// light along the spine and darker at the hem, with a contrasting trim and a big number on the flank
+function greyJacket(c,P,chestX,hipX,backY,arch){const mx=(hipX+chestX)/2,x0=hipX+1.2,x1=chestX+.6,tm=backY-2.2+arch;
+  // top: exactly on the dog's topline; front: slopes back behind the elbow; hem: deepest at the ribs, rising to the loin
+  const top=()=>{c.moveTo(x0,backY+1.7);c.quadraticCurveTo(mx,tm,x1,backY+.4);},
+    edge=()=>{c.quadraticCurveTo(x1+.4,-3,chestX-3.2,2.5);c.quadraticCurveTo(mx-1,2.6+arch*.2,hipX+3.4,-1.4);c.quadraticCurveTo(x0-.6,-3,x0,backY+1.7);};
+  const J=JACKET_LOOK[P.num]||JACKET_LOOK['1'];
+  c.save();c.beginPath();top();edge();c.closePath();const g=c.createLinearGradient(0,backY-1.5,0,2.8);g.addColorStop(0,J.hi);g.addColorStop(.5,J.base);g.addColorStop(1,J.lo);c.fillStyle=g;c.fill();
+  c.clip();if(J.stripe){c.fillStyle='#f4f4f5';for(let x=x0-1;x<x1+2;x+=3.2)c.fillRect(x,backY-4,1.6,16);c.fillStyle='rgba(0,0,0,.2)';c.fillRect(x0-2,-.5,x1-x0+4,4);}
+  c.strokeStyle='rgba(255,255,255,.28)';c.lineWidth=.8;c.beginPath();c.moveTo(x0+1.5,backY+1.6);c.quadraticCurveTo(mx,tm+.9,x1-1.2,backY+1.3);c.stroke();c.restore();
+  // trim on the edges and hem only, so it reads as cloth on the dog rather than a sticker
+  c.beginPath();c.moveTo(x1,backY+.4);edge();c.strokeStyle=J.trim;c.lineWidth=.7;c.stroke();
+  const nx=mx+1.6,ny=backY+5.2+arch*.3;c.font='900 7px Barlow,Arial,sans-serif';c.textAlign='center';c.textBaseline='middle';c.lineJoin='round';
+  if(J.disc){c.fillStyle=J.disc;c.beginPath();c.arc(nx,ny,3.2,0,TAU);c.fill();}
+  c.lineWidth=1.2;c.strokeStyle=J.out;c.strokeText(P.num,nx,ny+.3);c.fillStyle=J.num;c.fillText(P.num,nx,ny+.3);}
+// the real trap colours, given some cloth: 1 red, 2 blue, 3 white, 4 black, 5 orange, 6 black-and-white stripes
+const JACKET_LOOK={
+  '1':{base:'#d4202a',hi:'#f0444c',lo:'#8f1018',trim:'#fff',num:'#fff',out:'rgba(80,0,0,.55)'},
+  '2':{base:'#1f4fd1',hi:'#4f7cf0',lo:'#122f86',trim:'#fff',num:'#fff',out:'rgba(0,10,60,.55)'},
+  '3':{base:'#f3f4f6',hi:'#ffffff',lo:'#c9ccd3',trim:'#1f2937',num:'#111',out:'rgba(255,255,255,.7)'},
+  '4':{base:'#18181b',hi:'#3a3a42',lo:'#09090b',trim:'#f4f4f5',num:'#fff',out:'rgba(0,0,0,.6)'},
+  '5':{base:'#f26a12',hi:'#ff9440',lo:'#b0470a',trim:'#111',num:'#111',out:'rgba(255,220,180,.5)'},
+  '6':{base:'#18181b',hi:'#2e2e33',lo:'#09090b',trim:'#f4f4f5',num:'#dc2626',out:'#fff',stripe:true,disc:'#fff'}};
+function greyMuzzle(c,hx,hy){c.save();c.strokeStyle='rgba(150,150,160,.9)';c.lineWidth=.45;c.beginPath();c.moveTo(hx+2.4,hy-2.4);c.lineTo(hx+10.2,hy+.3);c.lineTo(hx+9.7,hy+2.9);c.lineTo(hx+2.4,hy+3.5);c.closePath();c.stroke();
+  c.beginPath();c.moveTo(hx+5.2,hy-1.5);c.lineTo(hx+5.2,hy+3.3);c.moveTo(hx+7.7,hy-.7);c.lineTo(hx+7.7,hy+3.1);c.stroke();c.strokeStyle='rgba(60,60,66,.8)';c.lineWidth=.55;c.beginPath();c.moveTo(hx+2.4,hy-1.6);c.lineTo(hx-2.6,hy-1.2);c.stroke();c.restore();}
 const DOG_S=.8,ORD=['1st','2nd','3rd','4th','5th','6th'],ORD_COL=['#fbbf24','#e5e7eb','#d97706','#4b5563','#4b5563','#4b5563'];
 function sandPat(c,cv){if(cv._sand)return cv._sand;const p=document.createElement('canvas');p.width=96;p.height=48;const g=p.getContext('2d');g.fillStyle='#c48a45';g.fillRect(0,0,96,48);
   for(let i=0;i<300;i++){g.fillStyle=Math.random()<.5?'rgba(255,232,190,.2)':'rgba(90,50,10,.16)';g.fillRect(Math.random()*96,Math.random()*48,1+Math.random()*1.5,1);}
@@ -245,7 +261,7 @@ function drawDogTrack(cv,field,R,u){if(cv.width<700){cv.width=720;cv.height=380;
     if(h>.5){c.save();c.beginPath();c.rect(12,y0+1,44,h);c.clip();c.fillStyle='rgba(20,22,26,.35)';c.fillRect(12,y0+1,44,h);c.fillStyle='#9ca3af';
       for(let x=14;x<56;x+=4)c.fillRect(x,y0+1,1.2,lh);c.fillRect(12,y0+1+h-2,44,2);c.fillRect(54,y0+1,2,h);c.restore();}
     const J=field[i].silk;c.fillStyle=i===5?'#111':J[0];c.fillRect(1,y0+2,11,lh-4);if(i===5){c.fillStyle='#f8fafc';for(let x=2;x<12;x+=4)c.fillRect(x,y0+2,2,lh-4);c.fillRect(2.5,y0+lh/2-6,8,12);}
-    c.fillStyle=i===5?'#dc2626':J[1];c.font='800 11px Barlow,Arial,sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(i+1,6.5,y0+lh/2+.5);}
+    c.strokeStyle='rgba(255,255,255,.45)';c.lineWidth=.8;c.strokeRect(1.4,y0+2.4,10.2,lh-4.8);c.fillStyle=i===5?'#dc2626':J[1];c.font='800 11px Barlow,Arial,sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(i+1,6.5,y0+lh/2+.5);}
   // the lure, always just ahead of the pack
   if(R){const lead=Math.max(...pos.map(p=>p.x)),ov=Math.max(0,...pos.map(p=>p.raw))-1,lx=lead+34+Math.max(0,ov)*900;if(lx<W2+20){const ly=bot+9;
     c.strokeStyle='#cbd5e1';c.lineWidth=1.5;c.beginPath();c.moveTo(lx-6,bot+14);c.lineTo(lx,ly);c.stroke();c.fillStyle='#f5f5f4';c.beginPath();c.ellipse(lx,ly-1,6,3.6,0,0,TAU);c.fill();c.beginPath();c.ellipse(lx+4.5,ly-5,1.6,4,.35,0,TAU);c.fill();
