@@ -1063,7 +1063,7 @@ function drawCasino(c,t){
   c.restore();
 }
 function drawWorker(c,w,t){
-  const S=1.5,moving=w.st!==1&&w.st!==4,ph=w.walk*.45,step=moving?Math.sin(ph):0,lift=moving?Math.abs(Math.sin(ph))*1.2:0;
+  const S=1.5,moving=w.st!==1&&w.st!==4,ph=w.walk*.45,step=moving?Math.sin(ph):0,lift=(moving?Math.abs(Math.sin(ph))*1.2:0)+(typeof cheerLift==='function'?cheerLift(w):0);
   c.save();c.translate(w.x,w.y-lift);c.fillStyle='rgba(0,0,0,.4)';c.beginPath();c.ellipse(0,9*S+lift,6*S,2.2*S,0,0,TAU);c.fill();
   c.scale(S*(w.face<0?-1:1),S);
   // legs
@@ -1081,6 +1081,8 @@ function drawWorker(c,w,t){
   else if(w.mode==='repair'){const sw=w.st===4?Math.sin(t*12+w.bob)*.9:0;c.strokeStyle='#0b0612';c.lineWidth=2.6;c.beginPath();c.moveTo(-2.6,-1.5);c.lineTo(-3.4,3);c.stroke();
     c.save();c.translate(2.6,-1.5);c.rotate(-.6+sw);c.strokeStyle='#0b0612';c.lineWidth=2.6;c.beginPath();c.moveTo(0,0);c.lineTo(3.5,0);c.stroke();c.strokeStyle='#7c4a1e';c.lineWidth=1.4;c.beginPath();c.moveTo(3,0);c.lineTo(3,-6);c.stroke();c.fillStyle='#9aa3b5';c.fillRect(1,-8,4.5,2.6);c.restore();
     c.fillStyle='#fbbf24';c.beginPath();c.ellipse(.6,-9.4,4.2,1.6,0,Math.PI,TAU);c.fill();}
+  else if(typeof cheerWave==='function'&&cheerWave(w,t)!=null){const wv=cheerWave(w,t);c.strokeStyle='#0b0612';c.lineWidth=2.6;c.beginPath();c.moveTo(-2.6,-1.5);c.lineTo(-3.4,3);c.stroke();
+    c.save();c.translate(2.6,-2);c.rotate(-2.3+wv);c.beginPath();c.moveTo(0,0);c.lineTo(5.5,0);c.stroke();c.fillStyle='#e8c9a4';c.beginPath();c.arc(6,0,1.3,0,TAU);c.fill();c.restore();}
   else{c.strokeStyle='#0b0612';c.lineWidth=2.6;c.beginPath();c.moveTo(-2.6,-1.5);c.lineTo(-3.4+step*-1.5,3);c.moveTo(2.6,-1.5);c.lineTo(3.4+step*1.5,3);c.stroke();}
   c.restore();
 }
@@ -1169,6 +1171,7 @@ function render(){
   ctx.drawImage(bg,0,0,W,H);if(!G)return;
   const t=performance.now()/1000;
   if(typeof drawStrip==='function')drawStrip(ctx,t);
+  if(typeof drawSky==='function')drawSky(ctx,t,'ground');
   if(G.mode==='rope'){ctx.fillStyle='rgba(255,255,255,.035)';for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(grid[gi(c,r)]===0&&!NO_BUILD.has(gi(c,r)))ctx.fillRect(c*TILE+1,r*TILE+1,TILE-2,TILE-2);
     ctx.fillStyle='rgba(244,63,94,.10)';for(const k of NO_BUILD){if(grid[k]===0)ctx.fillRect((k%COLS)*TILE+1,((k/COLS)|0)*TILE+1,TILE-2,TILE-2);}}
   if(G.mode==='rope'||G.showRoute)drawRoute(ctx);
@@ -1208,6 +1211,7 @@ function render(){
     else if(p.leaf){ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot+=.15);ctx.fillStyle=p.col;ctx.beginPath();ctx.ellipse(0,0,3,1.6,0,0,TAU);ctx.fill();ctx.restore();}
     else{ctx.fillStyle=p.col;ctx.fillRect(p.x-p.size/2,p.y-p.size/2,p.size,p.size);}}
   ctx.globalAlpha=1;
+  if(typeof drawSky==='function')drawSky(ctx,t,'top');
   for(const m of G.marks){const x=m.follow&&!m.follow.dead?m.follow.x:m.x,y=m.follow&&!m.follow.dead?m.follow.y:m.y,k=m.t/.6,d=6+12*k;ctx.fillStyle=m.col;ctx.globalAlpha=Math.min(1,k*1.5);
     for(let i=0;i<4;i++){const an=i*Math.PI/2+Math.PI/4;ctx.save();ctx.translate(x+Math.cos(an)*d,y+Math.sin(an)*d*.6);ctx.rotate(an+Math.PI);ctx.beginPath();ctx.moveTo(4,0);ctx.lineTo(-3,-3.5);ctx.lineTo(-3,3.5);ctx.closePath();ctx.fill();ctx.restore();}}
   ctx.globalAlpha=1;ctx.textAlign='center';

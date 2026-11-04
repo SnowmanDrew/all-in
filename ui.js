@@ -374,7 +374,7 @@ function unitAt(x,y){let best=null,bd=1e9;for(const u of G.units){const d=Math.h
 function enemyAt(x,y){let best=null,bd=1e9;for(const e of G.enemies){if(e.hidden)continue;const d=Math.hypot(e.x-x,e.y-y);if(d<e.r*1.15+7&&d<bd){bd=d;best=e;}}return best;}
 cv.addEventListener('pointerdown',ev=>{if(NET.watch&&NET.watch.full)return;
   Snd.init();hideTip();if(!G||G.over)return;const p=boardPos(ev);
-  if(ev.button===2){if(G.mode){setMode(null);return;}if(!G.sel.length)return;const e=enemyAt(p.x,p.y);if(e)orderAttack(G.sel,e);else orderMove(G.sel,p.x,p.y,false);return;}
+  if(ev.button===2){if(G.mode){setMode(null);return;}if(!G.sel.length){if(typeof setRally==='function')setRally(p);return;}const e=enemyAt(p.x,p.y);if(e)orderAttack(G.sel,e);else orderMove(G.sel,p.x,p.y,false);return;}
   if(ev.button!==0)return;
   if(G.mode==='rope'){const c=Math.floor(p.x/TILE),r=Math.floor(p.y/TILE);let kind;if(grid[gi(c,r)]===2){removeBarricade(c,r);kind='remove';}else{placeBarricade(c,r);kind='add';}ropePaint={kind,last:gi(c,r)};cv.setPointerCapture(ev.pointerId);return;}
   if(G.mode&&G.mode.ab){const ab=G.mode.ab,A=ABIL[ab],e=enemyAt(p.x,p.y);
@@ -486,7 +486,7 @@ function showHow(back){
     <div><b>Ante and tip</b>Each hand costs 20 chips. A tip before the deal gets you the best of several hands, and your swap is drawn best of several too. The biggest tipper is the dealer's favourite and may swap one extra card. Rivals' tips water yours down.</div>
     <div><b>Bet, swap, bet</b>Five-card draw with fixed limits: 10 before the swap, 20 after, three raises at most. You may swap up to 3 cards once.</div>
     <div><b>Summon</b>Your final hand summons a creature, folded or not. Jacks or better make the high version; for a flush it takes an ace.</div>
-    <div><b>Command</b>Drag to select. Right-click to move or attack. Shift+1–9 saves a control group and 1–9 selects it again. Velvet ropes reroute the bad luck. A few elite creatures, like the tanks, have an ability on E.</div>
+    <div><b>Command</b>Drag to select. Right-click to move or attack. Shift+1–9 saves a control group and 1–9 selects it again. With nothing selected, right-click to plant a rally flag for new creatures. Velvet ropes reroute the bad luck. A few elite creatures, like the tanks, have an ability on E.</div>
     <div><b>Merge</b>The right pairs fuse into something new. Chip Mites and Dice Sprites can merge three times over. Select both and press M.</div>
     <div><b>Outlast</b>Rival casinos face the same waves. The last casino standing wins. So does surviving round 40.</div>
    </div>
