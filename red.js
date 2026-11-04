@@ -115,9 +115,9 @@ dogGo=function(){const D=ARC.dog,S=dogStory();if(!D||D.running||S.banned||G.me.c
   const step=()=>{if(ARC.dog!==D)return;const now=performance.now();
     if(n>=5&&!halt&&D.u>=.5){halt={t:now,u:D.u};Snd.play('whistle');D.last='<b>A whistle!</b> Someone is walking out onto the track…';const r=$('#arcBody .slres');if(r)r.innerHTML=D.last;}
     if(halt){const k=Math.min(1,(now-halt.t)/650);D.u=halt.u+.05*(1-(1-k)*(1-k));if(k>=1){D.R.stop=true;const cv=$('#dogCv');if(cv)drawTrack(cv,'dog',D.field,D.R,D.u);dogMP(D);return;}}
-    else D.u=Math.min(1.12,(now-t0)/dur*1.12);
+    else D.u=Math.min(1.24,(now-t0)/dur*1.12);
     const cv=$('#dogCv');if(cv)drawTrack(cv,'dog',D.field,D.R,D.u);
-    if(halt||D.u<1.12)requestAnimationFrame(step);else{D.running=false;const w=D.R.win,f=D.field[w];
+    if(halt||D.u<1.24)requestAnimationFrame(step);else{D.running=false;const w=D.R.win,f=D.field[w];
       if(w===D.pick){const amt=Math.round(D.paid*f.odds);G.me.chips+=amt;gambleTally(amt);G.stats.earned+=amt-D.paid;D.last=`${esc(f.name)} wins! You collect ${fmt(amt)} chips.`;Snd.play('win');
         if(f.odds>=6){for(let i=0;i<40;i++)confetti();gameLog(`Dog track: ${f.name} came in at ${f.odds.toFixed(1)}. +${fmt(amt)} chips.`,'good');}}
       else{D.last=`${esc(f.name)} wins. Your dog finished down the field.`;Snd.play('fold');}
@@ -157,15 +157,16 @@ function dogAdopt(){const S=dogStory();if(S.red)return;S.red=true;
    Side view, facing right, at one scale for every pose. ph is the gallop phase (0..1): a double-suspension
    gallop that stretches out fully in flight, then gathers all four legs under a flexed spine. */
 const RED_DK=shade(RED_COAT,-.3),RED_LT=shade(RED_COAT,.38),RED_BELLY='#f2dcc8';
+const RED_PAL={c:RED_COAT,d:RED_DK,b:RED_BELLY};
 function greyLeg(c,x,y,a1,a2,L1,L2,w,col,paw){c.save();c.translate(x,y);c.rotate(a1);c.strokeStyle=col;c.lineCap='round';c.lineJoin='round';c.lineWidth=w;
   c.beginPath();c.moveTo(0,0);c.lineTo(0,L1);c.translate(0,L1);c.rotate(a2);c.lineTo(0,L2);c.stroke();c.fillStyle=col;c.beginPath();c.ellipse(paw*1.2,L2,w*.85,w*.55,0,0,TAU);c.fill();c.restore();}
-function drawGreyhound(c,pose,ph,s){s=s||1;c.save();c.scale(s,s);
+function drawGreyhound(c,pose,ph,s,P){s=s||1;P=P||RED_PAL;c.save();c.scale(s,s);
   const run=pose==='run',S=run?Math.sin(ph*TAU):0,C=run?Math.cos(ph*TAU):0;
   // flight is highest when fully stretched or fully gathered; the body stretches and flexes through the stride
   const lift=run?-2.2*Math.abs(S)-.6:0,stretch=run?1+.07*S:1,arch=run?-1.8*S:0;c.translate(0,lift);
   const chestX=9*stretch,hipX=-12*stretch,backY=-9+arch*.4;
   // far legs first (darker), then the body, then the near legs
-  const legs=(far)=>{const col=far?RED_DK:RED_COAT,off=far?.08:0,p2=ph+off,s2=run?Math.sin(p2*TAU):0,c2=run?Math.cos(p2*TAU):0;
+  const legs=(far)=>{const col=far?P.d:P.c,off=far?.08:0,p2=ph+off,s2=run?Math.sin(p2*TAU):0,c2=run?Math.cos(p2*TAU):0;
     if(run){// front: reach forward in flight, fold back under when gathered
       greyLeg(c,chestX-1,-2,-1.05*s2-.1,s2>0?-.1*s2:1.15*(-s2)+.15,8.2,8.4,far?1.8:2.1,col,1);
       // hind: drive back in flight, swing forward under the belly when gathered
@@ -173,19 +174,21 @@ function drawGreyhound(c,pose,ph,s){s=s||1;c.save();c.scale(s,s);
     else if(pose==='stand'){greyLeg(c,chestX-1+(far?1.5:0),-2,-.04,.05,8.2,8.3,far?1.8:2.1,col,1);greyLeg(c,hipX+1+(far?1.5:0),-4,.32,-.5,8.6,9.4,far?2:2.4,col,1);}};
   legs(true);
   // tail: long, thin, a low sweep with a hook at the end
-  c.strokeStyle=RED_COAT;c.lineWidth=1.5;c.lineCap='round';c.beginPath();const tw=run?3*C:0;c.moveTo(hipX-3,-5);c.quadraticCurveTo(hipX-10,2+tw,hipX-16,0+tw*.7);c.quadraticCurveTo(hipX-19,-1+tw*.5,hipX-19.5,-3.5+tw*.4);c.stroke();
+  c.strokeStyle=P.c;c.lineWidth=1.5;c.lineCap='round';c.beginPath();const tw=run?3*C:0;c.moveTo(hipX-3,-5);c.quadraticCurveTo(hipX-10,2+tw,hipX-16,0+tw*.7);c.quadraticCurveTo(hipX-19,-1+tw*.5,hipX-19.5,-3.5+tw*.4);c.stroke();
   // body: deep chest, tucked waist, arched loin, rounded rump
-  c.fillStyle=RED_COAT;c.beginPath();c.moveTo(chestX+3,-6);c.quadraticCurveTo(chestX+5.5,-1,chestX+2,3.2);c.quadraticCurveTo(chestX-4,5,chestX-8,1.6);
+  c.fillStyle=P.c;c.beginPath();c.moveTo(chestX+3,-6);c.quadraticCurveTo(chestX+5.5,-1,chestX+2,3.2);c.quadraticCurveTo(chestX-4,5,chestX-8,1.6);
   c.quadraticCurveTo(-2,-2.6+arch*.3,hipX+3,-1.5);c.quadraticCurveTo(hipX-1,1.2,hipX-4,-2.5);c.quadraticCurveTo(hipX-5,-7,hipX+1,backY+1.5);c.quadraticCurveTo((hipX+chestX)/2,backY-2.2+arch,chestX-1,backY+.6);c.quadraticCurveTo(chestX+2.5,-9,chestX+3,-6);c.fill();
-  c.fillStyle=RED_BELLY;c.beginPath();c.moveTo(chestX+3.6,-3);c.quadraticCurveTo(chestX+3,2.4,chestX-1,3);c.quadraticCurveTo(chestX+1.2,0,chestX+3.6,-3);c.fill();
-  c.fillStyle=RED_DK;c.globalAlpha=.35;c.beginPath();c.ellipse((hipX+chestX)/2,backY+1.4,9*stretch,1.3,0,0,TAU);c.fill();c.globalAlpha=1;
+  c.fillStyle=P.b;c.beginPath();c.moveTo(chestX+3.6,-3);c.quadraticCurveTo(chestX+3,2.4,chestX-1,3);c.quadraticCurveTo(chestX+1.2,0,chestX+3.6,-3);c.fill();
+  c.fillStyle=P.d;c.globalAlpha=.35;c.beginPath();c.ellipse((hipX+chestX)/2,backY+1.4,9*stretch,1.3,0,0,TAU);c.fill();c.globalAlpha=1;
+  if(P.jacket)greyJacket(c,P,chestX,hipX,backY,arch);
   // neck and head: long neck, wedge head, long snout, folded rose ear
   const hb=run?.9*S:0,hx=chestX+(run?11+1.5*S:7.5),hy=(run?-12.5:-16.5)+hb;
-  c.fillStyle=RED_COAT;c.beginPath();c.moveTo(chestX-2.5,-7.8);c.quadraticCurveTo(chestX+(run?4:2.5),hy-(run?1.5:2.5),hx-2.5,hy-1.6);c.lineTo(hx+.5,hy+2.4);c.quadraticCurveTo(chestX+(run?5.5:4.5),hy+4,chestX+3.6,-4.5);c.closePath();c.fill();
+  c.fillStyle=P.c;c.beginPath();c.moveTo(chestX-2.5,-7.8);c.quadraticCurveTo(chestX+(run?4:2.5),hy-(run?1.5:2.5),hx-2.5,hy-1.6);c.lineTo(hx+.5,hy+2.4);c.quadraticCurveTo(chestX+(run?5.5:4.5),hy+4,chestX+3.6,-4.5);c.closePath();c.fill();
   c.beginPath();c.moveTo(hx-3.5,hy-1);c.quadraticCurveTo(hx-1,hy-4.2,hx+2.6,hy-2.6);c.lineTo(hx+9.5,hy+.6);c.quadraticCurveTo(hx+10.2,hy+1.8,hx+9,hy+2.3);c.lineTo(hx+1,hy+3.3);c.quadraticCurveTo(hx-3,hy+3,hx-3.5,hy-1);c.fill();
-  c.fillStyle=RED_BELLY;c.beginPath();c.moveTo(hx+3,hy+2.6);c.lineTo(hx+9,hy+2.2);c.lineTo(hx+4,hy+3.3);c.closePath();c.fill();
+  c.fillStyle=P.b;c.beginPath();c.moveTo(hx+3,hy+2.6);c.lineTo(hx+9,hy+2.2);c.lineTo(hx+4,hy+3.3);c.closePath();c.fill();
   c.fillStyle='#1b1b22';c.beginPath();c.arc(hx+9.6,hy+1,1,0,TAU);c.fill();c.beginPath();c.arc(hx+2.2,hy-.8,.9,0,TAU);c.fill();
-  c.fillStyle=RED_DK;c.beginPath();c.moveTo(hx-1.2,hy-2.4);c.quadraticCurveTo(hx-4.5,hy-4.6,hx-6,hy-2.2);c.quadraticCurveTo(hx-3.5,hy-1.6,hx-1,hy-1);c.closePath();c.fill();
+  c.fillStyle=P.d;c.beginPath();c.moveTo(hx-1.2,hy-2.4);c.quadraticCurveTo(hx-4.5,hy-4.6,hx-6,hy-2.2);c.quadraticCurveTo(hx-3.5,hy-1.6,hx-1,hy-1);c.closePath();c.fill();
+  if(P.muzzle)greyMuzzle(c,hx,hy);
   legs(false);
   c.restore();}
 // curled up asleep: legs tucked, head on the paws, tail wrapped round, at the same scale as the running dog

@@ -33,7 +33,7 @@ const res=await p.evaluate(({strat,diff,runs,MAXW})=>{
       // ---- minigames ----
       if(G.phase==='mini'&&typeof MG!=='undefined'&&MG){
         if(S.gamble&&MG.kind==='roulette'&&MG.state==='bet'&&G.me.chips>20){const before=G.me.chips;MG.bet=Math.min(100,G.me.chips);MG.choice=['red','black','odd','high'][(Math.random()*4)|0];rouSpin();if(MG&&MG.state==='spin')rouSettle();gambled++;gambleIn+=G.me.chips-before;}
-        else if(S.gamble&&MG.kind==='blackjack'&&MG.state==='bet'&&G.me.chips>20){const before=G.me.chips;MG.bet=Math.min(100,G.me.chips);bjDeal();while(MG&&MG.state==='play'&&bjVal(MG.ph)<17)bjHit();if(MG&&MG.state==='play')bjStand();gambled++;gambleIn+=G.me.chips-before;}
+        else if(S.gamble&&MG.kind==='blackjack'&&MG.state==='bet'&&G.me.chips>20){const before=G.me.chips;MG.bet=Math.min(100,G.me.chips);bjDeal();if(typeof bjDealNow!=='undefined')bjDealNow(MG);while(MG&&MG.state==='play'&&bjVal(MG.ph)<17)bjHit();if(MG&&MG.state==='play')bjStand();gambled++;gambleIn+=G.me.chips-before;}
         if(MG)closeMinigame();}
       if(G.phase==='perk'&&G.perkPending){const o=G.perkPending.offer;perkChoose(o.find(k=>!PERKS[k].deck)||o[0]);}
       // ---- poker ----
