@@ -10,7 +10,7 @@ const {chromium}=require('playwright');
   await p.evaluate(()=>{
     const fan=[10,11,12,13,14].map((v,i)=>cardHTML({v,s:'S'},i,'').replace('class="card','style="--a:'+((i-2)*15)+'deg;--d:0s" class="card')).join('');
     const stk=(cols,n,cls)=>`<div class="stk ${cls}">${Array.from({length:n},(_,i)=>`<i style="--c:${cols[i%cols.length]}"></i>`).join('')}</div>`;
-    const crew=['m_jugg','q_hi','sig_hearts','m_bandit','m_engine','m_empress','m_knox','fh_hi'];
+    const crew=['m_house','q_hi','sig_hearts','m_chimera','m_leviathan','m_empress','m_casino','fh_hi'];
     const card=document.createElement('div');card.id='og';
     card.innerHTML=`<div class="ogbg"></div><div class="ttl" style="margin:0"><div class="fan">${fan}</div><div class="sign"><div class="bulbs"></div><div class="logo big">ALL IN</div><div class="tagl">Poker · Defense</div></div></div>
       <div class="crew">${crew.map(k=>`<canvas data-k="${k}"></canvas>`).join('')}</div>
