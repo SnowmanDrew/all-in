@@ -248,7 +248,7 @@ function attack(u,e,st){
   const mk=(tgt,mult,extra)=>({sx:u.x,sy:u.y-u.r*.4,x:u.x,y:u.y-u.r*.4,tg:tgt,tx:tgt.x,ty:tgt.y,spd:520,dmg:st.dmg*(mult||1),u,col,...extra});
   if(kind==='melee'&&sp.throw&&!e.def.boss&&!e.def.mini&&!e.def.fly){throwEnemy(u,e,st);return;}
   if(kind==='melee'){
-    const tags=o=>{if(sp.curse)o.curseT=4;if(sp.stun&&rnd()<sp.stun&&!o.def.boss)o.stun=Math.max(o.stun,.5);if(sp.slow){o.slow=Math.max(o.slow,sp.slow*(o.def.boss?.5:1));o.slowT=1.6;}};
+    const tags=o=>{if(sp.curse){o.curseT=4;o.curseK=.4;}if(sp.stun&&rnd()<sp.stun&&!o.def.boss)o.stun=Math.max(o.stun,.5);if(sp.slow){o.slow=Math.max(o.slow,sp.slow*(o.def.boss?.5:1));o.slowT=1.6;}};
     if(sp.cleave){for(const o of G.enemies)if(!o.dead&&Math.hypot(o.x-e.x,o.y-e.y)<sp.cleave+o.r){tags(o);hitEnemy(o,st.dmg*(o===e?1:.6),u);}G.fx.push({t:'ring',x:e.x,y:e.y,r0:6,r1:sp.cleave,col:'#fde68a',life:.25,max:.25,w:2});}
     else{tags(e);hitEnemy(e,st.dmg,u);}
     {const L=u.def.look,arms=L.arms||[],st2=L.b==='hound'||L.b==='chimera'||L.b==='crab'?'claw':L.weapon==='gloves'||L.weapon==='knuckles'||arms.includes('fist')||L.bulk?'punch':L.weapon==='spear'||L.b==='rider'?'thrust':'blade';
@@ -300,10 +300,10 @@ function chainHit(u,first,dmg,n,col){
 }
 function segDist(px,py,x1,y1,x2,y2){const dx=x2-x1,dy=y2-y1,l=dx*dx+dy*dy;let t=((px-x1)*dx+(py-y1)*dy)/l;t=clamp(t,0,1);return Math.hypot(px-(x1+t*dx),py-(y1+t*dy));}
 function hitEnemy(e,dmg,u,opt){
-  if(e.dead)return;let crit=false;if(e.invulnT>0){e.flash=.03;if(G.texts.length<40&&rnd()<.08)floatText(e.x,e.y-e.r-6,'Locked','#fde047',10);return;}if(e.curseT>0)dmg*=1.4;
+  if(e.dead)return;let crit=false;if(e.invulnT>0){e.flash=.03;if(G.texts.length<40&&rnd()<.08)floatText(e.x,e.y-e.r-6,'Locked','#fde047',10);return;}if(e.curseT>0)dmg*=1+(e.curseK||.4);
   if(G._lkT!==G.time){G._lkT=G.time;G._luck=0;for(const o of G.units)if(o.def.sp&&o.def.sp.luck)G._luck+=o.def.sp.luck;}
   if(u&&u.def&&((G._luck&&rnd()<G._luck)||(u.lucky&&rnd()<.2))){dmg*=2;crit=true;}if(u&&u.wishT>0)dmg*=1.3;
-  if(opt&&opt.curse){if(!(e.curseT>0)&&G.texts.length<50)floatText(e.x,e.y-e.r-8,'Cursed','#c084fc',10);e.curseT=4;}
+  if(opt&&opt.curse){if(!(e.curseT>0)&&G.texts.length<50)floatText(e.x,e.y-e.r-8,'Cursed','#c084fc',10);e.curseT=4;e.curseK=.4;}
   if(opt&&opt.execute&&!e.def.boss&&!e.def.mini&&e.hp/e.maxHp<opt.execute){floatText(e.x,e.y-e.r-10,'WANTED','#fbbf24',12);dmg=e.hp+e.armor+(e.shield||0)+1;}
   if(!crit&&opt&&opt.crit&&rnd()<opt.crit){dmg*=opt.critX;crit=true;}
   dmg=Math.max(dmg*.2,dmg-e.armor);if(e.shield>0){const ab=Math.min(e.shield,dmg);e.shield-=ab;dmg-=ab;if(dmg<=0){e.flash=.04;return;}}e.hp-=dmg;e.flash=.08;if(e.def.stealth)e.revealT=1.6;G.stats.dmg+=dmg;if(G.round)G.round.dmg+=dmg;if(u&&u.dmgDone!=null){u.dmgDone+=dmg;u.rdmg=(u.rdmg||0)+dmg;}

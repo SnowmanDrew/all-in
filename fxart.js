@@ -7,7 +7,7 @@ function glowDot(c,x,y,r,col,a){const g=c.createRadialGradient(x,y,0,x,y,r);g.ad
 
 drawProj=function(c,p,t){
   // lobbed shells: missiles, dice, ink and cannonballs
-  if(p.shell){const k=Math.min(1,p.el/p.T),py=p.y-p.h;
+  if(p.shell){if(p.h==null)p.h=0;const k=Math.min(1,p.el/p.T),py=p.y-p.h;
     c.fillStyle=`rgba(0,0,0,${.18+.25*(1-p.h/80)})`;c.beginPath();c.ellipse(p.x,p.y,4+3*(1-p.h/80),2+1.4*(1-p.h/80),0,0,TAU);c.fill();
     if(p.missile){const a=Math.atan2((p.ty-p.sy)-Math.cos(k*Math.PI)*80*Math.PI,(p.tx-p.sx));
       for(let i=1;i<=5;i++){const bx=p.x-Math.cos(a)*i*6,by=py-Math.sin(a)*i*6+i*.8;c.fillStyle=`rgba(190,180,200,${.32-i*.05})`;c.beginPath();c.arc(bx,by,2+i*.9,0,TAU);c.fill();}
