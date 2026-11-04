@@ -38,7 +38,7 @@ const COACH_STEPS=[
   {id:'move',when:()=>G.sel.length>0&&G.phase!=='mini',done:()=>COACH.flag.moved,at:'#boardWrap',
     text:'<b>Right-click</b> a spot to send it there. With a few creatures, <b>right-drag</b> to spread them along a line. Hold <b>Shift</b> to queue orders.'},
   {id:'rope',when:()=>G.wave>=2&&G.phase==='hand'&&G.me.chips>=40,done:()=>G.barricades>0,at:'[data-c="rope"]',
-    text:'<b>Velvet ropes</b> (V): paint them across the street. Bad luck has to walk around, which buys your army time to hit it.'},
+    text:'With your casino selected, <b>Velvet ropes</b> (V): paint them across the street. Bad luck has to walk around, which buys your army time to hit it.'},
   {id:'merge',when:()=>G.units.some(u=>recipesFor(u.k).some(r=>G.units.some(o=>o!==u&&o.k===r.partner))),done:()=>(G.stats.merges||0)>0,at:'[data-c="merge"]',
     text:'Two of your creatures can <b>merge</b> into something stronger. Select one, then press <b>Merge</b> (M) or its recipe button.'},
   {id:'ability',when:()=>G.phase==='wave'&&G.units.some(u=>u.def.ab&&ABIL[u.def.ab].type!=='toggle'),done:()=>COACH.flag.cast,at:'#boardWrap',

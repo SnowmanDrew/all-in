@@ -240,7 +240,7 @@ function uiConfirmDraw(){const hs=humanSeat();if(hs&&hs.disc.size)uiSwap();else 
 
 /* ---------- selection pane ---------- */
 let paneSig='';
-function paneSignature(){if(!G)return '';if(G.inspect&&G.inspect.dead)G.inspect=null;if(G.inspect&&!G.sel.length)return 'E'+G.inspect.id;const s=G.sel;let k=s.map(u=>u.id).join(',');if(s.length===1)k+='|'+(s[0].rank||0)+'|'+recipesFor(s[0].k).map(r=>G.units.some(o=>o!==s[0]&&o.k===r.partner)?1:0).join('');if(!s.length)k+='c'+G.workers.length+G.workers.filter(w=>w.mode==='repair').length+G.base.tier+G.base.cannon+G.up.dmg+G.up.hp+G.barricades+G.base.plate;return k;}
+function paneSignature(){if(!G)return '';if(G.inspect&&G.inspect.dead)G.inspect=null;if(G.inspect&&!G.sel.length)return 'E'+G.inspect.id;const s=G.sel;let k=s.map(u=>u.id).join(',');if(s.length===1)k+='|'+(s[0].rank||0)+'|'+recipesFor(s[0].k).map(r=>G.units.some(o=>o!==s[0]&&o.k===r.partner)?1:0).join('');if(!s.length&&!G.selBase)return 'none';if(!s.length)k+='c'+G.workers.length+G.workers.filter(w=>w.mode==='repair').length+G.base.tier+G.base.cannon+G.up.dmg+G.up.hp+G.barricades+G.base.plate;return k;}
 function statHTML(ic,val,tip){return `<span class="st" data-tip="${tip}">${icon(ic)}<b>${val}</b></span>`;}
 function enemyTraits(e){const d=e.def,out=[];
   {const MV={summon:'Summoner',dash:'Charger',shield:'Shield',edge:'Trickster',slam:'Ground slam'},m=d.mini?'slam':e.move||bossMove(e);if(d.moves)out.push(['crown','Secret boss',d.movesDesc]);else if(d.boss&&typeof bossInfo==='function'&&e.k==='boss'){const I=bossInfo();out.push(['crown','Boss · '+I.move,I.moveDesc]);}else if(d.boss||d.mini)out.push(['crown',(d.boss?'Boss':'Mini-boss')+' · '+MV[m],BOSS_MOVE_DESC[m]||'']);}
@@ -258,6 +258,7 @@ function buildPane(){
       <div class="stats">${statHTML('armor',Math.round(e.armor),'Armor: flat damage soaked from every hit')}${statHTML('speed',Math.round(e.spd),'Speed')}${statHTML('casino',Math.round(d.bite*.6*10)/10,'Damage to your casino per bite')}${statHTML('dmg',d.dmg,'Damage to your creatures per hit')}${statHTML('chips',d.gold+Math.floor(G.wave/8),'Chips paid when busted')}</div></div></div>
       <div class="edesc">${e.k==='boss'&&typeof bossInfo==='function'?bossInfo().desc:ENEMY_DESC[e.k]||''}</div>${tr.length?`<div class="etraits">${tr.map(([ic,n,tp])=>`<span data-tip="${n}|${tp}">${icon(ic)}${n}</span>`).join('')}</div>`:''}`;
     enemyPortrait(box.querySelector('.por'),e.k,92);return;}
+  if(!s.length&&!G.selBase){box.innerHTML=`<div class="pempty"><b>Nothing selected</b><small>Click your casino (B) for upgrades, croupiers and ropes, or drag across your creatures to command them.</small></div>`;return;}
   if(!s.length){box.innerHTML=`<div class="ph"><canvas class="por big" id="casPor"></canvas><div class="pmain"><div class="pname">Your casino</div><div class="hp"><i data-f="hp"></i></div><div class="hpt" data-f="hpt"></div>
       <div class="stats">${statHTML('croupier',G.workers.filter(w=>w.mode!=='repair').length+'/'+G.workers.filter(w=>w.mode==='repair').length,'Croupiers gathering / repairing')}${statHTML('casino',CASINO_TIERS[G.base.tier].name.split(' ')[0],CASINO_TIERS[G.base.tier].name)}${statHTML('rope',G.barricades,'Velvet ropes laid')}${statHTML('dmg','+'+G.up.dmg*12+'%','Creature damage bonus')}${statHTML('hp','+'+G.up.hp*12+'%','Creature health bonus')}</div></div></div><div class="dmeter" data-f="dmeter"></div>`;
     const c=$('#casPor').getContext('2d');$('#casPor').width=184;$('#casPor').height=184;c.scale(2,2);c.fillStyle='#1d1229';c.fillRect(14,16,64,60);c.fillStyle='#38224f';c.fillRect(24,24,44,44);
@@ -309,9 +310,10 @@ const CMD_DEF={
   croupier:{k:'croupier',ic:'croupier',up:1},dmg:{k:'dmg',ic:'dmg',up:1},hp:{k:'hp',ic:'hp',up:1}};
 const CMD_SETS={
   unit:['amove','stop','hold','merge','all',{abSlot:0},{abSlot:1},{abSlot:2},{abSlot:3},'base',{abSlot:4},{abSlot:5},{abSlot:6},{abSlot:7},null],
-  base:['rally','rope','crRepair','crGather','all','casino','croupier','dmg','hp',null,null,null,null,null,null]};
+  base:['rally','rope','crRepair','crGather','all','casino','croupier','dmg','hp',null,null,null,null,null,null],
+  none:Array(15).fill(null)};
 let CMD_CTX=null;
-const cmdCtx=()=>G&&G.sel.length?'unit':'base';
+const cmdCtx=()=>!G?'none':G.sel.length?'unit':G.selBase?'base':'none';
 const AB_KEYS=['E','D','G'];
 // every ability has its own key, always the same one (Bombardment and Rocket Salvo share R: both are artillery)
 const ABIL_KEY={siege:'E',deadshot:'D',fan:'W',storm:'X',lullaby:'Z',thunder:'T',barrage:'R',salvo:'R',frag:'G',inferno:'I',haymaker:'K',lockdown:'O',jackpot:'U',fanknives:'C',pounce:'N',decree:'Q'};
@@ -413,7 +415,7 @@ cv.addEventListener('pointerup',ev=>{if(NET.watch&&NET.watch.full)return;
   ropePaint=null;if(!drag||!G)return;const d=drag;drag=null;let picked=[];
   if(d.box){const x0=Math.min(d.x0,d.x1),x1=Math.max(d.x0,d.x1),y0=Math.min(d.y0,d.y1),y1=Math.max(d.y0,d.y1);picked=G.units.filter(u=>u.x>=x0-u.r&&u.x<=x1+u.r&&u.y>=y0-u.r&&u.y<=y1+u.r);}
   else{const u=unitAt(d.x0,d.y0);if(u){const now=performance.now();picked=now-lastClick.t<320&&lastClick.k===u.k?G.units.filter(o=>o.k===u.k):[u];lastClick={t:now,k:u.k};}
-    else if(!d.shift){const e=enemyAt(d.x0,d.y0);if(e){G.inspect=e;G.sel=[];G.units.forEach(o=>o.sel=false);Snd.play('click');refreshPane(true);refreshCmd();return;}
+    else if(!d.shift){const e=enemyAt(d.x0,d.y0);if(e){G.inspect=e;G.sel=[];G.selBase=false;G.units.forEach(o=>o.sel=false);Snd.play('click');refreshPane(true);refreshCmd();return;}
       if(onCasino(d.x0,d.y0)){selectBase();return;}
       if(typeof mapClick==='function')mapClick(d.x0,d.y0);}}
   if(picked.length||!d.shift)G.inspect=null;

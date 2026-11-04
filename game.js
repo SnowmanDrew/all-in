@@ -560,7 +560,7 @@ function localEndWave(w){
 function newGame(dk,mp){
   const d=DIFFS[dk];setupMap();
   G={diffKey:dk,diff:d,time:0,wave:0,phase:'break',breakT:1.2,waveT:0,spawnQ:[],enemies:[],units:[],proj:[],eproj:[],fx:[],parts:[],texts:[],marks:[],workers:[],
-     sel:[],groups:Array(10).fill(null),mode:null,nid:1,speed:1,paused:false,over:false,running:true,freeplay:false,shake:0,barricades:0,dealerIdx:-1,
+     sel:[],selBase:true,groups:Array(10).fill(null),mode:null,nid:1,speed:1,paused:false,over:false,running:true,freeplay:false,shake:0,barricades:0,dealerIdx:-1,
      ko:[],zones:[],snipes:[],traps:[],fires:[],vortex:[],decreeT:0,base:{hp:100,maxHp:100,tier:0,reinf:0,plate:0,cannon:1,ccd:0,cang:-Math.PI/2},up:{dmg:0,hp:0},outOrder:[],
      stats:{kills:0,dmg:0,earned:0,leaks:0,merges:0,got:{},best:-1},
      players:[{human:true,name:'You',col:'#e9c46a',chips:d.start,alive:true,face:'★',hp:100,maxHp:100,power:0}].concat(RIVALS.map(r=>({...r,human:false,chips:d.start,alive:true,hp:100,maxHp:100,power:12,lastUnit:null,lastDmg:0})))};
