@@ -62,3 +62,9 @@ flyHand=function(ev,units){
 .flycard.live{box-shadow:0 0 0 2px #fde047,0 0 18px rgba(253,224,71,.85),0 0 40px rgba(255,61,154,.45)!important}
 .sumflare{position:fixed;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;z-index:41;pointer-events:none;background:radial-gradient(circle,#fff 0 30%,rgba(253,224,71,.8) 45%,rgba(255,61,154,0) 72%);animation:sumFl .5s ease-out forwards}
 @keyframes sumFl{0%{transform:scale(.4);opacity:1}40%{transform:scale(4.2);opacity:.95}100%{transform:scale(6);opacity:0}}`;document.head.appendChild(st);}
+// the first time you make a merged creature, its reveal gets a moment too
+{const _mu=mergeUnits;mergeUnits=function(a,b){const out=a&&b?mergeResult(a.k,b.k):null,first=!!out&&typeof Meta!=='undefined'&&Meta.data&&!Meta.data.seen[out];
+  const u=_mu.apply(this,arguments);
+  if(u&&first&&!u.def.secret){setTimeout(()=>{if(!G||u.dead)return;floatText(u.x,u.y-u.r*2.4-14,'NEW! '+u.def.name,'#fde047',15);for(let i=0;i<24;i++)chipBit(u.x,u.y-u.r*2,200);
+      G.fx.push({t:'ring',x:u.x,y:u.y,r0:6,r1:60,col:'#fde047',life:.6,max:.6,w:3});Snd.play('sparkle');},320);}
+  return u;};}

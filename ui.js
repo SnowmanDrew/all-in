@@ -240,6 +240,8 @@ function uiConfirmDraw(){const hs=humanSeat();if(hs&&hs.disc.size)uiSwap();else 
 
 /* ---------- selection pane ---------- */
 let paneSig='';
+// merge results stay a surprise until you've made that creature once
+const mergeKnown=k=>typeof Meta!=='undefined'&&Meta.data&&Meta.data.seen&&!!Meta.data.seen[k];
 function paneSignature(){if(!G)return '';if(G.inspect&&G.inspect.dead)G.inspect=null;if(G.inspect&&!G.sel.length)return 'E'+G.inspect.id;const s=G.sel;let k=s.map(u=>u.id).join(',');if(s.length===1)k+='|'+(s[0].rank||0)+'|'+recipesFor(s[0].k).map(r=>G.units.some(o=>o!==s[0]&&o.k===r.partner)?1:0).join('');if(!s.length&&!G.selBase)return 'none';if(!s.length)k+='c'+G.workers.length+G.workers.filter(w=>w.mode==='repair').length+G.base.tier+G.base.cannon+G.up.dmg+G.up.hp+G.barricades+G.base.plate;return k;}
 function statHTML(ic,val,tip){return `<span class="st" data-tip="${tip}">${icon(ic)}<b>${val}</b></span>`;}
 function enemyTraits(e){const d=e.def,out=[];
@@ -269,13 +271,13 @@ function buildPane(){
       <div class="stats">${statHTML('dmg','<span data-f="dmg"></span>','Damage per hit')}${statHTML('rate',d.rate.toFixed(1),'Attacks per second')}${statHTML('range',d.range<30?'Melee':d.range,'Range')}${statHTML('armor',d.armor||0,'Armor')}${statHTML('kills','<span data-f="k"></span>',u.rank>=3?'Kills · Legend':'Kills · next rank at '+rankNeed(u.k,(u.rank||0)+1))}${statHTML('zap','<span data-f="dd"></span>','Damage dealt this game')}</div></div></div>
       ${d.detect?`<div class="etraits" style="margin-top:6px"><span data-tip="Sharp eyes|Spots invisible Card Cheats within 160" style="color:#d9f6ff;background:rgba(34,225,255,.1);box-shadow:inset 0 0 0 1px rgba(34,225,255,.4)">${icon('sparkles')}Sharp eyes</span></div>`:''}
       ${d.ab?`<div class="abchip" data-tip="${ABIL[d.ab].name} (E)|${ABIL[d.ab].desc}">${icon(ABIL[d.ab].icon)}<span>${ABIL[d.ab].name}</span><b data-f="abcd"></b></div>`:''}
-      ${rec.length?`<div class="recipes${rec.length>=4?' many':''}">${rec.map(r=>{const n=G.units.filter(o=>o!==u&&o.k===r.partner).length;return `<button class="rcp" data-p="${r.partner}" ${n?'':'disabled'} data-tip="Merge with ${UNITS[r.partner].name}|Makes ${UNITS[r.out].name}${n?'':'|You have none yet'}"><canvas data-k="${r.partner}"></canvas>${icon('next')}<canvas data-k="${r.out}"></canvas></button>`;}).join('')}</div>`:''}`;
+      ${rec.length?`<div class="recipes${rec.length>=4?' many':''}">${rec.map(r=>{const n=G.units.filter(o=>o!==u&&o.k===r.partner).length;return `<button class="rcp" data-p="${r.partner}" ${n?'':'disabled'} data-tip="Merge with ${UNITS[r.partner].name}|${mergeKnown(r.out)?'Makes '+UNITS[r.out].name:'Makes something new: merge them to find out'}${n?'':'|You have none yet'}"><canvas data-k="${r.partner}"></canvas>${icon('next')}${mergeKnown(r.out)?`<canvas data-k="${r.out}"></canvas>`:'<i class="rq">?</i>'}</button>`;}).join('')}</div>`:''}`;
     {const pc=box.querySelector('.por');pc.style.setProperty('--ring',d.sig||d.secret||d.bonus?'#c084fc':d.merge?['#22e1ff','#ff3d9a','#e0b040'][Math.min(2,(d.tier||1)-1)]:'#7d8494');pc.classList.add('ring');}
     portrait(box.querySelector('.por'),u.k,92);box.querySelectorAll('.rcp canvas').forEach(c=>portrait(c,c.dataset.k,30));
     box.querySelectorAll('.rcp').forEach(b=>b.addEventListener('click',()=>{Snd.init();mergeNearest(u,b.dataset.p);refreshPane(true);}));
     return;}
   const groups={};for(const u of s)(groups[u.k]=groups[u.k]||[]).push(u);const two=s.length===2?mergeResult(s[0].k,s[1].k):null;
-  box.innerHTML=`<div class="multi">${Object.entries(groups).map(([k,us])=>`<button class="mu" data-k="${k}" data-tip="${UNITS[k].name}|Click to select only these"><canvas></canvas><b>${us.length}</b></button>`).join('')}</div>${two?`<button class="pb main mergebig" data-a="merge">${icon('merge')} ${UNITS[two].name}</button>`:''}`;
+  box.innerHTML=`<div class="multi">${Object.entries(groups).map(([k,us])=>`<button class="mu" data-k="${k}" data-tip="${UNITS[k].name}|Click to select only these"><canvas></canvas><b>${us.length}</b></button>`).join('')}</div>${two?`<button class="pb main mergebig" data-a="merge">${icon('merge')} ${mergeKnown(two)?UNITS[two].name:'Merge: ???'}</button>`:''}`;
   box.querySelectorAll('.mu').forEach(b=>{portrait(b.querySelector('canvas'),b.dataset.k,40);b.addEventListener('click',ev=>{G.sel=ev.shiftKey?G.sel.filter(u=>u.k!==b.dataset.k):G.sel.filter(u=>u.k===b.dataset.k);G.units.forEach(u=>u.sel=G.sel.includes(u));refreshPane(true);});});
   const mb=box.querySelector('[data-a=merge]');if(mb)mb.addEventListener('click',()=>{Snd.init();doMerge();});
 }
