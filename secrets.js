@@ -133,7 +133,7 @@ function cloverCheck(u){const E=G.egg;if(!E||!E.clover||E.cloverFound)return;if(
 function drawEggs(c,t){const E=G.egg;if(!E)return;
   // motel sign
   {const o=OBST.find(o=>o.k==='motel');if(o){const x=(o.c+o.w/2)*TILE,y=o.r*TILE+22,on=Math.sin(t*3)>-.85;c.save();c.font='700 9px Barlow,sans-serif';c.textAlign='center';c.textBaseline='middle';
-    const txt=E.noVac?'NO VACANCY':'VACANCY',col=E.noVac?'#ff3b5a':'#4ade80';c.shadowColor=col;c.shadowBlur=on?8:0;c.fillStyle=on?col:hexA(col,.35);c.fillText(txt,x,y);c.restore();}}
+    const txt=G.motelTxt||(E.noVac?'NO VACANCY':'VACANCY'),col=G.motelTxt?G.motelCol:E.noVac?'#ff3b5a':'#4ade80';c.shadowColor=col;c.shadowBlur=on?8:0;c.fillStyle=on?col:hexA(col,.35);c.fillText(txt,x,y);c.restore();}}
   // the clover
   if(E.clover&&!E.cloverFound){const {x,y}=E.clover,g=.35+.25*Math.max(0,Math.sin(t*1.3));c.save();c.globalAlpha=g;c.fillStyle='#22c55e';for(let k=0;k<4;k++){const a=k*Math.PI/2+.4;c.beginPath();c.arc(x+Math.cos(a)*2.6,y+Math.sin(a)*2.6,2.4,0,TAU);c.fill();}
     c.strokeStyle='#15803d';c.lineWidth=1;c.beginPath();c.moveTo(x,y);c.lineTo(x+2,y+5);c.stroke();if(Math.sin(t*1.3)>.97){c.globalAlpha=.9;c.fillStyle='#fff';c.fillRect(x-.5,y-6,1,4);c.fillRect(x-2,y-4.5,4,1);}c.restore();}
