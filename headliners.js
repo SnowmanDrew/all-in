@@ -190,8 +190,8 @@ function drawHlGround(c,t){const now=G.time;
 /* ---------- what you see: over the top ---------- */
 function drawHlTop(c,t){for(const u of G.units){if(u.dead)continue;
   // Vacancy: the word in neon and the next one underneath
-  if(u.k==='hl_vac'){const s=u.vs||0,words=['VACANCY','NO VACANCY','CLOSED'],cols=['#4ade80','#ff3b5a','#fbbf24'],x=u.x-u.r*.08,y=u.y-u.r*2.2-(u.jh||0);
-    c.save();c.font=`900 ${u.r*.34}px Barlow,sans-serif`;c.textAlign='center';c.textBaseline='middle';c.shadowColor='#fb7185';c.shadowBlur=5;c.fillStyle='#fda4af';c.fillText('MOTEL',u.x-u.r*.08,u.y-u.r*.95-(u.jh||0));c.restore();
+  if(u.k==='hl_vac'){const s=u.vs||0,words=['VACANCY','NO VACANCY','CLOSED'],cols=['#4ade80','#ff3b5a','#fbbf24'],x=u.x-u.r*.05,y=u.y-u.r*2.25-(u.jh||0);
+
     {c.save();c.font=`700 ${s===1?7:8}px Bungee,Impact,sans-serif`;const tw=c.measureText(words[s]).width+8;c.fillStyle='rgba(11,6,18,.8)';rr(c,x-tw/2,y-6,tw,12,4);c.fill();c.restore();}
     const flick=G.phase==='wave'&&u.vsT<.6&&Math.sin(t*40)>0;c.save();c.textAlign='center';c.textBaseline='middle';c.font=`700 ${s===1?7:8}px Bungee,Impact,sans-serif`;
     c.shadowColor=cols[s];c.shadowBlur=flick?0:8;c.fillStyle=flick?hexA(cols[s],.35):cols[s];c.fillText(words[s],x,y);c.shadowBlur=0;
@@ -202,6 +202,8 @@ function drawHlTop(c,t){for(const u of G.units){if(u.dead)continue;
     for(let i=0;i<4;i++){const on=i<b||(b===0&&p>0),last=i===3,px=x-9+i*6;c.fillStyle=on?(last?'#fde047':'#f472b6'):'rgba(255,255,255,.22)';c.beginPath();c.arc(px,y,last?2.2:1.7,0,TAU);c.fill();}
     if(b===3){c.strokeStyle=`rgba(253,224,71,${.5+.5*Math.sin(t*10)})`;c.lineWidth=1;c.beginPath();c.arc(x+9,y,3.6,0,TAU);c.stroke();}c.restore();}}}
 {const _t=drawTopWarn;drawTopWarn=function(c,t){_t(c,t);if(!G)return;try{drawHlTop(c,t);}catch(e){}};}
+// a sign doesn't turn round: Vacancy never mirrors, so MOTEL always reads the right way
+{const _du=drawUnit;drawUnit=function(c,u,t){if(u.k!=='hl_vac')return _du(c,u,t);const f=u.face;u.face=1;try{_du(c,u,t);}finally{u.face=f;}};}
 // All-You-Can-Eat swells up while it digests
 {const _du=drawUnit;drawUnit=function(c,u,t){if(u.k==='hl_eat'&&u.dig>0){const k=Math.min(1,(3.2-u.dig)/.25,u.dig/.3),s=1+.24*k+.03*Math.sin(t*9)*k,fy=u.y+u.r*VIS_U*.82;
     c.save();c.translate(u.x,fy);c.scale(s,s);c.translate(-u.x,-fy);_du(c,u,t);c.restore();return;}return _du(c,u,t);};}
@@ -239,29 +241,35 @@ BEAST.glutton=(c,s,L,t,atk)=>{const w=TW,st=Math.sin(t*w*2),c1=L.c1,c2=L.c2,dk=s
   c.save();c.translate(s*1.02,-s*.18-atk*s*.25);c.rotate(.3);c.fillStyle='#78350f';c.fillRect(-s*.04,0,s*.08,s*.2);c.fillStyle='#e2e8f0';c.beginPath();c.moveTo(-s*.04,0);c.lineTo(-s*.04,-s*.5);c.quadraticCurveTo(s*.1,-s*.4,s*.06,0);c.closePath();c.fill();c.restore();};
 
 // Fountain Nymph: rising out of her own two-tier fountain, water for hair
-BEAST.nymph=(c,s,L,t,atk)=>{const w=TW,bob=Math.sin(t*w)*s*.05,c1=L.c1,c2=L.c2;
-  // the basin
-  c.fillStyle='#64748b';c.beginPath();c.ellipse(0,s*.78,s*1.15,s*.3,0,0,TAU);c.fill();c.fillStyle='#cbd5e1';c.beginPath();c.ellipse(0,s*.7,s*1.12,s*.27,0,0,TAU);c.fill();
-  c.fillStyle='#0ea5e9';c.beginPath();c.ellipse(0,s*.66,s*.98,s*.2,0,0,TAU);c.fill();c.strokeStyle='rgba(224,242,254,.8)';c.lineWidth=1;for(let k=0;k<3;k++){const R=s*(.3+.3*((t*w*.5/TAU+k/3)%1));c.beginPath();c.ellipse(0,s*.66,R,R*.2,0,0,TAU);c.stroke();}
-  c.fillStyle='#94a3b8';c.fillRect(-s*.16,s*.35,s*.32,s*.32);
-  // her body: water, gathered into a woman's shape
-  {const g=c.createLinearGradient(0,-s*1.2,0,s*.6);g.addColorStop(0,c2);g.addColorStop(.45,c1);g.addColorStop(1,'#0284c7');c.fillStyle=g;}
-  c.beginPath();c.moveTo(-s*.5,s*.6);c.quadraticCurveTo(-s*.42,s*.05,-s*.22,-s*.18+bob);c.quadraticCurveTo(-s*.3,-s*.4+bob,-s*.18,-s*.55+bob);c.lineTo(s*.2,-s*.55+bob);c.quadraticCurveTo(s*.32,-s*.4+bob,s*.22,-s*.18+bob);c.quadraticCurveTo(s*.42,s*.05,s*.5,s*.6);c.closePath();c.fill();
-  c.strokeStyle='rgba(240,249,255,.7)';c.lineWidth=1;for(let k=0;k<3;k++){c.beginPath();const y=s*(.05+k*.18)+bob*.5;c.moveTo(-s*.3+k*s*.04,y);c.quadraticCurveTo(0,y+s*.06*Math.sin(t*w+k),s*.3-k*s*.04,y);c.stroke();}
-  // arms raised, a jet arcing from each hand
-  const lift=atk*s*.25;for(const sx of [-1,1]){c.strokeStyle=c1;c.lineWidth=s*.13;c.lineCap='round';c.beginPath();c.moveTo(sx*s*.2,-s*.45+bob);c.quadraticCurveTo(sx*s*.55,-s*.6+bob,sx*s*.62,-s*.95-lift+bob);c.stroke();
-    c.strokeStyle='rgba(165,243,252,.85)';c.lineWidth=s*.07;c.beginPath();c.moveTo(sx*s*.62,-s*1.0-lift+bob);c.quadraticCurveTo(sx*s*1.15,-s*1.45-lift,sx*s*1.25,s*.55);c.stroke();
-    c.fillStyle='#e0f2fe';for(let k=0;k<3;k++){const q=((t*w/TAU)*2+k/3)%1;c.beginPath();c.arc(sx*s*(.7+.55*q),-s*1.1-lift+q*q*s*1.7,s*.045,0,TAU);c.fill();}}
-  // head and flowing water hair
-  c.fillStyle=c2;c.beginPath();c.arc(0,-s*.78+bob,s*.27,0,TAU);c.fill();
-  c.fillStyle=c1;c.beginPath();c.moveTo(-s*.28,-s*.86+bob);c.quadraticCurveTo(-s*.15,-s*1.18+bob,s*.18,-s*1.08+bob);c.quadraticCurveTo(s*.4,-s*1.0+bob,s*.3,-s*.75+bob);c.quadraticCurveTo(s*.42,-s*.4,s*.32+Math.sin(t*w)*s*.08,-s*.05);
-  c.quadraticCurveTo(-s*.05,-s*.35+bob,-s*.36,-s*.08);c.quadraticCurveTo(-s*.48,-s*.5+bob,-s*.28,-s*.86+bob);c.fill();
-  c.fillStyle='rgba(240,249,255,.6)';c.beginPath();c.ellipse(-s*.08,-s*.98+bob,s*.12,s*.04,-.4,0,TAU);c.fill();
-  eye(c,-s*.02,-s*.8+bob,s*.08);eye(c,s*.14,-s*.8+bob,s*.08);c.strokeStyle='#0369a1';c.lineWidth=1;c.beginPath();c.arc(s*.06,-s*.7+bob,s*.06,.3,Math.PI-.3);c.stroke();
-  // a little crown of shells and pearls
-  for(let k=0;k<3;k++){const x=-s*.12+k*s*.13;c.fillStyle=k===1?'#fbcfe8':'#fde68a';c.beginPath();c.moveTo(x-s*.06,-s*1.0+bob);c.lineTo(x,-s*1.14+bob);c.lineTo(x+s*.06,-s*1.0+bob);c.fill();}
-  c.fillStyle='#fff';c.beginPath();c.arc(s*.01,-s*1.02+bob,s*.03,0,TAU);c.fill();};
-
+BEAST.nymph=(c,s,L,t,atk)=>{const w=TW,bob=Math.sin(t*w)*s*.04,skin='#a5f3fc',hair='#0e7490',hl='#ecfeff';
+  // the lower basin, its water rippling
+  c.fillStyle='#475569';c.beginPath();c.ellipse(0,s*.8,s*1.2,s*.3,0,0,TAU);c.fill();c.fillStyle='#cbd5e1';c.beginPath();c.ellipse(0,s*.72,s*1.17,s*.27,0,0,TAU);c.fill();
+  c.fillStyle='#0284c7';c.beginPath();c.ellipse(0,s*.68,s*1.02,s*.2,0,0,TAU);c.fill();c.strokeStyle='rgba(224,242,254,.8)';c.lineWidth=1;for(let k=0;k<3;k++){const R=s*(.35+.6*((t*w*.5/TAU+k/3)%1));c.beginPath();c.ellipse(0,s*.68,R,R*.2,0,0,TAU);c.stroke();}
+  // little jets round the rim, arcing outwards
+  for(let k=0;k<6;k++){const a=k/6*TAU+.3,x=Math.cos(a)*s*.95,y=s*.68+Math.sin(a)*s*.2,dir=Math.sign(Math.cos(a))||1,hh=s*(.28+.1*Math.sin(t*w*2+k));c.strokeStyle='rgba(186,230,253,.8)';c.lineWidth=1.4;c.beginPath();c.moveTo(x,y);c.quadraticCurveTo(x+dir*s*.1,y-hh,x+dir*s*.22,y-hh*.2);c.stroke();}
+  // her hair: water pouring down her back into the basin
+  {const g=c.createLinearGradient(0,-s*1.1,0,s*.7);g.addColorStop(0,hair);g.addColorStop(1,'rgba(14,116,144,.55)');c.fillStyle=g;}
+  c.beginPath();c.moveTo(-s*.12,-s*1.02+bob);c.quadraticCurveTo(-s*.62,-s*.8+bob,-s*.55,-s*.2);c.quadraticCurveTo(-s*.62+Math.sin(t*w)*s*.06,s*.3,-s*.78,s*.64);c.lineTo(-s*.35,s*.64);c.quadraticCurveTo(-s*.3,0,-s*.05,-s*.6+bob);c.closePath();c.fill();
+  c.strokeStyle='rgba(236,254,255,.7)';c.lineWidth=1;for(let k=0;k<3;k++){c.beginPath();c.moveTo(-s*(.2+k*.12),-s*.9+bob);c.quadraticCurveTo(-s*(.55+k*.04),-s*.2,-s*(.5+k*.08),s*.6);c.stroke();}
+  // body rising out of the water
+  {const g=c.createLinearGradient(0,-s*.6,0,s*.65);g.addColorStop(0,skin);g.addColorStop(.6,'#22d3ee');g.addColorStop(1,'#0284c7');c.fillStyle=g;}
+  c.beginPath();c.moveTo(-s*.42,s*.66);c.quadraticCurveTo(-s*.32,s*.1,-s*.2,-s*.12+bob);c.quadraticCurveTo(-s*.26,-s*.36+bob,-s*.14,-s*.5+bob);c.lineTo(s*.16,-s*.5+bob);c.quadraticCurveTo(s*.28,-s*.36+bob,s*.2,-s*.12+bob);c.quadraticCurveTo(s*.32,s*.1,s*.42,s*.66);c.closePath();c.fill();
+  // a dress of falling water, scalloped like a fountain tier
+  c.fillStyle='rgba(236,254,255,.55)';for(let k=0;k<5;k++){const x=-s*.36+k*s*.18;c.beginPath();c.ellipse(x,s*.22+Math.sin(t*w*2+k)*s*.02,s*.1,s*.05,0,0,Math.PI);c.fill();}
+  // arms: one raised, one sweeping out, a stream from the raised hand
+  const lift=atk*s*.22;c.strokeStyle=skin;c.lineWidth=s*.12;c.lineCap='round';c.beginPath();c.moveTo(s*.14,-s*.42+bob);c.quadraticCurveTo(s*.45,-s*.62+bob,s*.5,-s*.98-lift+bob);c.stroke();
+  c.beginPath();c.moveTo(-s*.14,-s*.4+bob);c.quadraticCurveTo(-s*.4,-s*.25+bob,-s*.55,-s*.38+bob);c.stroke();
+  c.strokeStyle='rgba(165,243,252,.9)';c.lineWidth=s*.08;c.beginPath();c.moveTo(s*.52,-s*1.04-lift+bob);c.quadraticCurveTo(s*.95,-s*1.4-lift,s*1.05,-s*.2);c.stroke();
+  c.fillStyle=hl;for(let k=0;k<3;k++){const q=((t*w/TAU)*2+k/3)%1;c.beginPath();c.arc(s*(.6+.45*q),-s*1.15-lift+q*q*s*1.1,s*.045,0,TAU);c.fill();}
+  // head
+  c.fillStyle=skin;c.beginPath();c.arc(0,-s*.76+bob,s*.25,0,TAU);c.fill();
+  c.fillStyle=hair;c.beginPath();c.moveTo(-s*.26,-s*.78+bob);c.quadraticCurveTo(-s*.18,-s*1.08+bob,s*.14,-s*1.04+bob);c.quadraticCurveTo(s*.3,-s*.98+bob,s*.27,-s*.82+bob);c.quadraticCurveTo(s*.05,-s*.95+bob,-s*.12,-s*.82+bob);c.closePath();c.fill();
+  c.fillStyle='rgba(236,254,255,.7)';c.beginPath();c.ellipse(-s*.02,-s*.98+bob,s*.1,s*.03,-.3,0,TAU);c.fill();
+  eye(c,s*.0,-s*.76+bob,s*.075);eye(c,s*.14,-s*.76+bob,s*.075);c.strokeStyle='#0e7490';c.lineWidth=1;c.beginPath();c.arc(s*.07,-s*.67+bob,s*.06,.3,Math.PI-.3);c.stroke();
+  c.fillStyle='#f9a8d4';c.globalAlpha=.6;c.beginPath();c.arc(-s*.08,-s*.68+bob,s*.04,0,TAU);c.arc(s*.22,-s*.68+bob,s*.04,0,TAU);c.fill();c.globalAlpha=1;
+  // shell crown
+  for(let k=0;k<3;k++){const x=-s*.12+k*s*.13;c.fillStyle=k===1?'#fbcfe8':'#fde68a';c.beginPath();c.moveTo(x-s*.06,-s*.98+bob);c.lineTo(x,-s*1.13+bob);c.lineTo(x+s*.06,-s*.98+bob);c.fill();}
+  c.fillStyle='#fff';c.beginPath();c.arc(s*.01,-s*1.0+bob,s*.03,0,TAU);c.fill();};
 // The King: white jumpsuit, gold, cape, collar up, the quiff
 BEAST.king=(c,s,L,t,atk)=>{human(c,s,L,t,atk);c.save();c.scale(1.32,1.32);const ty=-s*.3,hx=s*.04,hy=ty-s*.28;
   // collar up
@@ -276,22 +284,23 @@ BEAST.king=(c,s,L,t,atk)=>{human(c,s,L,t,atk);c.save();c.scale(1.32,1.32);const 
 BEAST.motelsign=(c,s,L,t,atk)=>{const w=TW,st=Math.sin(t*w*2),c1=L.c1,c2=L.c2;
   // two posts for legs
   for(const [x,ph] of [[-s*.38,st],[s*.32,-st]]){c.fillStyle='#475569';c.fillRect(x-s*.08,s*.15,s*.16,s*.65+ph*s*.04);c.fillStyle='#1e293b';rr(c,x-s*.2,s*.76+ph*s*.04,s*.4,s*.14,s*.05);c.fill();}
-  // the board
-  c.fillStyle='#0b3b36';rr(c,-s*.78,-s*1.1,s*1.42,s*1.32,s*.14);c.fill();c.fillStyle=c1;rr(c,-s*.72,-s*1.04,s*1.3,s*1.2,s*.12);c.fill();
-  c.fillStyle='#0b0612';rr(c,-s*.6,-s*.38,s*1.06,s*.36,s*.06);c.fill();
-  // MOTEL down the top in pink neon
-  c.fillStyle=shade(c1,-.3);rr(c,-s*.6,-s*.92,s*1.06,s*.3,s*.06);c.fill();
-  // chaser bulbs round the board
-  for(let k=0;k<16;k++){const q=k/16,per=4.4;let x,y;const d=q*per;if(d<1.3){x=-s*.66+d*s;y=-s*.98;}else if(d<2.2){x=s*.64-s*.06;y=-s*.98+(d-1.3)*s*1.2;}else if(d<3.5){x=s*.58-(d-2.2)*s;y=s*.1;}else{x=-s*.66;y=s*.1-(d-3.5)*s*1.2;}
-    const on=(k+Math.floor(t*w*1.5))%3===0;c.fillStyle=on?'#fff7d6':'#a16207';c.beginPath();c.arc(x,y,s*.045,0,TAU);c.fill();}
-  // the big arrow out of the top, pointing at the door
-  c.save();c.translate(s*.35,-s*1.15);c.rotate(.35);c.fillStyle='#be123c';c.beginPath();c.moveTo(-s*.55,-s*.12);c.lineTo(s*.35,-s*.12);c.lineTo(s*.35,-s*.3);c.lineTo(s*.7,0);c.lineTo(s*.35,s*.3);c.lineTo(s*.35,s*.12);c.lineTo(-s*.55,s*.12);c.closePath();c.fill();
-  for(let k=0;k<6;k++){const on=(k+Math.floor(t*w*2))%2===0;c.fillStyle=on?'#fde68a':'#7f1d1d';c.beginPath();c.arc(-s*.45+k*s*.17,0,s*.04,0,TAU);c.fill();}c.restore();
-  // a star on top
-  c.save();c.translate(-s*.45,-s*1.28);c.rotate(t*w*.5);c.fillStyle='#fde047';c.beginPath();for(let k=0;k<10;k++){const a=-Math.PI/2+k*Math.PI/5,R=k%2?s*.08:s*.2;c.lineTo(Math.cos(a)*R,Math.sin(a)*R);}c.closePath();c.fill();c.restore();
-  // little LED eyes, and an arm that swings out when it zaps
-  c.fillStyle='#86efac';c.beginPath();c.arc(-s*.3,-s*.53,s*.06,0,TAU);c.arc(s*.12,-s*.53,s*.06,0,TAU);c.fill();
-  c.strokeStyle='#475569';c.lineWidth=s*.1;c.lineCap='round';c.beginPath();c.moveTo(s*.6,-s*.2);c.lineTo(s*.95,-s*.35-atk*s*.3);c.stroke();c.fillStyle='#86efac';c.beginPath();c.arc(s*.98,-s*.38-atk*s*.3,s*.09+atk*s*.05,0,TAU);c.fill();};
+  // a googie board: tall, leaning, rounded at the top
+  c.fillStyle='#0b3b36';c.beginPath();c.moveTo(-s*.8,s*.24);c.lineTo(-s*.76,-s*.95);c.quadraticCurveTo(-s*.7,-s*1.32,-s*.25,-s*1.3);c.lineTo(s*.62,-s*1.12);c.quadraticCurveTo(s*.72,-s*1.08,s*.7,-s*.95);c.lineTo(s*.66,s*.24);c.closePath();c.fill();
+  c.fillStyle=c1;c.beginPath();c.moveTo(-s*.73,s*.18);c.lineTo(-s*.7,-s*.93);c.quadraticCurveTo(-s*.65,-s*1.24,-s*.25,-s*1.23);c.lineTo(s*.58,-s*1.06);c.quadraticCurveTo(s*.65,-s*1.03,s*.63,-s*.93);c.lineTo(s*.6,s*.18);c.closePath();c.fill();
+  // the name band (the lettering is lit over the top in neon), then a row of rooms with their lights on
+  c.fillStyle='#3b0a1e';rr(c,-s*.62,-s*1.0,s*1.16,s*.34,s*.08);c.fill();c.strokeStyle=c2;c.lineWidth=1.2;rr(c,-s*.62,-s*1.0,s*1.16,s*.34,s*.08);c.stroke();
+  c.fillStyle='#fda4af';c.font=`900 ${s*.27}px Barlow,sans-serif`;c.textAlign='center';c.textBaseline='middle';c.fillText('MOTEL',-s*.04,-s*.82);
+  c.fillStyle='#134e4a';c.fillRect(-s*.62,-s*.5,s*1.16,s*.5);c.fillStyle='#0f766e';c.fillRect(-s*.62,-s*.56,s*1.16,s*.07);
+  for(let k=0;k<4;k++){const x=-s*.55+k*s*.28,lit=(k+Math.floor(t*w*.5))%4!==1;c.fillStyle='#7c2d12';c.fillRect(x,-s*.38,s*.11,s*.36);c.fillStyle=lit?'#fde68a':'#1e293b';c.fillRect(x+s*.13,-s*.36,s*.1,s*.12);c.fillStyle='#fbbf24';c.beginPath();c.arc(x+s*.08,-s*.2,s*.015,0,TAU);c.fill();}
+  // chaser bulbs down both edges
+  for(let k=0;k<7;k++){const on=(k+Math.floor(t*w*1.5))%3===0;c.fillStyle=on?'#fff7d6':'#a16207';c.beginPath();c.arc(-s*.68,-s*.85+k*s*.16,s*.04,0,TAU);c.arc(s*.59,-s*.85+k*s*.16,s*.04,0,TAU);c.fill();}
+  // the big arrow swooping round, pointing at the door
+  c.save();c.translate(s*.6,-s*.35);c.fillStyle='#be123c';c.beginPath();c.moveTo(-s*.1,-s*.95);c.quadraticCurveTo(s*.45,-s*.85,s*.4,-s*.05);c.lineTo(s*.58,-s*.05);c.lineTo(s*.3,s*.3);c.lineTo(s*.02,-s*.05);c.lineTo(s*.2,-s*.05);c.quadraticCurveTo(s*.22,-s*.68,-s*.1,-s*.75);c.closePath();c.fill();
+  for(let k=0;k<5;k++){const on=(k+Math.floor(t*w*2))%2===0,q=k/5;c.fillStyle=on?'#fde68a':'#7f1d1d';c.beginPath();c.arc(s*(-.02+.36*Math.sin(q*1.5)),-s*(.85-q*.75),s*.035,0,TAU);c.fill();}c.restore();
+  // a starburst on top
+  c.save();c.translate(-s*.45,-s*1.38);c.rotate(t*w*.5);c.strokeStyle='#fde047';c.lineWidth=s*.05;for(let k=0;k<8;k++){c.rotate(TAU/8);c.beginPath();c.moveTo(0,s*.04);c.lineTo(0,s*(k%2?.16:.26));c.stroke();}c.fillStyle='#fde047';c.beginPath();c.arc(0,0,s*.07,0,TAU);c.fill();c.restore();
+  // an arm that swings out when it zaps
+  c.strokeStyle='#475569';c.lineWidth=s*.1;c.lineCap='round';c.beginPath();c.moveTo(-s*.72,-s*.2);c.lineTo(-s*1.02,-s*.42-atk*s*.3);c.stroke();c.fillStyle='#86efac';c.beginPath();c.arc(-s*1.05,-s*.45-atk*s*.3,s*.09+atk*s*.05,0,TAU);c.fill();};
 for(const b of ['glutton','motelsign'])WALKERS.add(b);
 // The King's microphone
 {const _wp=weapon;weapon=function(c,r,o,hx,hy,atk,front){if(o.weapon!=='mic')return _wp(c,r,o,hx,hy,atk,front);

@@ -22,10 +22,10 @@ Object.assign(UNITS,{
    look:{b:'magician',face:'sly',body:'#111827',coat:true,bowtie:'#dc2626',hat:'top',hatCol:'#111827',cape:'#991b1b',mustache:'#111827',skin:'#e8c9a4',weapon:'wand',shot:'card',mouth:'grin'},
    desc:'A card sharp with a genie for an assistant. Throws cards, and on command saws one enemy in half: it is boxed up for a moment, then takes huge damage, and if it survives it comes out as two weak, slow halves that bite half as hard.'},
  sec_zero:{name:'Lady Zero',role:'Wheel queen',secret:true,bonus:true,hand:9,hp:1450,dmg:44,rate:1.2,range:170,spd:84,r:13,armor:3,kind:'ranged',sp:{},how:'Hit zero on Roulette Night',
-   look:{b:'ladyzero',face:'sly',body:'#065f46',gown:true,sequins:'#fde68a',hair:'#111827',skin:'#e8c9a4',mouth:'grin',weapon:'ball',shot:'ball',aura:'#34d399'},
+   look:{b:'ladyzero',face:'sly',body:'#111827',gown:true,sequins:'#fde68a',hair:'#111827',skin:'#e8c9a4',mouth:'grin',weapon:'ball',shot:'ball'},
    desc:'Zero came up and she stepped off the wheel. A roulette wheel turns on the street around her: bad luck on red burns, on black it slows, and on green it stops dead and her next ball at it hits three times as hard.'},
  sec_counter:{name:'Card Counter',role:'Blackjack pro',secret:true,bonus:true,hand:9,hp:950,dmg:52,rate:1.5,range:185,spd:92,r:12,armor:2,kind:'ranged',sp:{},ab:'hitme',how:'Hit a natural blackjack on Blackjack Night',
-   look:{b:'counter',face:'sly',body:'#475569',hat:'cap',hatCol:'#1e293b',goggles:'#0b0612',skin:'#e8c9a4',pants:'#1e293b',weapon:'shoe',shot:'card',mouth:'flat'},
+   look:{b:'counter',face:'sly',body:'#6d28d9',skin:'#e8c9a4',pants:'#1e293b',weapon:'cardfan',shot:'card',mouth:'flat'},
    desc:'Every shot deals him a card. On 17 or more he stands and fires a hit that grows with the hand: 21 is a big blast, a two-card blackjack is bigger. He can always see the next card coming; Hit me takes it. Over 21 and he busts, stunned for a moment.'},
  sec_steeple:{name:'Steeplechaser',role:'Jump jockey',secret:true,bonus:true,hand:9,hp:1700,dmg:72,rate:1,range:26,spd:160,r:15,armor:4,kind:'melee',sp:{},how:'Win on a long shot at Derby Night',
    look:{b:'steeple',face:'beady',c1:'#a8a29e',c2:'#f5f5f4',silk:'#15803d',silk2:'#f8fafc',num:'7'},
@@ -248,23 +248,48 @@ BEAST.magician=(c,s,L,t,atk)=>{const w=TW;
   for(let k=0;k<2;k++){const a=t*w+k*Math.PI,x=s*.85+Math.cos(a)*s*.22,y=-s*1.05+Math.sin(a)*s*.12;c.save();c.translate(x,y);c.scale(Math.max(.2,Math.abs(Math.cos(a*1.5))),1);c.fillStyle='#fbf6e8';rr(c,-s*.1,-s*.14,s*.2,s*.28,s*.03);c.fill();
     c.fillStyle=k?'#dc2626':'#111827';c.font=`700 ${s*.16}px Barlow,sans-serif`;c.textAlign='center';c.textBaseline='middle';c.fillText(k?'♥':'♠',0,0);c.restore();}};
 // Lady Zero: green gown, a roulette ball held high, a little wheel for a tiara
-BEAST.ladyzero=(c,s,L,t,atk)=>{human(c,s,L,t,atk);c.save();c.scale(1.32,1.32);const hy=-s*.58;c.translate(s*.04,hy-s*.38);
-  c.fillStyle='#b45309';c.beginPath();c.arc(0,0,s*.15,0,TAU);c.fill();for(let i=0;i<8;i++){c.fillStyle=i===0?'#16a34a':i%2?'#111827':'#dc2626';c.beginPath();c.moveTo(0,0);c.arc(0,0,s*.12,i*TAU/8+t*TW*.5,(i+1)*TAU/8+t*TW*.5);c.closePath();c.fill();}
-  c.fillStyle='#fde68a';c.beginPath();c.arc(0,0,s*.04,0,TAU);c.fill();c.restore();};
+BEAST.ladyzero=(c,s,L,t,atk)=>{human(c,s,L,t,atk);c.save();c.scale(1.32,1.32);const tw=s*.74,ty=-s*.3,hy=-s*.58;
+  // her skirt is the wheel: red and black panels, zero green down the front, a gold hem
+  const y0=s*.28,y1=s*1.02,n=7,sway=Math.sin(t*TW)*s*.03;c.save();c.beginPath();c.moveTo(-tw*.46,y0);c.lineTo(tw*.46,y0);c.lineTo(tw*.8+sway,y1);c.lineTo(-tw*.8+sway,y1);c.closePath();c.clip();
+  for(let i=0;i<n;i++){const a=-tw*.46+i*tw*.92/n,b=a+tw*.92/n,A=-tw*.8+i*tw*1.6/n+sway,B=A+tw*1.6/n;c.fillStyle=i===3?'#16a34a':i%2?'#111827':'#dc2626';c.beginPath();c.moveTo(a,y0);c.lineTo(b,y0);c.lineTo(B,y1);c.lineTo(A,y1);c.closePath();c.fill();}
+  c.fillStyle='#fde68a';for(let i=0;i<n;i++){const x=-tw*.8+(i+.5)*tw*1.6/n+sway;c.beginPath();c.arc(x,y1-s*.08,s*.03,0,TAU);c.fill();}c.restore();
+  c.fillStyle='#d4a12a';c.beginPath();c.moveTo(-tw*.8+sway,y1);c.lineTo(tw*.8+sway,y1);c.lineTo(tw*.82+sway,y1+s*.05);c.lineTo(-tw*.82+sway,y1+s*.05);c.closePath();c.fill();
+  c.fillStyle='#d4a12a';c.fillRect(-tw*.48,y0-s*.04,tw*.96,s*.06);
+  // a roulette wheel for a tiara
+  c.translate(s*.04,hy-s*.42);c.fillStyle='#b45309';c.beginPath();c.arc(0,0,s*.2,0,TAU);c.fill();
+  for(let i=0;i<10;i++){c.fillStyle=i===0?'#16a34a':i%2?'#111827':'#dc2626';c.beginPath();c.moveTo(0,0);c.arc(0,0,s*.165,i*TAU/10+t*TW*.5,(i+1)*TAU/10+t*TW*.5);c.closePath();c.fill();}
+  c.fillStyle='#fde68a';c.beginPath();c.arc(0,0,s*.05,0,TAU);c.fill();c.fillStyle='#fff';c.beginPath();c.arc(Math.cos(-t*TW)*s*.13,Math.sin(-t*TW)*s*.13,s*.025,0,TAU);c.fill();c.restore();};
 // Card Counter: hood up, shades on, shoe in hand
-BEAST.counter=(c,s,L,t,atk)=>{human(c,s,L,t,atk);c.save();c.scale(1.32,1.32);const hy=-s*.58,hx=s*.04;
-  c.strokeStyle='#e5e7eb';c.lineWidth=.6;c.beginPath();c.moveTo(hx-s*.26,hy+s*.06);c.quadraticCurveTo(hx-s*.3,hy+s*.4,hx-s*.12,hy+s*.55);c.stroke();c.fillStyle='#f8fafc';c.beginPath();c.arc(hx-s*.26,hy+s*.05,s*.04,0,TAU);c.fill();
-  c.fillStyle='rgba(255,255,255,.5)';c.fillRect(hx-s*.2,hy-s*.08,s*.06,s*.025);c.restore();};
+BEAST.counter=(c,s,L,t,atk)=>{
+  // hood down, bunched behind the neck
+  c.save();c.scale(1.32,1.32);c.fillStyle=shade(L.body,-.2);c.beginPath();c.ellipse(-s*.1,-s*.36,s*.3,s*.16,-.2,0,TAU);c.fill();c.restore();
+  human(c,s,L,t,atk);c.save();c.scale(1.32,1.32);const hy=-s*.58,hx=s*.04,ty=-s*.3;
+  // an ace of spades printed big on the hoodie, drawstrings
+  c.fillStyle='#f8fafc';rr(c,-s*.17,ty+s*.14,s*.3,s*.38,s*.04);c.fill();c.fillStyle='#0b0612';signShape(c,'spade',-s*.02,ty+s*.31,s*.1)();c.fill();
+  c.strokeStyle='#e5e7eb';c.lineWidth=.6;c.beginPath();c.moveTo(-s*.08,ty+s*.02);c.lineTo(-s*.1,ty+s*.14);c.moveTo(s*.06,ty+s*.02);c.lineTo(s*.07,ty+s*.14);c.stroke();
+  // earbud, and the shades catch the light
+  c.beginPath();c.moveTo(hx-s*.26,hy+s*.06);c.quadraticCurveTo(hx-s*.3,hy+s*.4,hx-s*.12,hy+s*.55);c.stroke();c.fillStyle='#f8fafc';c.beginPath();c.arc(hx-s*.26,hy+s*.05,s*.04,0,TAU);c.fill();
+  // short messy hair and proper shades: two lenses and a bridge
+  c.fillStyle='#3f2a17';c.beginPath();c.ellipse(hx-s*.02,hy-s*.22,s*.33,s*.15,-.1,Math.PI,TAU);c.fill();for(let k=0;k<4;k++){c.beginPath();c.moveTo(hx-s*.28+k*s*.16,hy-s*.26);c.lineTo(hx-s*.2+k*s*.16,hy-s*.4);c.lineTo(hx-s*.14+k*s*.16,hy-s*.26);c.fill();}
+  c.fillStyle='#0b0612';rr(c,hx-s*.25,hy-s*.12,s*.21,s*.13,s*.05);c.fill();rr(c,hx+s*.03,hy-s*.12,s*.21,s*.13,s*.05);c.fill();c.fillRect(hx-s*.05,hy-s*.1,s*.09,s*.03);
+  c.fillStyle='rgba(125,211,252,.85)';c.fillRect(hx-s*.21,hy-s*.1,s*.07,s*.025);c.fillRect(hx+s*.07,hy-s*.1,s*.07,s*.025);c.restore();};
 // The Bookie: fedora, braces, a stub of pencil behind the ear and a cigar
 BEAST.bookie=(c,s,L,t,atk)=>{human(c,s,L,t,atk);c.save();c.scale(1.32,1.32);const hy=-s*.58,hx=s*.04;
   c.fillStyle='#fde68a';c.save();c.translate(hx-s*.24,hy-s*.06);c.rotate(-.6);c.fillRect(-s*.02,-s*.12,s*.04,s*.22);c.fillStyle='#f472b6';c.fillRect(-s*.02,-s*.14,s*.04,s*.04);c.restore();
   c.fillStyle='#78350f';c.fillRect(hx+s*.2,hy+s*.12,s*.2,s*.05);c.fillStyle='#f97316';c.fillRect(hx+s*.38,hy+s*.12,s*.03,s*.05);
   c.fillStyle='rgba(226,232,240,.5)';const q=(t*TW/TAU)%1;c.beginPath();c.arc(hx+s*.45+q*s*.1,hy+s*.05-q*s*.3,s*(.03+q*.05),0,TAU);c.fill();c.restore();};
 // Steeplechaser: the horse in green-and-white silks, with an ear bonnet and a breastplate
-BEAST.steeple=(c,s,L,t,atk)=>{drawCreature(c,Object.assign({},L,{b:'horse'}),s,t,atk);
-  const g=t*TW*2,bob=Math.sin(g*2)*s*.05;c.save();c.translate(0,bob);
-  c.fillStyle=L.silk;c.beginPath();c.ellipse(s*1.12,-s*.82,s*.18,s*.12,.55,Math.PI,TAU);c.fill();c.beginPath();c.moveTo(s*.98,-s*.94);c.lineTo(s*.97,-s*1.14);c.lineTo(s*1.05,-s*.95);c.fill();
-  c.strokeStyle='#f8fafc';c.lineWidth=s*.06;c.beginPath();c.moveTo(s*.62,-s*.42);c.quadraticCurveTo(s*.8,-s*.15,s*.62,s*.08);c.stroke();c.strokeStyle=L.silk;c.lineWidth=s*.03;c.stroke();c.restore();};
+BEAST.steeple=(c,s,L,t,atk)=>{const ph=(t/SPP)%1,hop=Math.max(0,Math.sin(ph*TAU));
+  // a jump jockey's horse: always up on its toes, rearing into the next fence
+  c.save();c.translate(0,-hop*s*.16);c.rotate(-.18-.14*hop);drawCreature(c,Object.assign({},L,{b:'horse'}),s,t,atk);
+  // dapples on the grey coat
+  c.fillStyle='rgba(71,85,105,.38)';for(const [x,y,r] of [[-.62,.05,.09],[-.45,.18,.07],[-.3,.02,.08],[-.15,.2,.06],[.05,.12,.08],[.25,.2,.06],[-.7,-.12,.06]]){c.beginPath();c.arc(x*s,y*s,r*s,0,TAU);c.fill();}
+  // sheepskin noseband, plaited mane bobbles
+  c.fillStyle='#f8fafc';c.save();c.translate(s*1.2,-s*.68);c.rotate(.55);c.beginPath();c.ellipse(0,0,s*.09,s*.16,0,0,TAU);c.fill();c.restore();
+  c.fillStyle=L.silk;for(let k=0;k<4;k++){const q=k/4;c.beginPath();c.arc(s*(.55+q*.36),-s*(.36+q*.55),s*.045,0,TAU);c.fill();}
+  // the tail tied up short for the fences
+  c.fillStyle=L.silk;c.fillRect(-s*.9,-s*.15,s*.08,s*.1);
+  c.restore();};
 for(const b of ['clawcab','steeple'])WALKERS.add(b);
 // wand, roulette ball, card shoe, odds slate; fedora
 {const _wp=weapon;weapon=function(c,r,o,hx,hy,atk,front){const wp=o.weapon;
@@ -273,6 +298,8 @@ for(const b of ['clawcab','steeple'])WALKERS.add(b);
   if(wp==='ball'){const y=hy-r*.18-atk*r*.15;c.save();c.globalCompositeOperation='lighter';glowDot(c,hx,y,r*.28,'#4ade80',.5);c.restore();c.fillStyle='#f8fafc';c.beginPath();c.arc(hx,y,r*.1,0,TAU);c.fill();c.fillStyle='#fff';c.beginPath();c.arc(hx-r*.03,y-r*.03,r*.03,0,TAU);c.fill();return;}
   if(wp==='shoe'){c.save();c.translate(hx,hy);c.rotate(-.15);c.fillStyle='#14532d';rr(c,-r*.1,-r*.14,r*.38,r*.24,r*.04);c.fill();c.fillStyle='#166534';c.beginPath();c.moveTo(r*.28,-r*.14);c.lineTo(r*.36,-r*.04);c.lineTo(r*.28,r*.1);c.fill();
     c.fillStyle='#fbf6e8';c.fillRect(r*.12,-r*.2-atk*r*.15,r*.16,r*.12);c.restore();return;}
+  if(wp==='cardfan'){c.save();c.translate(hx,hy);c.rotate(-.5-atk*.5);for(const [k,a,col,txt] of [[0,-.35,'#111827','A'],[1,.1,'#dc2626','K']]){c.save();c.rotate(a);c.fillStyle='#0b0612';rr(c,-r*.02,-r*.36,r*.24,r*.34,r*.04);c.fill();c.fillStyle='#fbf6e8';rr(c,0,-r*.34,r*.2,r*.3,r*.03);c.fill();
+      c.fillStyle=col;signShape(c,k?'heart':'spade',r*.1,-r*.19,r*.07)();c.fill();c.restore();}c.restore();return;}
   if(wp==='slate'){c.save();c.translate(hx,hy);c.rotate(-.12);c.fillStyle='#78350f';c.fillRect(-r*.05,-r*.42,r*.5,r*.38);c.fillStyle='#1f2937';c.fillRect(-r*.02,-r*.39,r*.44,r*.32);
     c.strokeStyle='#e5e7eb';c.lineWidth=r*.025;for(let k=0;k<3;k++){const y=-r*.32+k*r*.09;c.beginPath();c.moveTo(r*.04,y);c.lineTo(r*.18,y);c.moveTo(r*.24,y);c.lineTo(r*.36,y-r*.02);c.stroke();}c.restore();return;}
   return _wp(c,r,o,hx,hy,atk,front);};}
